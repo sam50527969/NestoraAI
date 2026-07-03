@@ -84,3 +84,34 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.lead-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lead-table th,
+.lead-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #1f2937;
+}
+
+.lead-table th {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.lead-table td {
+  color: #e5e7eb;
+}
+
+.lead-table tr:hover {
+  background: #0f172a;
+}

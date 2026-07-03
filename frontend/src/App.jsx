@@ -1,3 +1,4 @@
+import TopBar from "./components/TopBar";
 import { useState } from "react";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
@@ -11,14 +12,7 @@ function App() {
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
       <main className="main">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Version 0.2</p>
-            <h1>{activePage}</h1>
-            <p>Your AI business operating system</p>
-          </div>
-          <button className="primary">Start AI</button>
-        </header>
+        <TopBar activePage={activePage} />
 
         {activePage === "Dashboard" ? (
           <Dashboard />
