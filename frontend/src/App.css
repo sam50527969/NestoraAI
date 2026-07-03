@@ -115,3 +115,29 @@ body {
 .lead-table tr:hover {
   background: #0f172a;
 }
+.lead-form {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.lead-form input {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  color: white;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.lead-form input:focus {
+  border-color: #22c55e;
+}
+
+@media (max-width: 900px) {
+  .lead-form {
+    grid-template-columns: 1fr;
+  }
+}

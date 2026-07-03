@@ -1,0 +1,56 @@
+# Nestora AI Roadmap
+
+## Vision
+
+Build an AI Business Operating System that helps entrepreneurs manage and grow their businesses through specialized AI agents.
+
+---
+
+## Current Phase
+
+Sprint Charlie
+
+Status: 🟢 In Progress
+
+### Current Objectives
+
+- Improve dashboard UI
+- Build reusable components
+- Prepare backend integration
+- Build Lead Finder
+
+---
+
+## Planned AI Agents
+
+### CEO Agent
+- Daily priorities
+- Business health
+- Revenue forecasting
+- Strategic recommendations
+
+### Research Agent
+- Find businesses
+- Analyze competitors
+- Discover opportunities
+
+### Sales Agent
+- Generate outreach
+- Track follow-ups
+- Manage pipeline
+
+### Marketing Agent
+- Create campaigns
+- Generate content ideas
+- Analyze performance
+
+### Finance Agent
+- Revenue tracking
+- Expense tracking
+- Profit analysis
+
+---
+
+## Long-Term Goal
+
+Nestora AI should become a complete operating system for small businesses where AI assists with research, sales, marketing, finance, and decision-making from one dashboard.

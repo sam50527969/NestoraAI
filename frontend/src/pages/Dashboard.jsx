@@ -1,6 +1,7 @@
+import LeadSearchForm from "../components/LeadSearchForm";
 import KPICard from "../components/KPICard";
-import StatCard from "../components/StatCard";
 import LeadTable from "../components/LeadTable";
+import { useState } from "react";
 import { sampleLeads } from "../data/sampleLeads";
 
 const kpis = [
@@ -31,19 +32,38 @@ const kpis = [
 ];
 
 function Dashboard() {
+  const [leads, setLeads] = useState(sampleLeads);
+
+  function handleLeadSearch(searchData) {
+  const businessType = searchData.businessType.toLowerCase();
+  const location = searchData.location.toLowerCase();
+  const quantity = Number(searchData.quantity) || sampleLeads.length;
+
+  const filteredLeads = sampleLeads
+    .filter((lead) => {
+      const matchesCategory = lead.category.toLowerCase().includes(businessType);
+      const matchesLocation = lead.location.toLowerCase().includes(location);
+
+      return matchesCategory && matchesLocation;
+    })
+    .slice(0, quantity);
+
+  setLeads(filteredLeads);
+}
+
   return (
     <>
       <section className="cards">
-  {kpis.map((kpi) => (
-    <KPICard
-      key={kpi.title}
-      title={kpi.title}
-      value={kpi.value}
-      subtitle={kpi.subtitle}
-      color={kpi.color}
-    />
-  ))}
-</section>
+        {kpis.map((kpi) => (
+          <KPICard
+            key={kpi.title}
+            title={kpi.title}
+            value={kpi.value}
+            subtitle={kpi.subtitle}
+            color={kpi.color}
+          />
+        ))}
+      </section>
 
       <section className="panel">
         <div>
@@ -57,7 +77,9 @@ function Dashboard() {
         </p>
         <button className="secondary">Generate Today’s Plan</button>
       </section>
-      <LeadTable leads={sampleLeads} />
+
+      <LeadSearchForm onSearch={handleLeadSearch} />
+      <LeadTable leads={leads} />
     </>
   );
 }
