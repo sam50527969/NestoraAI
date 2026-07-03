@@ -1,4 +1,6 @@
 import StatCard from "../components/StatCard";
+import LeadTable from "../components/LeadTable";
+import { sampleLeads } from "../data/sampleLeads";
 
 const stats = [
   { label: "New Leads", value: "0", note: "Priority metric" },
@@ -32,6 +34,7 @@ function Dashboard() {
         </p>
         <button className="secondary">Generate Today’s Plan</button>
       </section>
+      <LeadTable leads={sampleLeads} />
     </>
   );
 }
