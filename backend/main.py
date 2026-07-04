@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.leads import router as leads_router
 
-app = FastAPI(title="Nestora AI Backend")
+from app.config import APP_NAME
+
+app = FastAPI(title=APP_NAME)
 
 app.add_middleware(
     CORSMiddleware,
