@@ -1,14 +1,18 @@
 import LeadSearchForm from "../components/LeadSearchForm";
 import KPICard from "../components/KPICard";
 import LeadTable from "../components/LeadTable";
-import { useState } from "react";
-import { sampleLeads } from "../data/sampleLeads";
+import { useEffect, useState } from "react";
 
+
+function Dashboard() {
+  const [allLeads, setAllLeads] = useState([]);
+  const [leads, setLeads] = useState([]);
+  
 const kpis = [
   {
     title: "New Leads",
-    value: "3",
-    subtitle: "Sample leads ready",
+    value: leads.length.toString(),
+    subtitle: "Loaded from backend",
     color: "#22c55e",
   },
   {
@@ -30,38 +34,42 @@ const kpis = [
     color: "#a78bfa",
   },
 ];
+  useEffect(() => {
+    async function loadLeads() {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/leads");
+        const data = await response.json();
+        setAllLeads(data);
+        setLeads(data);
+      } catch (error) {
+        console.error("Failed to load leads:", error);
+      }
+    }
 
-function Dashboard() {
-  const [leads, setLeads] = useState(sampleLeads);
+    loadLeads();
+  }, []);
 
   function handleLeadSearch(searchData) {
-  const businessType = searchData.businessType.toLowerCase();
-  const location = searchData.location.toLowerCase();
-  const quantity = Number(searchData.quantity) || sampleLeads.length;
+    const businessType = searchData.businessType.toLowerCase();
+    const location = searchData.location.toLowerCase();
+    const quantity = Number(searchData.quantity) || allLeads.length;
 
-  const filteredLeads = sampleLeads
-    .filter((lead) => {
-      const matchesCategory = lead.category.toLowerCase().includes(businessType);
-      const matchesLocation = lead.location.toLowerCase().includes(location);
+    const filteredLeads = allLeads
+      .filter((lead) => {
+        const matchesCategory = lead.category.toLowerCase().includes(businessType);
+        const matchesLocation = lead.location.toLowerCase().includes(location);
+        return matchesCategory && matchesLocation;
+      })
+      .slice(0, quantity);
 
-      return matchesCategory && matchesLocation;
-    })
-    .slice(0, quantity);
-
-  setLeads(filteredLeads);
-}
+    setLeads(filteredLeads);
+  }
 
   return (
     <>
       <section className="cards">
         {kpis.map((kpi) => (
-          <KPICard
-            key={kpi.title}
-            title={kpi.title}
-            value={kpi.value}
-            subtitle={kpi.subtitle}
-            color={kpi.color}
-          />
+          <KPICard key={kpi.title} {...kpi} />
         ))}
       </section>
 
