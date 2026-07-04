@@ -1,10 +1,15 @@
-function LeadTable({ leads }) {
+function LeadTable({ leads = [] }) {
+  function openMap(lead) {
+    const query = encodeURIComponent(`${lead.businessName} ${lead.location}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
+  }
+
   return (
-    <div className="panel">
+    <section className="panel">
       <div className="table-header">
         <div>
-          <p className="eyebrow">Lead Finder</p>
-          <h2>Sample Leads</h2>
+          <h2>Lead Finder</h2>
+          <p className="eyebrow">Real Business Leads</p>
         </div>
         <button className="secondary">Find More Leads</button>
       </div>
@@ -16,7 +21,8 @@ function LeadTable({ leads }) {
             <th>Category</th>
             <th>Location</th>
             <th>Phone</th>
-            <th>Email</th>
+            <th>Website</th>
+            <th>Map</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -27,14 +33,27 @@ function LeadTable({ leads }) {
               <td>{lead.businessName}</td>
               <td>{lead.category}</td>
               <td>{lead.location}</td>
-              <td>{lead.phone}</td>
-              <td>{lead.email}</td>
+              <td>{lead.phone || "Not found"}</td>
+              <td>
+                {lead.website && lead.website !== "Not found" ? (
+                  <a href={lead.website} target="_blank" rel="noreferrer">
+                    Open Website
+                  </a>
+                ) : (
+                  "Not found"
+                )}
+              </td>
+              <td>
+                <button className="small-btn" onClick={() => openMap(lead)}>
+                  Open Map
+                </button>
+              </td>
               <td>{lead.status}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
 

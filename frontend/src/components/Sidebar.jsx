@@ -1,31 +1,33 @@
-function Sidebar({ activePage, setActivePage }) {
-  const pages = [
-    "Dashboard",
-    "CEO Agent",
-    "Sales",
-    "CRM",
-    "Marketing",
-    "Finance",
+import { NavLink } from "react-router-dom";
+
+function Sidebar() {
+  const navItems = [
+    { label: "Dashboard", path: "/" },
+    { label: "Lead Finder", path: "/leads" },
+    { label: "CRM", path: "/crm" },
+    { label: "CEO Agent", path: "/ceo" },
+    { label: "Analytics", path: "/analytics" },
+    { label: "Settings", path: "/settings" },
   ];
 
   return (
     <aside className="sidebar">
-      <div>
+      <div className="brand">
         <h2>Nestora AI</h2>
-        <p className="sidebar-subtitle">
-          Business command center
-        </p>
+        <p>Business OS</p>
       </div>
 
-      <nav>
-        {pages.map((page) => (
-          <button
-            key={page}
-            className={activePage === page ? "active" : ""}
-            onClick={() => setActivePage(page)}
+      <nav className="nav">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              isActive ? "nav-item active" : "nav-item"
+            }
           >
-            {page}
-          </button>
+            {item.label}
+          </NavLink>
         ))}
       </nav>
     </aside>

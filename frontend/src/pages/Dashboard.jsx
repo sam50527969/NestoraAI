@@ -1,45 +1,44 @@
+import { useEffect, useState } from "react";
 import LeadSearchForm from "../components/LeadSearchForm";
 import KPICard from "../components/KPICard";
 import LeadTable from "../components/LeadTable";
-import { useEffect, useState } from "react";
-
+import { getSampleLeads, searchBusinesses } from "../services/api";
 
 function Dashboard() {
-  const [allLeads, setAllLeads] = useState([]);
   const [leads, setLeads] = useState([]);
-  
-const kpis = [
-  {
-    title: "New Leads",
-    value: leads.length.toString(),
-    subtitle: "Loaded from backend",
-    color: "#22c55e",
-  },
-  {
-    title: "Today's Revenue",
-    value: "0 QAR",
-    subtitle: "Target: 200 QAR",
-    color: "#38bdf8",
-  },
-  {
-    title: "Tasks Due Today",
-    value: "4",
-    subtitle: "Follow-ups and outreach",
-    color: "#facc15",
-  },
-  {
-    title: "AI Confidence",
-    value: "87%",
-    subtitle: "High opportunity score",
-    color: "#a78bfa",
-  },
-];
+  const [isLoading, setIsLoading] = useState(false);
+
+  const kpis = [
+    {
+      title: "New Leads",
+      value: leads.length.toString(),
+      subtitle: "Loaded from backend",
+      color: "#22c55e",
+    },
+    {
+      title: "Today's Revenue",
+      value: "0 QAR",
+      subtitle: "Target: 200 QAR",
+      color: "#38bdf8",
+    },
+    {
+      title: "Tasks Due Today",
+      value: "4",
+      subtitle: "Follow-ups and outreach",
+      color: "#facc15",
+    },
+    {
+      title: "AI Confidence",
+      value: "87%",
+      subtitle: "High opportunity score",
+      color: "#a78bfa",
+    },
+  ];
+
   useEffect(() => {
     async function loadLeads() {
       try {
-        const response = await fetch("http://127.0.0.1:8000/leads");
-        const data = await response.json();
-        setAllLeads(data);
+        const data = await getSampleLeads();
         setLeads(data);
       } catch (error) {
         console.error("Failed to load leads:", error);
@@ -49,20 +48,23 @@ const kpis = [
     loadLeads();
   }, []);
 
-  function handleLeadSearch(searchData) {
-    const businessType = searchData.businessType.toLowerCase();
-    const location = searchData.location.toLowerCase();
-    const quantity = Number(searchData.quantity) || allLeads.length;
+  async function handleLeadSearch(searchData) {
+    try {
+      setIsLoading(true);
 
-    const filteredLeads = allLeads
-      .filter((lead) => {
-        const matchesCategory = lead.category.toLowerCase().includes(businessType);
-        const matchesLocation = lead.location.toLowerCase().includes(location);
-        return matchesCategory && matchesLocation;
-      })
-      .slice(0, quantity);
+      const data = await searchBusinesses({
+        businessType: searchData.businessType,
+        location: searchData.location,
+        quantity: searchData.quantity || "20",
+      });
 
-    setLeads(filteredLeads);
+      setLeads(data);
+    } catch (error) {
+      console.error(error);
+      alert("Unable to fetch businesses.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -87,7 +89,14 @@ const kpis = [
       </section>
 
       <LeadSearchForm onSearch={handleLeadSearch} />
-      <LeadTable leads={leads} />
+
+      {isLoading ? (
+        <section className="panel">
+          <p>Searching real businesses...</p>
+        </section>
+      ) : (
+        <LeadTable leads={leads} />
+      )}
     </>
   );
 }

@@ -1,3 +1,4 @@
+from app.routes.search import router as search_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,7 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(leads_router)
-
+app.include_router(search_router)
 
 @app.get("/")
 def home():

@@ -1,32 +1,39 @@
-import TopBar from "./components/TopBar";
-import { useState } from "react";
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import TopBar from "./components/TopBar";
 import Dashboard from "./pages/Dashboard";
+import "./App.css";
+
+function PlaceholderPage({ title }) {
+  return (
+    <section className="panel">
+      <p className="eyebrow">Coming Soon</p>
+      <h2>{title}</h2>
+      <p>This module will be added in the next sprints.</p>
+    </section>
+  );
+}
 
 function App() {
-  const [activePage, setActivePage] = useState("Dashboard");
-
   return (
-    <div className="app">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+    <BrowserRouter>
+      <div className="app">
+        <Sidebar />
 
-      <main className="main">
-        <TopBar activePage={activePage} />
+        <main className="main">
+          <TopBar activePage="Nestora AI" />
 
-        {activePage === "Dashboard" ? (
-          <Dashboard />
-        ) : (
-          <section className="panel">
-            <p className="eyebrow">{activePage}</p>
-            <h2>{activePage} module coming next</h2>
-            <p>
-              This section will be built as part of the next milestones.
-            </p>
-          </section>
-        )}
-      </main>
-    </div>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/leads" element={<Dashboard />} />
+            <Route path="/crm" element={<PlaceholderPage title="CRM" />} />
+            <Route path="/ceo" element={<PlaceholderPage title="CEO Agent" />} />
+            <Route path="/analytics" element={<PlaceholderPage title="Analytics" />} />
+            <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   );
 }
 
