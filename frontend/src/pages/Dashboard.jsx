@@ -12,26 +12,26 @@ function Dashboard() {
     {
       title: "New Leads",
       value: leads.length.toString(),
-      subtitle: "Loaded from backend",
+      subtitle: "Saved opportunities",
       color: "#22c55e",
     },
     {
-      title: "Today's Revenue",
-      value: "0 QAR",
-      subtitle: "Target: 200 QAR",
+      title: "Pipeline Value",
+      value: "QAR 0",
+      subtitle: "Estimated revenue",
       color: "#38bdf8",
     },
     {
-      title: "Tasks Due Today",
+      title: "Tasks Today",
       value: "4",
-      subtitle: "Follow-ups and outreach",
-      color: "#facc15",
+      subtitle: "Pending follow-ups",
+      color: "#f59e0b",
     },
     {
-      title: "AI Confidence",
+      title: "AI Score",
       value: "87%",
-      subtitle: "High opportunity score",
-      color: "#a78bfa",
+      subtitle: "Business confidence",
+      color: "#8b5cf6",
     },
   ];
 
@@ -40,8 +40,8 @@ function Dashboard() {
       try {
         const data = await getSampleLeads();
         setLeads(data);
-      } catch (error) {
-        console.error("Failed to load leads:", error);
+      } catch (err) {
+        console.error(err);
       }
     }
 
@@ -59,8 +59,8 @@ function Dashboard() {
       });
 
       setLeads(data);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       alert("Unable to fetch businesses.");
     } finally {
       setIsLoading(false);
@@ -69,6 +69,15 @@ function Dashboard() {
 
   return (
     <>
+      <section className="dashboard-header">
+        <div>
+          <h2>Welcome back, Sam 👋</h2>
+          <p>
+            Here's an overview of your business activity and AI recommendations.
+          </p>
+        </div>
+      </section>
+
       <section className="cards">
         {kpis.map((kpi) => (
           <KPICard key={kpi.title} {...kpi} />
@@ -76,23 +85,26 @@ function Dashboard() {
       </section>
 
       <section className="panel">
-        <div>
-          <p className="eyebrow">CEO Agent</p>
-          <h2>Today’s Recommendation</h2>
+        <div className="table-header">
+          <div>
+            <p className="eyebrow">AI CEO</p>
+            <h2>Today's Recommendation</h2>
+          </div>
+          <button className="secondary">Generate Plan</button>
         </div>
+
         <p>
-          Focus on finding 20 small businesses in Qatar today. Start with cafés,
-          salons, bakeries, and car wash businesses. Offer the 99 QAR Starter
-          Business Package.
+          Prioritize restaurants, cafés, gyms, salons and automotive businesses
+          in Doha today. AI estimates these categories have the highest outreach
+          potential based on current activity.
         </p>
-        <button className="secondary">Generate Today’s Plan</button>
       </section>
 
       <LeadSearchForm onSearch={handleLeadSearch} />
 
       {isLoading ? (
         <section className="panel">
-          <p>Searching real businesses...</p>
+          <p>Searching businesses...</p>
         </section>
       ) : (
         <LeadTable leads={leads} />
