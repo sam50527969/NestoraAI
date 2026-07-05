@@ -16,12 +16,35 @@ out center {limit};
 """
 
 
+def calculate_opportunity_score(tags: dict) -> int:
+    score = 40
+
+    if tags.get("name"):
+        score += 15
+    if tags.get("phone"):
+        score += 15
+    if tags.get("website"):
+        score += 15
+    if tags.get("email"):
+        score += 10
+    if tags.get("opening_hours"):
+        score += 5
+
+    return min(score, 100)
+
+
+def get_recommendation(score: int) -> str:
+    if score >= 80:
+        return "High-priority lead. Contact first."
+    if score >= 60:
+        return "Good lead. Review and save to CRM."
+    return "Low-information lead. Needs enrichment."
+
+
 async def search_businesses(business_type: str, location: str, limit: int = 20):
     query = build_overpass_query(business_type, location, limit)
 
-    headers = {
-        "User-Agent": "NestoraAI/0.1 (local development)"
-    }
+    headers = {"User-Agent": "NestoraAI/0.1 (local development)"}
 
     async with httpx.AsyncClient(timeout=30, headers=headers) as client:
         response = await client.post(OVERPASS_URL, data={"data": query})
@@ -32,6 +55,7 @@ async def search_businesses(business_type: str, location: str, limit: int = 20):
 
     for index, item in enumerate(data.get("elements", []), start=1):
         tags = item.get("tags", {})
+        score = calculate_opportunity_score(tags)
 
         results.append(
             {
@@ -43,6 +67,8 @@ async def search_businesses(business_type: str, location: str, limit: int = 20):
                 "email": tags.get("email", "Not found"),
                 "website": tags.get("website", "Not found"),
                 "status": "New",
+                "opportunityScore": score,
+                "aiRecommendation": get_recommendation(score),
             }
         )
 
