@@ -6,11 +6,52 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 
 ---
 
-# v0.4.0 (In Development)
+# v0.4.2 (In Development)
+
+## Added
+
+### CRM Dashboard
+
+- Added dedicated CRM page foundation.
+- Added saved leads table component.
+- Added CRM toolbar component.
+- Added search across saved lead fields.
+- Added category filter for saved leads.
+- Added total and visible lead counter.
+- Added loading, empty, and error states.
+- Added default New status badge foundation.
+
+## Changed
+
+- CRM flow now supports viewing saved leads after they are saved from lead discovery.
+- Frontend CRM components are separated into reusable page, toolbar, and table modules.
+
+## Testing
+
+Pending local frontend route verification and end-to-end CRM dashboard testing.
+
+---
+
+# v0.4.1
+
+## Added
+
+### Frontend CRM Integration
+
+- Added Save button behavior to lead table.
+- Connected Save button to saveLead() API service.
+- Added row-level saving state.
+- Added row-level saved state.
+- Added row-level save failure message.
+
+---
+
+# v0.4.0
 
 ## Added
 
 ### Project Foundation
+
 - Created modular React frontend
 - Created modular FastAPI backend
 - Added GitHub version control
@@ -19,6 +60,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 - Added MASTER_CONTEXT.md
 
 ### Frontend
+
 - Dashboard page
 - KPI cards
 - Sidebar navigation
@@ -29,6 +71,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 - API service layer
 
 ### Backend
+
 - FastAPI application
 - Modular route structure
 - Configuration module
@@ -36,6 +79,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 - OpenStreetMap integration
 
 ### CRM
+
 - SQLite database
 - SQLAlchemy integration
 - Database initialization
@@ -44,6 +88,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 - Get Saved Leads API
 
 ### Infrastructure
+
 - Environment configuration
 - Requirements management
 - Git workflow
@@ -66,32 +111,3 @@ The format is inspired by Keep a Changelog and follows semantic versioning where
 - Database initialization.
 - Python environment compatibility.
 - Windows Application Control issues with Python packages.
-
----
-
-## Current Status
-
-Completed
-
-- Live business search
-- Google Maps integration
-- CRM backend
-- SQLite database
-- REST API for CRM
-
-In Progress
-
-- Connect frontend Save button
-- CRM page
-- Lead management
-
-Next Version
-
-v0.5
-
-Planned
-
-- AI Lead Scoring
-- CEO Agent
-- Sales Agent
-- CRM enhancements

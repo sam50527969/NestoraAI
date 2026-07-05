@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Dashboard from "./pages/Dashboard";
+import CRM from "./pages/CRM";
 import "./App.css";
 
 function PlaceholderPage({ title }) {
@@ -26,7 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/leads" element={<Dashboard />} />
-            <Route path="/crm" element={<PlaceholderPage title="CRM" />} />
+            <Route path="/crm" element={<CRM />} />
             <Route path="/ceo" element={<PlaceholderPage title="CEO Agent" />} />
             <Route path="/analytics" element={<PlaceholderPage title="Analytics" />} />
             <Route path="/settings" element={<PlaceholderPage title="Settings" />} />

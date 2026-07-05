@@ -12,7 +12,68 @@ The goal is to build an AI workforce.
 
 # Current Version
 
-v0.4 (In Development)
+v0.4.2 (Development)
+
+---
+
+# Current Sprint
+
+Sprint 4
+
+CRM Development
+
+---
+
+# Completed Packages
+
+## Package 4.0
+
+CRM Backend
+
+Status: Completed
+
+Completed:
+
+- SQLite database
+- SQLAlchemy integration
+- Database initialization
+- Lead model
+- POST /crm/leads
+- GET /crm/leads
+- Swagger CRM endpoint testing
+
+## Package 4.1
+
+Frontend Save Lead Integration
+
+Status: Completed
+
+Completed:
+
+- Save button added to each lead row
+- Save button calls CRM backend through saveLead()
+- Save button disables during save request
+- Saved leads show a Saved state
+- Save failures show a row-level error message
+- Existing Google Maps and lead table behavior preserved
+
+## Package 4.2
+
+CRM Dashboard
+
+Status: Ready for Testing
+
+Completed:
+
+- CRM page created
+- CRM table component created
+- CRM toolbar component created
+- Saved leads loaded from getSavedLeads()
+- Search by lead text
+- Category filter
+- Lead counter
+- Loading, empty, and error states
+- Status badge foundation
 
 ---
 
@@ -28,6 +89,10 @@ v0.4 (In Development)
 - Lead Search Form
 - Lead Table
 - API Service Layer
+- Frontend Save Lead button connected to CRM backend
+- CRM Dashboard page foundation
+- Saved leads table
+- CRM search and category filter
 
 ---
 
@@ -41,6 +106,10 @@ v0.4 (In Development)
 - Environment Variables
 - CORS
 - OpenStreetMap Business Search
+- SQLite Database
+- SQLAlchemy
+- CRM Save Lead API
+- CRM Get Saved Leads API
 
 ---
 
@@ -51,82 +120,46 @@ v0.4 (In Development)
 - Dynamic Lead Table
 - API Integration
 - GitHub Version Control
-
 - Professional Sidebar Navigation
 - React Router
 - Business Search API
 - OpenStreetMap Integration
 - API Service Layer
----
-
-# Planned Versions
-
-## v0.4
-
-- SQLite Database
-- CRM
-- Save Leads
-- Edit Leads
-- Delete Leads
-- Lead Notes
+- Save searched leads into CRM
+- View saved leads in CRM Dashboard
 
 ---
 
-## v0.5
+# Current Package
 
-AI CEO Agent
+Package 4.2
 
-- Daily Recommendations
-- Opportunity Analysis
-- Business Scoring
+CRM Dashboard
 
----
+Status: Ready for Local Testing
 
-## v0.6
+Testing Required:
 
-Sales Agent
-
-- Email Generator
-- WhatsApp Generator
-- Cold Call Script
+- Confirm /crm route is connected in the frontend router
+- Confirm saved leads load from backend
+- Confirm search works
+- Confirm category filter works
+- Confirm Refresh reloads saved leads
 
 ---
 
-## v0.7
+# Next Package
 
-Marketing Agent
+Package 4.3
 
-- Facebook Ads
-- Google Ads
-- TikTok Content
-- Instagram Content
+Lead Details
 
----
+Planned:
 
-## v0.8
-
-Finance Agent
-
-- Revenue Tracking
-- Profit Prediction
-- Cash Flow
-
----
-
-## v0.9
-
-Automation Engine
-
-- Scheduled Tasks
-- Email Automation
-- Follow-ups
-- Notifications
-
----
-
-## v1.0
-
-Public Beta
+- Add lead detail view
+- Add notes foundation
+- Prepare backend model fields for status, priority, tags, and assigned user
+- Prepare CRM table action column
 
 ---
 
@@ -140,7 +173,7 @@ API Service
 ↓
 FastAPI
 ↓
-AI Agents
+Services
 ↓
 Database
 
@@ -163,52 +196,6 @@ Operations Agent
 Customer Support Agent
 
 Automation Agent
-
----
-
-# Technology Stack
-
-Frontend
-
-React
-
-Vite
-
-React Router
-
-Backend
-
-FastAPI
-
-Python
-
-Future
-
-SQLite
-
-PostgreSQL
-
-OpenAI
-
-Redis
-
-Docker
-
----
-
-# Current Sprint
-
-Sprint 4
-
-CRM Database
-
----
-
-# Next Sprint
-
-Sprint 4
-
-CRM Database
 
 ---
 
