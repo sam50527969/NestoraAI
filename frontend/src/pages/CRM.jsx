@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { getSavedLeads } from "../services/api";
-import { updateLead } from "../services/crmApi";
+import { getSavedLeads } from "../api";
+import { updateLead } from "../api";
 import CRMToolbar from "../components/CRMToolbar";
 import CRMTable from "../components/CRMTable";
 import LeadDetailsPanel from "../components/LeadDetailsPanel";

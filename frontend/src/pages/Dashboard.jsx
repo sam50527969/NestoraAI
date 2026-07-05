@@ -6,7 +6,7 @@ import {
   getDashboardSummary,
   getSampleLeads,
   searchBusinesses,
-} from "../services/api";
+} from "../api";
 
 function Dashboard() {
   const [leads, setLeads] = useState([]);
