@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import LeadSearchForm from "../components/LeadSearchForm";
+import DashboardResearch from "../components/dashboard/DashboardResearch";
+import DashboardSummaryGrid from "../components/dashboard/DashboardSummaryGrid";
 import KPICard from "../components/KPICard";
-import LeadTable from "../components/LeadTable";
 import {
   getDashboardSummary,
   getSampleLeads,
@@ -103,50 +103,7 @@ function Dashboard() {
             ))}
           </section>
 
-          <section className="dashboard-grid">
-            <div className="panel">
-              <p className="eyebrow">AI CEO Brief</p>
-              <h2>Today’s Focus</h2>
-              <ul className="clean-list">
-                {dashboardSummary.ai_brief.map((item) => (
-                  <li key={item}>✓ {item}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="panel">
-              <p className="eyebrow">Tasks</p>
-              <h2>Today’s Actions</h2>
-              <ul className="clean-list">
-                {dashboardSummary.tasks.map((task) => (
-                  <li key={task}>□ {task}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="panel">
-              <p className="eyebrow">Pipeline</p>
-              <h2>Lead Stages</h2>
-              <div className="pipeline-list">
-                {dashboardSummary.pipeline.map((stage) => (
-                  <div className="pipeline-row" key={stage.label}>
-                    <span>{stage.label}</span>
-                    <strong>{stage.value}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="panel">
-              <p className="eyebrow">Activity</p>
-              <h2>Recent Updates</h2>
-              <ul className="clean-list">
-                {dashboardSummary.activity.map((item) => (
-                  <li key={item}>• {item}</li>
-                ))}
-              </ul>
-            </div>
-          </section>
+          <DashboardSummaryGrid summary={dashboardSummary} />
         </>
       ) : (
         <section className="panel">
@@ -154,19 +111,11 @@ function Dashboard() {
         </section>
       )}
 
-      <section className="panel">
-        <p className="eyebrow">Research Agent</p>
-        <h2>Find New Leads</h2>
-        <LeadSearchForm onSearch={handleLeadSearch} />
-      </section>
-
-      {isLoading ? (
-        <section className="panel">
-          <p>Searching businesses...</p>
-        </section>
-      ) : (
-        <LeadTable leads={leads} />
-      )}
+      <DashboardResearch
+        leads={leads}
+        isLoading={isLoading}
+        onSearch={handleLeadSearch}
+      />
     </>
   );
 }
