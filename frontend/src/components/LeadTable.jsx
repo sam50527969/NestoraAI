@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { saveLead } from "../api";
 
+function getPriorityClass(priority) {
+  if (priority === "High") return "badge priority-high";
+  if (priority === "Medium") return "badge priority-medium";
+  return "badge priority-low";
+}
+
 function LeadTable({ leads = [] }) {
   const [savedLeadIds, setSavedLeadIds] = useState({});
 
@@ -19,6 +25,7 @@ function LeadTable({ leads = [] }) {
         website: lead.website,
         source: "OpenStreetMap",
         status: lead.status || "New",
+        priority: lead.priority || "Medium",
         notes: lead.aiRecommendation || "",
       });
 
@@ -37,7 +44,7 @@ function LeadTable({ leads = [] }) {
       <div className="table-header">
         <div>
           <h2>AI Research Results</h2>
-          <p className="eyebrow">Scored Business Leads</p>
+          <p className="eyebrow">Enriched Business Leads</p>
         </div>
         <button className="secondary">Find More Leads</button>
       </div>
@@ -51,6 +58,8 @@ function LeadTable({ leads = [] }) {
             <th>Phone</th>
             <th>Website</th>
             <th>Score</th>
+            <th>Quality</th>
+            <th>Priority</th>
             <th>AI Recommendation</th>
             <th>Map</th>
             <th>CRM</th>
@@ -63,9 +72,9 @@ function LeadTable({ leads = [] }) {
               <td>{lead.businessName}</td>
               <td>{lead.category}</td>
               <td>{lead.location}</td>
-              <td>{lead.phone || "Not found"}</td>
+              <td>{lead.phoneAvailable ? lead.phone : "Not found"}</td>
               <td>
-                {lead.website && lead.website !== "Not found" ? (
+                {lead.websiteAvailable ? (
                   <a href={lead.website} target="_blank" rel="noreferrer">
                     Open Website
                   </a>
@@ -75,6 +84,14 @@ function LeadTable({ leads = [] }) {
               </td>
               <td>
                 <span className="badge">{lead.opportunityScore ?? 0}%</span>
+              </td>
+              <td>
+                <span className="badge">{lead.contactQuality ?? 0}%</span>
+              </td>
+              <td>
+                <span className={getPriorityClass(lead.priority)}>
+                  {lead.priority || "Low"}
+                </span>
               </td>
               <td>{lead.aiRecommendation || "Needs review"}</td>
               <td>
