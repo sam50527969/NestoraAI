@@ -1,3 +1,6 @@
+from app.routes.crm import router as crm_router
+from app.database.database import Base, engine
+from app.database import models
 from app.routes.search import router as search_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.leads import router as leads_router
 
 from app.config import APP_NAME
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=APP_NAME)
 
@@ -18,6 +23,7 @@ app.add_middleware(
 
 app.include_router(leads_router)
 app.include_router(search_router)
+app.include_router(crm_router)
 
 @app.get("/")
 def home():

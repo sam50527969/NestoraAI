@@ -20,11 +20,7 @@ export async function getSampleLeads() {
   return request("/leads");
 }
 
-export async function searchBusinesses({
-  businessType,
-  location,
-  quantity,
-}) {
+export async function searchBusinesses({ businessType, location, quantity }) {
   const params = new URLSearchParams({
     business_type: businessType,
     location,
@@ -32,4 +28,15 @@ export async function searchBusinesses({
   });
 
   return request(`/search/businesses?${params.toString()}`);
+}
+
+export async function saveLead(lead) {
+  return request("/crm/leads", {
+    method: "POST",
+    body: JSON.stringify(lead),
+  });
+}
+
+export async function getSavedLeads() {
+  return request("/crm/leads");
 }
