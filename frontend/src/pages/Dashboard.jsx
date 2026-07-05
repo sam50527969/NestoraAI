@@ -2,50 +2,36 @@ import { useEffect, useState } from "react";
 import LeadSearchForm from "../components/LeadSearchForm";
 import KPICard from "../components/KPICard";
 import LeadTable from "../components/LeadTable";
-import { getSampleLeads, searchBusinesses } from "../services/api";
+import {
+  getDashboardSummary,
+  getSampleLeads,
+  searchBusinesses,
+} from "../services/api";
 
 function Dashboard() {
   const [leads, setLeads] = useState([]);
+  const [dashboardSummary, setDashboardSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const kpis = [
-    {
-      title: "New Leads",
-      value: leads.length.toString(),
-      subtitle: "Saved opportunities",
-      color: "#22c55e",
-    },
-    {
-      title: "Pipeline Value",
-      value: "QAR 0",
-      subtitle: "Estimated revenue",
-      color: "#38bdf8",
-    },
-    {
-      title: "Tasks Today",
-      value: "4",
-      subtitle: "Pending follow-ups",
-      color: "#f59e0b",
-    },
-    {
-      title: "AI Score",
-      value: "87%",
-      subtitle: "Business confidence",
-      color: "#8b5cf6",
-    },
-  ];
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
 
   useEffect(() => {
-    async function loadLeads() {
+    async function loadDashboard() {
       try {
-        const data = await getSampleLeads();
-        setLeads(data);
+        const [summaryData, leadsData] = await Promise.all([
+          getDashboardSummary(),
+          getSampleLeads(),
+        ]);
+
+        setDashboardSummary(summaryData);
+        setLeads(leadsData);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load dashboard:", err);
+      } finally {
+        setIsDashboardLoading(false);
       }
     }
 
-    loadLeads();
+    loadDashboard();
   }, []);
 
   async function handleLeadSearch(searchData) {
@@ -67,40 +53,112 @@ function Dashboard() {
     }
   }
 
+  const kpis = dashboardSummary
+    ? [
+        {
+          title: "New Leads",
+          value: dashboardSummary.kpis.new_leads.toString(),
+          subtitle: "From dashboard API",
+          color: "#22c55e",
+        },
+        {
+          title: "Pipeline Value",
+          value: `QAR ${dashboardSummary.kpis.pipeline_value.toLocaleString()}`,
+          subtitle: "Estimated revenue",
+          color: "#38bdf8",
+        },
+        {
+          title: "Tasks Today",
+          value: dashboardSummary.kpis.tasks_today.toString(),
+          subtitle: "Pending follow-ups",
+          color: "#f59e0b",
+        },
+        {
+          title: "AI Score",
+          value: `${dashboardSummary.kpis.ai_score}%`,
+          subtitle: "Business confidence",
+          color: "#8b5cf6",
+        },
+      ]
+    : [];
+
   return (
     <>
       <section className="dashboard-header">
         <div>
           <h2>Welcome back, Sam 👋</h2>
-          <p>
-            Here's an overview of your business activity and AI recommendations.
-          </p>
+          <p>Here is your backend-powered business command center for today.</p>
         </div>
       </section>
 
-      <section className="cards">
-        {kpis.map((kpi) => (
-          <KPICard key={kpi.title} {...kpi} />
-        ))}
-      </section>
+      {isDashboardLoading ? (
+        <section className="panel">
+          <p>Loading dashboard summary...</p>
+        </section>
+      ) : dashboardSummary ? (
+        <>
+          <section className="cards">
+            {kpis.map((kpi) => (
+              <KPICard key={kpi.title} {...kpi} />
+            ))}
+          </section>
+
+          <section className="dashboard-grid">
+            <div className="panel">
+              <p className="eyebrow">AI CEO Brief</p>
+              <h2>Today’s Focus</h2>
+              <ul className="clean-list">
+                {dashboardSummary.ai_brief.map((item) => (
+                  <li key={item}>✓ {item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="panel">
+              <p className="eyebrow">Tasks</p>
+              <h2>Today’s Actions</h2>
+              <ul className="clean-list">
+                {dashboardSummary.tasks.map((task) => (
+                  <li key={task}>□ {task}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="panel">
+              <p className="eyebrow">Pipeline</p>
+              <h2>Lead Stages</h2>
+              <div className="pipeline-list">
+                {dashboardSummary.pipeline.map((stage) => (
+                  <div className="pipeline-row" key={stage.label}>
+                    <span>{stage.label}</span>
+                    <strong>{stage.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="panel">
+              <p className="eyebrow">Activity</p>
+              <h2>Recent Updates</h2>
+              <ul className="clean-list">
+                {dashboardSummary.activity.map((item) => (
+                  <li key={item}>• {item}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="panel">
+          <p>Unable to load dashboard summary.</p>
+        </section>
+      )}
 
       <section className="panel">
-        <div className="table-header">
-          <div>
-            <p className="eyebrow">AI CEO</p>
-            <h2>Today's Recommendation</h2>
-          </div>
-          <button className="secondary">Generate Plan</button>
-        </div>
-
-        <p>
-          Prioritize restaurants, cafés, gyms, salons and automotive businesses
-          in Doha today. AI estimates these categories have the highest outreach
-          potential based on current activity.
-        </p>
+        <p className="eyebrow">Research Agent</p>
+        <h2>Find New Leads</h2>
+        <LeadSearchForm onSearch={handleLeadSearch} />
       </section>
-
-      <LeadSearchForm onSearch={handleLeadSearch} />
 
       {isLoading ? (
         <section className="panel">

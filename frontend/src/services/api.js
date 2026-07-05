@@ -40,3 +40,7 @@ export async function saveLead(lead) {
 export async function getSavedLeads() {
   return request("/crm/leads");
 }
+
+export async function getDashboardSummary() {
+  return request("/dashboard/summary");
+}
