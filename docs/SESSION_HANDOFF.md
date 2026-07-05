@@ -8,7 +8,7 @@ Last Updated
 
 # Current Version
 
-v0.4.2
+v0.4
 
 ---
 
@@ -22,177 +22,80 @@ CRM Development
 
 # Current Package
 
-Package 4.2
+Package 4.3
+
+Lead Details
 
 Status:
 
-Ready for Local Testing
+Ready for testing
 
 ---
 
-# Completed This Session
+# Completed Recently
+
+## Package 4.1
+
+- CRM Save button connected to backend.
+- Lead save state working.
+- Git commit completed.
+
+## Package 4.2
+
+- CRM Dashboard created.
+- CRM route connected.
+- Saved leads load from SQLite.
+- Search and category filter working.
+- Git commit completed.
+
+---
+
+# Package 4.3 Added
+
+## Backend
+
+- Expanded Lead model with CRM management fields.
+- Added LeadUpdate schema.
+- Added get single lead service.
+- Added update lead service.
+- Added GET /crm/leads/{lead_id}.
+- Added PUT /crm/leads/{lead_id}.
 
 ## Frontend
 
-✓ Created frontend/src/pages/CRM.jsx
-
-✓ Created frontend/src/components/CRMToolbar.jsx
-
-✓ Created frontend/src/components/CRMTable.jsx
-
-✓ CRM page loads saved leads using getSavedLeads()
-
-✓ Added search across saved lead fields
-
-✓ Added category filter
-
-✓ Added lead counter
-
-✓ Added Refresh button
-
-✓ Added loading, empty, and error states
-
-✓ Added New status badge foundation
+- Added LeadDetailsPanel component.
+- Updated CRMTable with selectable rows.
+- Updated CRM page with details workspace.
+- Added crmApi service for lead update requests.
 
 ---
 
-# Current Project State
+# Testing Checklist
 
-Business Search
-
-Status:
-
-Completed
-
-CRM Backend
-
-Status:
-
-Completed
-
-Frontend Save Lead Integration
-
-Status:
-
-Completed
-
-CRM Dashboard
-
-Status:
-
-Ready for Testing
-
----
-
-# Files Created
-
-frontend/
-
-src/pages/CRM.jsx
-
-src/components/CRMToolbar.jsx
-
-src/components/CRMTable.jsx
-
----
-
-# Files Updated
-
-docs/PROJECT_STATUS.md
-
-docs/CHANGELOG.md
-
-docs/SESSION_HANDOFF.md
-
----
-
-# Next Local Steps
-
-1. Copy the Package 4.2 files into the project.
-2. Confirm frontend/src/services/api.js exports getSavedLeads().
-3. Add CRM.jsx to the React Router if the /crm route is not already registered.
-4. Start backend.
-5. Start frontend.
-6. Open the CRM page.
-7. Confirm saved leads appear.
-8. Test search and category filter.
+1. Start backend.
+2. Start frontend.
+3. Open /crm.
+4. Click a saved lead.
+5. Edit status, priority, notes, tags, and follow-up fields.
+6. Save details.
+7. Refresh CRM page.
+8. Confirm saved values remain.
+9. Check Swagger PUT /crm/leads/{lead_id}.
 
 ---
 
 # Next Development Tasks
 
-Package 4.2 Testing
+Package 4.4
 
-- Verify route wiring
-- Verify saved leads render correctly
-- Verify search and category filter
-- Verify empty and error states
-
-Package 4.3
-
-Lead Details
-
-- Notes
-- Priority
-- Tags
-- Assigned To
-- Status fields
-
----
-
-# Known Issues
-
-Current
-
-- Route wiring may require updating App.jsx depending on the current frontend router structure.
-- Styling may depend on the existing global CSS classes in the frontend.
-
----
-
-# Testing Status
-
-Backend
-
-✓ Starts successfully
-
-✓ Swagger available
-
-✓ Search API
-
-✓ CRM POST
-
-✓ CRM GET
-
-Frontend
-
-✓ Starts successfully
-
-✓ Search page
-
-✓ Live search
-
-✓ Save button
-
-⏳ CRM page route
-
-⏳ CRM saved leads table
+- Add status filter.
+- Add priority filter.
+- Add follow-up quick view.
+- Improve CRM styling.
+- Prepare delete lead package.
 
 ---
 
 # Recommended Commit
 
-feat(crm): add saved leads dashboard
-
----
-
-# Resume Prompt
-
-Continue developing Nestora AI.
-
-Read MASTER_CONTEXT.md, PROJECT_STATUS.md, CHANGELOG.md, and SESSION_HANDOFF.md.
-
-Do not recreate existing functionality.
-
-Continue from Package 4.2 by testing the CRM Dashboard and wiring the /crm frontend route if needed.
-
-Follow the existing architecture and modify complete files whenever practical.
+feat(crm): add lead details management

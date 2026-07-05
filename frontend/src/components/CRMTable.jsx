@@ -26,7 +26,16 @@ function getLeadKey(lead, index) {
   return lead.id || lead.source_id || lead.place_id || lead.osm_id || `${lead.name || "lead"}-${index}`;
 }
 
-export default function CRMTable({ leads = [], isLoading = false }) {
+function getStatusClassName(status) {
+  return `status-badge ${(status || "New").toLowerCase().replace(/\s+/g, "-")}`;
+}
+
+export default function CRMTable({
+  leads = [],
+  isLoading = false,
+  selectedLeadId = null,
+  onSelectLead,
+}) {
   if (isLoading) {
     return (
       <section className="crm-table-state">
@@ -51,11 +60,12 @@ export default function CRMTable({ leads = [], isLoading = false }) {
           <tr>
             <th>Business</th>
             <th>Category</th>
-            <th>Address</th>
             <th>Phone</th>
             <th>Website</th>
             <th>Maps</th>
             <th>Status</th>
+            <th>Priority</th>
+            <th>Action</th>
           </tr>
         </thead>
 
@@ -63,21 +73,25 @@ export default function CRMTable({ leads = [], isLoading = false }) {
           {leads.map((lead, index) => {
             const mapsUrl = getMapsUrl(lead);
             const websiteUrl = getWebsiteUrl(lead.website || lead.url);
+            const isSelected = selectedLeadId === lead.id;
 
             return (
-              <tr key={getLeadKey(lead, index)}>
+              <tr
+                key={getLeadKey(lead, index)}
+                className={isSelected ? "selected-row" : ""}
+                onClick={() => onSelectLead?.(lead)}
+              >
                 <td>
                   <strong>{lead.name || "Unknown Business"}</strong>
-                  {lead.source && <small>{lead.source}</small>}
+                  <small>{lead.address || lead.source || "Saved lead"}</small>
                 </td>
                 <td>{lead.category || lead.type || lead.business_type || "Unknown"}</td>
-                <td>{lead.address || lead.display_name || "-"}</td>
                 <td>
                   {lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : "-"}
                 </td>
                 <td>
                   {websiteUrl ? (
-                    <a href={websiteUrl} target="_blank" rel="noreferrer">
+                    <a href={websiteUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
                       Visit
                     </a>
                   ) : (
@@ -86,7 +100,7 @@ export default function CRMTable({ leads = [], isLoading = false }) {
                 </td>
                 <td>
                   {mapsUrl ? (
-                    <a href={mapsUrl} target="_blank" rel="noreferrer">
+                    <a href={mapsUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
                       Open
                     </a>
                   ) : (
@@ -94,7 +108,20 @@ export default function CRMTable({ leads = [], isLoading = false }) {
                   )}
                 </td>
                 <td>
-                  <span className="status-badge new">New</span>
+                  <span className={getStatusClassName(lead.status)}>{lead.status || "New"}</span>
+                </td>
+                <td>{lead.priority || "Medium"}</td>
+                <td>
+                  <button
+                    type="button"
+                    className="secondary-button compact"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectLead?.(lead);
+                    }}
+                  >
+                    Details
+                  </button>
                 </td>
               </tr>
             );

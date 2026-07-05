@@ -2,112 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is inspired by Keep a Changelog and follows semantic versioning where practical.
-
 ---
 
-# v0.4.2 (In Development)
+# v0.4.0 (In Development)
 
 ## Added
 
-### CRM Dashboard
+### Package 4.3 - Lead Details
 
-- Added dedicated CRM page foundation.
-- Added saved leads table component.
-- Added CRM toolbar component.
-- Added search across saved lead fields.
-- Added category filter for saved leads.
-- Added total and visible lead counter.
-- Added loading, empty, and error states.
-- Added default New status badge foundation.
+- Added lead details panel in CRM.
+- Added editable lead status.
+- Added editable lead priority.
+- Added notes field.
+- Added tags field.
+- Added assigned-to field.
+- Added last-contacted and next-follow-up fields.
+- Added `GET /crm/leads/{lead_id}` endpoint.
+- Added `PUT /crm/leads/{lead_id}` endpoint.
+- Added CRM frontend update service.
 
-## Changed
+### Package 4.2 - CRM Dashboard
 
-- CRM flow now supports viewing saved leads after they are saved from lead discovery.
-- Frontend CRM components are separated into reusable page, toolbar, and table modules.
+- Added dedicated CRM page.
+- Added saved leads table.
+- Added lead search.
+- Added category filter.
+- Added lead counter.
 
-## Testing
+### Package 4.1 - Frontend Save Lead Integration
 
-Pending local frontend route verification and end-to-end CRM dashboard testing.
-
----
-
-# v0.4.1
-
-## Added
-
-### Frontend CRM Integration
-
-- Added Save button behavior to lead table.
-- Connected Save button to saveLead() API service.
-- Added row-level saving state.
-- Added row-level saved state.
-- Added row-level save failure message.
+- Connected LeadTable Save button to CRM backend.
+- Added saving and saved states.
+- Added row-level error handling.
 
 ---
 
-# v0.4.0
+## Current Status
 
-## Added
+Completed:
 
-### Project Foundation
+- Business search
+- CRM backend foundation
+- Save Lead frontend integration
+- CRM dashboard
 
-- Created modular React frontend
-- Created modular FastAPI backend
-- Added GitHub version control
-- Added project documentation
-- Added PROJECT_STATUS.md
-- Added MASTER_CONTEXT.md
+In Progress:
 
-### Frontend
+- Lead details
+- Notes
+- Status and priority
 
-- Dashboard page
-- KPI cards
-- Sidebar navigation
-- Top bar
-- Lead search form
-- Lead table
-- React Router
-- API service layer
+Next:
 
-### Backend
-
-- FastAPI application
-- Modular route structure
-- Configuration module
-- Business search service
-- OpenStreetMap integration
-
-### CRM
-
-- SQLite database
-- SQLAlchemy integration
-- Database initialization
-- Lead model
-- Save Lead API
-- Get Saved Leads API
-
-### Infrastructure
-
-- Environment configuration
-- Requirements management
-- Git workflow
-
----
-
-## Changed
-
-- Refactored frontend to use a centralized API service layer.
-- Reorganized backend into a modular architecture.
-- Added React Router navigation.
-- Improved project folder structure.
-
----
-
-## Fixed
-
-- Backend routing issues.
-- API communication between frontend and backend.
-- Database initialization.
-- Python environment compatibility.
-- Windows Application Control issues with Python packages.
+- Follow-up filters
+- Lead delete/edit polish
+- AI lead scoring foundation

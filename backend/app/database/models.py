@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 
 from app.database.database import Base
 
@@ -8,12 +10,23 @@ class Lead(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    business_name = Column(String, nullable=False)
-    category = Column(String)
-    location = Column(String)
+    name = Column(String, nullable=False, index=True)
+    category = Column(String, nullable=True, index=True)
+    address = Column(Text, nullable=True)
+    phone = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    source = Column(String, nullable=True, default="OpenStreetMap")
+    source_id = Column(String, nullable=True, index=True)
 
-    phone = Column(String)
-    email = Column(String)
-    website = Column(String)
+    status = Column(String, nullable=False, default="New", index=True)
+    priority = Column(String, nullable=False, default="Medium", index=True)
+    notes = Column(Text, nullable=True)
+    tags = Column(String, nullable=True)
+    assigned_to = Column(String, nullable=True)
+    last_contacted = Column(String, nullable=True)
+    next_follow_up = Column(String, nullable=True)
 
-    status = Column(String, default="New")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
