@@ -4,6 +4,7 @@ import CRMToolbar from "../components/CRMToolbar";
 import CRMTable from "../components/CRMTable";
 import CRMBoard from "../components/crm/CRMBoard";
 import LeadDetailsPanel from "../components/LeadDetailsPanel";
+import Button from "../components/ui/Button";
 
 function normalizeLeadsResponse(response) {
   if (Array.isArray(response)) return response;
@@ -150,9 +151,12 @@ export default function CRM() {
             </button>
           </div>
 
-          <button type="button" className="secondary-button" onClick={loadSavedLeads}>
-            Refresh
-          </button>
+          <Button
+  variant="secondary"
+  onClick={loadSavedLeads}
+>
+  Refresh
+</Button>
         </div>
       </div>
 

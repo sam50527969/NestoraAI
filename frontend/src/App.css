@@ -684,3 +684,54 @@ button {
     grid-template-columns: repeat(6, 280px);
   }
 }
+/* ===================================
+   UI BUTTON
+=================================== */
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 18px;
+
+  border: none;
+  border-radius: var(--radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: var(--transition);
+}
+
+.ui-button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.ui-button-primary {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.ui-button-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.ui-button-secondary {
+  background: var(--surface-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.ui-button-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.ui-button-danger {
+  background: var(--danger);
+  color: white;
+}
