@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { getSavedLeads } from "../api";
-import { updateLead } from "../api";
+import { getSavedLeads, updateLead } from "../api";
 import CRMToolbar from "../components/CRMToolbar";
 import CRMTable from "../components/CRMTable";
+import CRMBoard from "../components/crm/CRMBoard";
 import LeadDetailsPanel from "../components/LeadDetailsPanel";
 
 function normalizeLeadsResponse(response) {
@@ -19,7 +19,6 @@ function getLeadCategory(lead) {
 
 function matchesSearch(lead, searchTerm) {
   const value = searchTerm.trim().toLowerCase();
-
   if (!value) return true;
 
   const searchableText = [
@@ -46,6 +45,7 @@ export default function CRM() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [viewMode, setViewMode] = useState("board");
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -61,12 +61,16 @@ export default function CRM() {
       setLeads(loadedLeads);
 
       if (selectedLead) {
-        const refreshedSelectedLead = loadedLeads.find((lead) => lead.id === selectedLead.id);
+        const refreshedSelectedLead = loadedLeads.find(
+          (lead) => lead.id === selectedLead.id
+        );
         setSelectedLead(refreshedSelectedLead || null);
       }
     } catch (error) {
       console.error("Failed to load saved leads", error);
-      setErrorMessage("Unable to load saved leads. Please make sure the backend is running.");
+      setErrorMessage(
+        "Unable to load saved leads. Please make sure the backend is running."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -100,13 +104,17 @@ export default function CRM() {
       const updatedLead = await updateLead(leadId, payload);
 
       setLeads((currentLeads) =>
-        currentLeads.map((lead) => (lead.id === updatedLead.id ? updatedLead : lead))
+        currentLeads.map((lead) =>
+          lead.id === updatedLead.id ? updatedLead : lead
+        )
       );
       setSelectedLead(updatedLead);
       setSuccessMessage("Lead details saved successfully.");
     } catch (error) {
       console.error("Failed to update lead", error);
-      setErrorMessage("Unable to save lead details. Please check the backend and try again.");
+      setErrorMessage(
+        "Unable to save lead details. Please check the backend and try again."
+      );
     } finally {
       setIsSavingDetails(false);
     }
@@ -117,15 +125,35 @@ export default function CRM() {
       <div className="crm-page-header">
         <div>
           <p className="eyebrow">Nestora CRM</p>
-          <h1>Saved Leads</h1>
+          <h1>Sales Pipeline</h1>
           <p className="crm-page-subtitle">
-            Manage saved businesses, track status, add notes, and prepare sales follow-ups.
+            Manage saved businesses, track pipeline stages, add notes, and
+            prepare sales follow-ups.
           </p>
         </div>
 
-        <button type="button" className="secondary-button" onClick={loadSavedLeads}>
-          Refresh
-        </button>
+        <div className="crm-header-actions">
+          <div className="view-toggle">
+            <button
+              type="button"
+              className={viewMode === "board" ? "active" : ""}
+              onClick={() => setViewMode("board")}
+            >
+              Board
+            </button>
+            <button
+              type="button"
+              className={viewMode === "table" ? "active" : ""}
+              onClick={() => setViewMode("table")}
+            >
+              Table
+            </button>
+          </div>
+
+          <button type="button" className="secondary-button" onClick={loadSavedLeads}>
+            Refresh
+          </button>
+        </div>
       </div>
 
       <CRMToolbar
@@ -142,12 +170,16 @@ export default function CRM() {
       {successMessage && <div className="crm-alert success">{successMessage}</div>}
 
       <div className="crm-workspace">
-        <CRMTable
-          leads={filteredLeads}
-          isLoading={isLoading}
-          selectedLeadId={selectedLead?.id}
-          onSelectLead={setSelectedLead}
-        />
+        {viewMode === "board" ? (
+          <CRMBoard leads={filteredLeads} onSelectLead={setSelectedLead} />
+        ) : (
+          <CRMTable
+            leads={filteredLeads}
+            isLoading={isLoading}
+            selectedLeadId={selectedLead?.id}
+            onSelectLead={setSelectedLead}
+          />
+        )}
 
         <LeadDetailsPanel
           lead={selectedLead}
