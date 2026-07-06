@@ -735,3 +735,18 @@ button {
   background: var(--danger);
   color: white;
 }
+/* ===================================
+   UI CARD
+=================================== */
+
+.ui-card {
+  background: linear-gradient(
+    180deg,
+    rgba(17, 24, 39, 0.94),
+    rgba(15, 23, 42, 0.94)
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
