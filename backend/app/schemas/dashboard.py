@@ -3,9 +3,11 @@ from typing import List
 
 
 class DashboardKpis(BaseModel):
-    new_leads: int
+    total_leads: int
+    high_priority_leads: int
+    qualified_leads: int
+    won_leads: int
     pipeline_value: int
-    tasks_today: int
     ai_score: int
 
 

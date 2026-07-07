@@ -56,28 +56,34 @@ function Dashboard() {
   const kpis = dashboardSummary
     ? [
         {
-          title: "New Leads",
-          value: dashboardSummary.kpis.new_leads.toString(),
-          subtitle: "From dashboard API",
+          title: "Total Leads",
+          value: dashboardSummary.kpis.total_leads.toString(),
+          subtitle: "Saved in CRM",
           color: "#22c55e",
+        },
+        {
+          title: "High Priority",
+          value: dashboardSummary.kpis.high_priority_leads.toString(),
+          subtitle: "Best opportunities",
+          color: "#f59e0b",
+        },
+        {
+          title: "Qualified",
+          value: dashboardSummary.kpis.qualified_leads.toString(),
+          subtitle: "Ready for follow-up",
+          color: "#38bdf8",
         },
         {
           title: "Pipeline Value",
           value: `QAR ${dashboardSummary.kpis.pipeline_value.toLocaleString()}`,
-          subtitle: "Estimated revenue",
-          color: "#38bdf8",
-        },
-        {
-          title: "Tasks Today",
-          value: dashboardSummary.kpis.tasks_today.toString(),
-          subtitle: "Pending follow-ups",
-          color: "#f59e0b",
+          subtitle: `${dashboardSummary.kpis.won_leads} won leads`,
+          color: "#8b5cf6",
         },
         {
           title: "AI Score",
           value: `${dashboardSummary.kpis.ai_score}%`,
           subtitle: "Business confidence",
-          color: "#8b5cf6",
+          color: "#22c55e",
         },
       ]
     : [];
@@ -87,7 +93,7 @@ function Dashboard() {
       <section className="dashboard-header">
         <div>
           <h2>Welcome back, Sam 👋</h2>
-          <p>Here is your backend-powered business command center for today.</p>
+          <p>Here is your live CRM-powered business command center for today.</p>
         </div>
       </section>
 

@@ -9,11 +9,8 @@ import {
 import CRMToolbar from "../components/CRMToolbar";
 import CRMTable from "../components/CRMTable";
 import CRMBoard from "../components/crm/CRMBoard";
-import OutreachPanel from "../components/crm/OutreachPanel";
-import LeadDetailsPanel from "../components/LeadDetailsPanel";
-import Button from "../components/ui/Button";
-import SalesAnalysisPanel from "../components/crm/SalesAnalysisPanel";
-import WebsiteAnalysisPanel from "../components/crm/WebsiteAnalysisPanel";
+import CRMHeader from "../components/crm/CRMHeader";
+import CRMSidePanel from "../components/crm/CRMSidePanel";
 
 function normalizeLeadsResponse(response) {
   if (Array.isArray(response)) return response;
@@ -225,40 +222,11 @@ export default function CRM() {
 
   return (
     <main className="crm-page">
-      <div className="crm-page-header">
-        <div>
-          <p className="eyebrow">Nestora CRM</p>
-          <h1>Sales Pipeline</h1>
-          <p className="crm-page-subtitle">
-            Manage saved businesses, track pipeline stages, add notes, and
-            prepare sales follow-ups.
-          </p>
-        </div>
-
-        <div className="crm-header-actions">
-          <div className="view-toggle">
-            <button
-              type="button"
-              className={viewMode === "board" ? "active" : ""}
-              onClick={() => setViewMode("board")}
-            >
-              Board
-            </button>
-
-            <button
-              type="button"
-              className={viewMode === "table" ? "active" : ""}
-              onClick={() => setViewMode("table")}
-            >
-              Table
-            </button>
-          </div>
-
-          <Button variant="secondary" onClick={loadSavedLeads}>
-            Refresh
-          </Button>
-        </div>
-      </div>
+      <CRMHeader
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onRefresh={loadSavedLeads}
+      />
 
       <CRMToolbar
         searchTerm={searchTerm}
@@ -285,45 +253,20 @@ export default function CRM() {
           />
         )}
 
-        <div className="crm-side-panel">
-          {selectedLead && (
-            <div className="copilot-action">
-              <Button
-                onClick={handleGenerateOutreach}
-                disabled={isGeneratingOutreach}
-              >
-                {isGeneratingOutreach
-                  ? "Generating..."
-                  : "✨ Open Nestora Copilot"}
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={handleAnalyzeWebsite}
-                disabled={isAnalyzingWebsite}
-              >
-                {isAnalyzingWebsite ? "Analyzing..." : "🔍 Analyze Website"}
-              </Button>
-            </div>
-          )}
-
-          <LeadDetailsPanel
-            lead={selectedLead}
-            onSave={handleSaveLeadDetails}
-            onClose={() => setSelectedLead(null)}
-            isSaving={isSavingDetails}
-          />
-
-          {isAnalyzing ? (
-            <div className="crm-alert">Analyzing lead...</div>
-          ) : (
-            <SalesAnalysisPanel analysis={analysis} />
-          )}
-
-          <WebsiteAnalysisPanel analysis={websiteAnalysis} />
-
-          <OutreachPanel outreach={outreach} />
-        </div>
+        <CRMSidePanel
+          selectedLead={selectedLead}
+          onGenerateOutreach={handleGenerateOutreach}
+          onAnalyzeWebsite={handleAnalyzeWebsite}
+          isGeneratingOutreach={isGeneratingOutreach}
+          isAnalyzingWebsite={isAnalyzingWebsite}
+          onSaveLeadDetails={handleSaveLeadDetails}
+          onCloseLead={() => setSelectedLead(null)}
+          isSavingDetails={isSavingDetails}
+          isAnalyzing={isAnalyzing}
+          analysis={analysis}
+          websiteAnalysis={websiteAnalysis}
+          outreach={outreach}
+        />
       </div>
     </main>
   );

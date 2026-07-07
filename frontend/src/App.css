@@ -1094,3 +1094,86 @@ button {
   border-radius: var(--radius-lg);
   padding: 20px;
 }
+/* ===================================
+   EXECUTIVE DASHBOARD
+=================================== */
+
+.executive-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.executive-panel {
+  background: linear-gradient(
+    180deg,
+    rgba(17, 24, 39, 0.96),
+    rgba(15, 23, 42, 0.96)
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.ai-brief-panel {
+  border-color: rgba(34, 197, 94, 0.3);
+  background:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.13), transparent 32%),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(15, 23, 42, 0.96));
+}
+
+.panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  font-size: 22px;
+}
+
+.executive-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.executive-list li {
+  line-height: 1.5;
+}
+
+.executive-list.muted {
+  color: var(--text-muted);
+}
+
+.pipeline-list.premium {
+  margin-top: 18px;
+}
+
+.pipeline-list.premium .pipeline-row {
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 1100px) {
+  .executive-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
