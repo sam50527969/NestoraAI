@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { getSavedLeads, updateLead } from "../api";
+import {
+  getSavedLeads,
+  updateLead,
+  generateOutreach,
+  analyzeLead,
+  analyzeWebsite,
+} from "../api";
 import CRMToolbar from "../components/CRMToolbar";
 import CRMTable from "../components/CRMTable";
 import CRMBoard from "../components/crm/CRMBoard";
+import OutreachPanel from "../components/crm/OutreachPanel";
 import LeadDetailsPanel from "../components/LeadDetailsPanel";
 import Button from "../components/ui/Button";
+import SalesAnalysisPanel from "../components/crm/SalesAnalysisPanel";
+import WebsiteAnalysisPanel from "../components/crm/WebsiteAnalysisPanel";
 
 function normalizeLeadsResponse(response) {
   if (Array.isArray(response)) return response;
@@ -47,8 +56,17 @@ export default function CRM() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [viewMode, setViewMode] = useState("board");
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzingWebsite, setIsAnalyzingWebsite] = useState(false);
+
+  const [outreach, setOutreach] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [websiteAnalysis, setWebsiteAnalysis] = useState(null);
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -82,6 +100,42 @@ export default function CRM() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setOutreach(null);
+    setWebsiteAnalysis(null);
+  }, [selectedLead?.id]);
+
+  useEffect(() => {
+    if (!selectedLead) {
+      setAnalysis(null);
+      return;
+    }
+
+    async function runAnalysis() {
+      setIsAnalyzing(true);
+
+      try {
+        const result = await analyzeLead({
+          name: selectedLead.name,
+          category: selectedLead.category,
+          phone: selectedLead.phone,
+          website: selectedLead.website,
+          priority: selectedLead.priority,
+          notes: selectedLead.notes,
+        });
+
+        setAnalysis(result);
+      } catch (error) {
+        console.error("Failed to analyze lead", error);
+        setAnalysis(null);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+
+    runAnalysis();
+  }, [selectedLead]);
+
   const categories = useMemo(() => {
     const uniqueCategories = new Set(leads.map(getLeadCategory).filter(Boolean));
     return ["All", ...Array.from(uniqueCategories).sort()];
@@ -109,6 +163,7 @@ export default function CRM() {
           lead.id === updatedLead.id ? updatedLead : lead
         )
       );
+
       setSelectedLead(updatedLead);
       setSuccessMessage("Lead details saved successfully.");
     } catch (error) {
@@ -118,6 +173,53 @@ export default function CRM() {
       );
     } finally {
       setIsSavingDetails(false);
+    }
+  };
+
+  const handleGenerateOutreach = async () => {
+    if (!selectedLead) return;
+
+    setIsGeneratingOutreach(true);
+    setErrorMessage("");
+
+    try {
+      const response = await generateOutreach({
+        name: selectedLead.name,
+        category: selectedLead.category,
+        phone: selectedLead.phone,
+        website: selectedLead.website,
+        priority: selectedLead.priority,
+        notes: selectedLead.notes,
+      });
+
+      setOutreach(response);
+      setSuccessMessage("Nestora Copilot generated outreach successfully.");
+    } catch (error) {
+      console.error("Failed to generate outreach", error);
+      setErrorMessage("Unable to generate outreach. Please try again.");
+    } finally {
+      setIsGeneratingOutreach(false);
+    }
+  };
+
+  const handleAnalyzeWebsite = async () => {
+    if (!selectedLead?.website || selectedLead.website === "Not found") {
+      alert("This lead doesn't have a website.");
+      return;
+    }
+
+    setIsAnalyzingWebsite(true);
+    setErrorMessage("");
+
+    try {
+      const result = await analyzeWebsite(selectedLead.website);
+      setWebsiteAnalysis(result);
+      setSuccessMessage("Website analysis completed.");
+    } catch (error) {
+      console.error("Website analysis failed", error);
+      setErrorMessage("Website analysis failed. Please try again.");
+    } finally {
+      setIsAnalyzingWebsite(false);
     }
   };
 
@@ -142,6 +244,7 @@ export default function CRM() {
             >
               Board
             </button>
+
             <button
               type="button"
               className={viewMode === "table" ? "active" : ""}
@@ -151,12 +254,9 @@ export default function CRM() {
             </button>
           </div>
 
-          <Button
-  variant="secondary"
-  onClick={loadSavedLeads}
->
-  Refresh
-</Button>
+          <Button variant="secondary" onClick={loadSavedLeads}>
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -185,12 +285,45 @@ export default function CRM() {
           />
         )}
 
-        <LeadDetailsPanel
-          lead={selectedLead}
-          onSave={handleSaveLeadDetails}
-          onClose={() => setSelectedLead(null)}
-          isSaving={isSavingDetails}
-        />
+        <div className="crm-side-panel">
+          {selectedLead && (
+            <div className="copilot-action">
+              <Button
+                onClick={handleGenerateOutreach}
+                disabled={isGeneratingOutreach}
+              >
+                {isGeneratingOutreach
+                  ? "Generating..."
+                  : "✨ Open Nestora Copilot"}
+              </Button>
+
+              <Button
+                variant="secondary"
+                onClick={handleAnalyzeWebsite}
+                disabled={isAnalyzingWebsite}
+              >
+                {isAnalyzingWebsite ? "Analyzing..." : "🔍 Analyze Website"}
+              </Button>
+            </div>
+          )}
+
+          <LeadDetailsPanel
+            lead={selectedLead}
+            onSave={handleSaveLeadDetails}
+            onClose={() => setSelectedLead(null)}
+            isSaving={isSavingDetails}
+          />
+
+          {isAnalyzing ? (
+            <div className="crm-alert">Analyzing lead...</div>
+          ) : (
+            <SalesAnalysisPanel analysis={analysis} />
+          )}
+
+          <WebsiteAnalysisPanel analysis={websiteAnalysis} />
+
+          <OutreachPanel outreach={outreach} />
+        </div>
       </div>
     </main>
   );

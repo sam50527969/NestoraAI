@@ -8,6 +8,9 @@ from app.routes.crm import router as crm_router
 from app.routes.dashboard import router as dashboard_router
 from app.routes.leads import router as leads_router
 from app.routes.search import router as search_router
+from app.routes.outreach import router as outreach_router
+from app.routes.sales_ai import router as sales_ai_router
+from app.routes.website import router as website_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,6 +33,9 @@ app.include_router(leads_router)
 app.include_router(search_router)
 app.include_router(crm_router)
 app.include_router(dashboard_router)
+app.include_router(outreach_router)
+app.include_router(sales_ai_router)
+app.include_router(website_router)
 
 
 @app.get("/")
