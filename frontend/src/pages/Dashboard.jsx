@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import MissionControl from "../components/dashboard/MissionControl";
 import DashboardResearch from "../components/dashboard/DashboardResearch";
 import DashboardSummaryGrid from "../components/dashboard/DashboardSummaryGrid";
 import KPICard from "../components/KPICard";
+import CEOChat from "../components/agents/ceo/CEOChat";
 import {
   getDashboardSummary,
   getSampleLeads,
@@ -97,6 +99,8 @@ function Dashboard() {
         </div>
       </section>
 
+      <CEOChat />
+
       {isDashboardLoading ? (
         <section className="panel">
           <p>Loading dashboard summary...</p>
@@ -110,6 +114,7 @@ function Dashboard() {
           </section>
 
           <DashboardSummaryGrid summary={dashboardSummary} />
+          <MissionControl />
         </>
       ) : (
         <section className="panel">

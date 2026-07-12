@@ -12,6 +12,8 @@ from app.routes.outreach import router as outreach_router
 from app.routes.sales_ai import router as sales_ai_router
 from app.routes.website import router as website_router
 from app.routes.ai_agent import router as ai_agent_router
+from app.routes.mission import router as mission_router
+from app.routes.ceo import router as ceo_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -38,6 +40,8 @@ app.include_router(outreach_router)
 app.include_router(sales_ai_router)
 app.include_router(website_router)
 app.include_router(ai_agent_router)
+app.include_router(mission_router)
+app.include_router(ceo_router)
 
 
 @app.get("/")

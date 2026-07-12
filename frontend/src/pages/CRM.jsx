@@ -1,3 +1,9 @@
+import CRMWorkspace from "../components/crm/workspace/CRMWorkspace";
+import {
+  getLeadCategory,
+  matchesLeadSearch,
+  normalizeLeadsResponse,
+} from "../utils/crm";
 import { useEffect, useMemo, useState } from "react";
 import {
   getSavedLeads,
@@ -12,40 +18,7 @@ import CRMBoard from "../components/crm/CRMBoard";
 import CRMHeader from "../components/crm/CRMHeader";
 import CRMSidePanel from "../components/crm/CRMSidePanel";
 
-function normalizeLeadsResponse(response) {
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response?.data)) return response.data;
-  if (Array.isArray(response?.leads)) return response.leads;
-  if (Array.isArray(response?.data?.leads)) return response.data.leads;
-  return [];
-}
 
-function getLeadCategory(lead) {
-  return lead.category || lead.type || lead.business_type || "Unknown";
-}
-
-function matchesSearch(lead, searchTerm) {
-  const value = searchTerm.trim().toLowerCase();
-  if (!value) return true;
-
-  const searchableText = [
-    lead.name,
-    getLeadCategory(lead),
-    lead.address,
-    lead.phone,
-    lead.website,
-    lead.source,
-    lead.status,
-    lead.priority,
-    lead.tags,
-    lead.assigned_to,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  return searchableText.includes(value);
-}
 
 export default function CRM() {
   const [leads, setLeads] = useState([]);
@@ -140,7 +113,7 @@ export default function CRM() {
 
   const filteredLeads = useMemo(() => {
     return leads
-      .filter((lead) => matchesSearch(lead, searchTerm))
+      .filter((lead) => matchesLeadSearch(lead, searchTerm))
       .filter((lead) => {
         if (categoryFilter === "All") return true;
         return getLeadCategory(lead) === categoryFilter;
@@ -227,6 +200,11 @@ export default function CRM() {
         onViewModeChange={setViewMode}
         onRefresh={loadSavedLeads}
       />
+      <CRMWorkspace
+  leads={filteredLeads}
+  selectedLead={selectedLead}
+  onSelectLead={setSelectedLead}
+/>
 
       <CRMToolbar
         searchTerm={searchTerm}

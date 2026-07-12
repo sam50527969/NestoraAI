@@ -1,6 +1,10 @@
 import httpx
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
+]
 
 
 def build_overpass_query(business_type: str, location: str, limit: int = 20):
@@ -83,10 +87,27 @@ async def search_businesses(business_type: str, location: str, limit: int = 20):
 
     headers = {"User-Agent": "NestoraAI/0.1 (local development)"}
 
+    data = None
+    last_error = None
+
     async with httpx.AsyncClient(timeout=30, headers=headers) as client:
-        response = await client.post(OVERPASS_URL, data={"data": query})
-        response.raise_for_status()
-        data = response.json()
+        for overpass_url in OVERPASS_URLS:
+            try:
+                response = await client.post(
+                    overpass_url,
+                    data={"data": query},
+                )
+                response.raise_for_status()
+                data = response.json()
+                break
+            except (httpx.HTTPError, ValueError) as error:
+                last_error = error
+                print(f"Overpass server failed: {overpass_url} | {error}")
+
+    if data is None:
+        raise RuntimeError(
+            f"All Overpass servers failed. Last error: {last_error}"
+        )
 
     results = []
 

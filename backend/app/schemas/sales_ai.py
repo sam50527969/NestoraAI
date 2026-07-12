@@ -19,3 +19,4 @@ class SalesAnalysisResponse(BaseModel):
     strengths: list[str]
     weaknesses: list[str]
     recommendation: str
+    opportunity: str

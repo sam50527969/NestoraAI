@@ -41,13 +41,24 @@ class LeadUpdate(BaseModel):
 
 class LeadResponse(LeadBase):
     id: int
+
     status: str = "New"
     priority: str = "Medium"
+
     notes: Optional[str] = None
     tags: Optional[str] = None
     assigned_to: Optional[str] = None
     last_contacted: Optional[str] = None
     next_follow_up: Optional[str] = None
+
+    # AI Memory
+    ai_score: Optional[int] = None
+    ai_recommendation: Optional[str] = None
+    ai_opportunity: Optional[str] = None
+    ai_strengths: Optional[str] = None
+    ai_weaknesses: Optional[str] = None
+    ai_analyzed_at: Optional[datetime] = None
+
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

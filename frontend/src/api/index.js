@@ -5,3 +5,5 @@ export { searchBusinesses } from "./search";
 export { generateOutreach } from "./outreach";
 export { analyzeLead } from "./salesAi";
 export { analyzeWebsite } from "./website";
+export { startMission, getMissionStatus } from "./mission";
+export { askCEO } from "./ceo";

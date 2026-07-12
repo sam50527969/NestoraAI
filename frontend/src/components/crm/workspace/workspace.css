@@ -1,0 +1,241 @@
+.crm-v2-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.crm-v2-lead-list,
+.crm-v2-lead-profile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  min-height: 560px;
+}
+
+.crm-v2-lead-list {
+  overflow: hidden;
+}
+
+.crm-v2-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.crm-v2-list-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.crm-v2-list-header h2 {
+  margin: 6px 0 0;
+}
+
+.crm-v2-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+  max-height: 720px;
+}
+
+.crm-v2-lead-item {
+  width: 100%;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.crm-v2-lead-item:hover,
+.crm-v2-lead-item.selected {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.crm-v2-lead-item.selected {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.crm-v2-lead-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crm-v2-lead-main span {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.crm-v2-lead-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.crm-v2-priority,
+.crm-v2-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.priority-high {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.priority-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+}
+
+.priority-low {
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--info);
+}
+
+.crm-v2-score {
+  background: var(--surface-light);
+  color: var(--text-primary);
+}
+
+.crm-v2-lead-profile {
+  padding: 24px;
+}
+
+.crm-v2-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.crm-v2-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.crm-v2-profile-header h2 {
+  margin: 6px 0;
+}
+
+.crm-v2-profile-header p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.crm-v2-score-card {
+  min-width: 120px;
+  border-radius: var(--radius);
+  padding: 14px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.crm-v2-score-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.crm-v2-score-card strong {
+  color: var(--info);
+  font-size: 26px;
+}
+
+.crm-v2-profile-section {
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.crm-v2-profile-section h3 {
+  margin: 0 0 10px;
+}
+
+.crm-v2-profile-section p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.crm-v2-profile-section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-secondary);
+}
+
+.crm-v2-profile-section li {
+  margin-bottom: 8px;
+}
+
+.crm-v2-insight-grid,
+.crm-v2-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.crm-v2-contact-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crm-v2-contact-grid span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.crm-v2-contact-grid strong {
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.crm-v2-empty-list,
+.crm-v2-empty-profile {
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .crm-v2-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-v2-list-items {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 700px) {
+  .crm-v2-insight-grid,
+  .crm-v2-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-v2-profile-header {
+    flex-direction: column;
+  }
+}

@@ -28,5 +28,17 @@ class Lead(Base):
     last_contacted = Column(String, nullable=True)
     next_follow_up = Column(String, nullable=True)
 
+    ai_score = Column(Integer, nullable=True)
+    ai_recommendation = Column(Text, nullable=True)
+    ai_opportunity = Column(Text, nullable=True)
+    ai_strengths = Column(Text, nullable=True)
+    ai_weaknesses = Column(Text, nullable=True)
+    ai_analyzed_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
