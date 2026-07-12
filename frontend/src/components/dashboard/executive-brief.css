@@ -1,0 +1,62 @@
+.executive-brief{
+
+    height:100%;
+}
+
+.executive-brief-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:24px;
+}
+
+.executive-brief-content{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+}
+
+.brief-item{
+
+    background:rgba(255,255,255,.03);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:16px;
+}
+
+.brief-item span{
+
+    display:block;
+
+    color:var(--text-muted);
+
+    margin-bottom:8px;
+
+    font-size:12px;
+}
+
+.brief-item strong{
+
+    font-size:20px;
+
+    color:var(--text-primary);
+}
+
+.brief-item p{
+
+    margin:0;
+
+    color:var(--text-secondary);
+
+    line-height:1.6;
+}

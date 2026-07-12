@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import MissionControl from "../components/dashboard/MissionControl";
+
+import CEOChat from "../components/agents/ceo/CEOChat";
 import DashboardResearch from "../components/dashboard/DashboardResearch";
 import DashboardSummaryGrid from "../components/dashboard/DashboardSummaryGrid";
+import ExecutiveBrief from "../components/dashboard/ExecutiveBrief";
+import ExecutiveHeader from "../components/dashboard/ExecutiveHeader";
+import MissionControl from "../components/dashboard/MissionControl";
 import KPICard from "../components/KPICard";
-import CEOChat from "../components/agents/ceo/CEOChat";
+
 import {
   getDashboardSummary,
   getSampleLeads,
@@ -26,8 +30,8 @@ function Dashboard() {
 
         setDashboardSummary(summaryData);
         setLeads(leadsData);
-      } catch (err) {
-        console.error("Failed to load dashboard:", err);
+      } catch (error) {
+        console.error("Failed to load dashboard:", error);
       } finally {
         setIsDashboardLoading(false);
       }
@@ -47,8 +51,8 @@ function Dashboard() {
       });
 
       setLeads(data);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Failed to search businesses:", error);
       alert("Unable to fetch businesses.");
     } finally {
       setIsLoading(false);
@@ -91,15 +95,8 @@ function Dashboard() {
     : [];
 
   return (
-    <>
-      <section className="dashboard-header">
-        <div>
-          <h2>Welcome back, Sam 👋</h2>
-          <p>Here is your live CRM-powered business command center for today.</p>
-        </div>
-      </section>
-
-      <CEOChat />
+    <main className="dashboard-page">
+      <ExecutiveHeader />
 
       {isDashboardLoading ? (
         <section className="panel">
@@ -113,7 +110,12 @@ function Dashboard() {
             ))}
           </section>
 
+          <ExecutiveBrief />
+
+          <CEOChat />
+
           <DashboardSummaryGrid summary={dashboardSummary} />
+
           <MissionControl />
         </>
       ) : (
@@ -127,7 +129,7 @@ function Dashboard() {
         isLoading={isLoading}
         onSearch={handleLeadSearch}
       />
-    </>
+    </main>
   );
 }
 

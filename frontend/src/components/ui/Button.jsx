@@ -1,19 +1,31 @@
+import "./button.css";
+
 function Button({
   children,
   variant = "primary",
+  size = "md",
   type = "button",
   disabled = false,
+  loading = false,
+  fullWidth = false,
   onClick,
   className = "",
 }) {
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={disabled || loading}
       onClick={onClick}
-      className={`ui-button ui-button-${variant} ${className}`}
+      className={`
+        ui-button
+        ui-button-${variant}
+        ui-button-${size}
+        ${fullWidth ? "ui-button-full" : ""}
+        ${loading ? "ui-button-loading" : ""}
+        ${className}
+      `}
     >
-      {children}
+      {loading ? "Loading..." : children}
     </button>
   );
 }

@@ -1,0 +1,87 @@
+.ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px 20px;
+
+    border: none;
+
+    border-radius: var(--radius);
+
+    cursor: pointer;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    transition: var(--transition);
+
+    user-select: none;
+}
+
+/* Sizes */
+
+.ui-button-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.ui-button-md {
+    padding: 12px 20px;
+}
+
+.ui-button-lg {
+    padding: 15px 28px;
+    font-size: 16px;
+}
+
+/* Primary */
+
+.ui-button-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.ui-button-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+/* Secondary */
+
+.ui-button-secondary {
+    background: var(--surface-light);
+    color: var(--text-primary);
+}
+
+.ui-button-secondary:hover:not(:disabled) {
+    background: #22304b;
+}
+
+/* Danger */
+
+.ui-button-danger {
+    background: var(--danger);
+    color: white;
+}
+
+/* Full Width */
+
+.ui-button-full {
+    width: 100%;
+}
+
+/* Disabled */
+
+.ui-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* Loading */
+
+.ui-button-loading {
+    pointer-events: none;
+}
