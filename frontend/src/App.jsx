@@ -1,8 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import MissionCenter from "./pages/MissionCenter";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
-import Dashboard from "./pages/Dashboard";
+import DashboardV2 from "./features/dashboard/DashboardV2";
 import CRM from "./pages/CRM";
+import CEO from "./pages/CEO";
+
 import "./App.css";
 
 function PlaceholderPage({ title }) {
@@ -25,12 +28,28 @@ function App() {
           <TopBar activePage="Nestora AI" />
 
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/leads" element={<Dashboard />} />
+            <Route path="/" element={<DashboardV2 />} />
+            <Route path="/leads" element={<DashboardV2 />} />
             <Route path="/crm" element={<CRM />} />
-            <Route path="/ceo" element={<PlaceholderPage title="CEO Agent" />} />
-            <Route path="/analytics" element={<PlaceholderPage title="Analytics" />} />
-            <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+            <Route path="/missions" element={<MissionCenter />} />
+            <Route path="/ceo" element={<CEO />} />
+            
+            <Route
+              path="/proposal"
+              element={<PlaceholderPage title="Proposal Generator" />}
+            />
+            <Route
+              path="/website-intelligence"
+              element={<PlaceholderPage title="Website Intelligence" />}
+            />
+            <Route
+              path="/analytics"
+              element={<PlaceholderPage title="Analytics" />}
+            />
+            <Route
+              path="/settings"
+              element={<PlaceholderPage title="Settings" />}
+            />
           </Routes>
         </main>
       </div>

@@ -14,6 +14,7 @@ from app.routes.website import router as website_router
 from app.routes.ai_agent import router as ai_agent_router
 from app.routes.mission import router as mission_router
 from app.routes.ceo import router as ceo_router
+from app.routes.ceo_advisor import router as ceo_advisor_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -42,6 +43,7 @@ app.include_router(website_router)
 app.include_router(ai_agent_router)
 app.include_router(mission_router)
 app.include_router(ceo_router)
+app.include_router(ceo_advisor_router)
 
 
 @app.get("/")

@@ -17,11 +17,25 @@ class Lead(Base):
     website = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    source = Column(String, nullable=True, default="OpenStreetMap")
+    source = Column(
+        String,
+        nullable=True,
+        default="OpenStreetMap",
+    )
     source_id = Column(String, nullable=True, index=True)
 
-    status = Column(String, nullable=False, default="New", index=True)
-    priority = Column(String, nullable=False, default="Medium", index=True)
+    status = Column(
+        String,
+        nullable=False,
+        default="New",
+        index=True,
+    )
+    priority = Column(
+        String,
+        nullable=False,
+        default="Medium",
+        index=True,
+    )
     notes = Column(Text, nullable=True)
     tags = Column(String, nullable=True)
     assigned_to = Column(String, nullable=True)
@@ -35,7 +49,17 @@ class Lead(Base):
     ai_weaknesses = Column(Text, nullable=True)
     ai_analyzed_at = Column(DateTime, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    opportunity_score = Column(Integer, nullable=True)
+    estimated_value = Column(Integer, nullable=True)
+    closing_probability = Column(Integer, nullable=True)
+    business_potential = Column(String, nullable=True)
+    opportunity_recommendation = Column(Text, nullable=True)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,

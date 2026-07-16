@@ -1,0 +1,71 @@
+.workforce-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.workforce-agent-card {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.03);
+}
+
+.workforce-agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.workforce-agent-identity {
+  display: flex;
+  gap: 14px;
+}
+
+.workforce-agent-icon {
+  font-size: 28px;
+}
+
+.workforce-agent-identity h3 {
+  margin: 0;
+}
+
+.workforce-agent-identity p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.workforce-agent-task {
+  margin-bottom: 18px;
+}
+
+.workforce-agent-task span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.workforce-agent-progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.workforce-agent-progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+.workforce-agent-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    var(--primary)
+  );
+  transition: width .4s ease;
+}

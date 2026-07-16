@@ -1,0 +1,341 @@
+.mission-center-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mission-center-header {
+  padding: 36px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(34, 197, 94, 0.08),
+      rgba(56, 189, 248, 0.05)
+    );
+}
+
+.mission-center-header h1 {
+  margin: 10px 0 12px;
+}
+
+.mission-center-header p:last-child {
+  max-width: 760px;
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.mission-control {
+  padding: 28px;
+}
+
+.mission-control-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.mission-control-header h2 {
+  margin: 7px 0;
+}
+
+.mission-description {
+  max-width: 720px;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.mission-control-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 14px;
+  background: rgba(34, 197, 94, 0.1);
+  font-size: 22px;
+}
+
+.mission-control-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.mission-control-error {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+}
+
+.mission-status-card {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mission-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.mission-progress-header div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mission-progress-header span,
+.mission-stat span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.mission-progress-track {
+  height: 10px;
+  margin: 18px 0 22px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mission-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      var(--accent),
+      var(--primary)
+    );
+  transition: width 0.4s ease;
+}
+
+.mission-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mission-stat {
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mission-stat span {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.mission-stat strong {
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+.mission-id {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 12px !important;
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .mission-control-header {
+    flex-direction: column;
+  }
+
+  .mission-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .mission-center-header,
+  .mission-control {
+    padding: 22px;
+  }
+
+  .mission-control-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mission-control-actions .ui-button {
+    width: 100%;
+  }
+
+  .mission-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mission-roadmap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-roadmap-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+.mission-roadmap-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.mission-roadmap-status.complete {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--accent);
+}
+
+.mission-roadmap-status.planned {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+}
+.mission-builder {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.mission-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mission-field label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mission-field input,
+.mission-field select {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.mission-field input:focus,
+.mission-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.mission-field input:disabled,
+.mission-field select:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.mission-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.mission-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+}
+
+.mission-option input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.mission-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mission-option strong {
+  color: var(--text-primary);
+}
+
+.mission-option small {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 850px) {
+  .mission-builder {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-option-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mission-activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-top: 18px;
+}
+
+.mission-activity-item {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+
+.mission-activity-item strong {
+  color: var(--accent);
+  margin-right: 10px;
+}
+
+.mission-activity-item span {
+  font-weight: 600;
+}
+
+.mission-activity-item p {
+  margin-top: 6px;
+  color: var(--text-secondary);
+}

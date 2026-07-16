@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import CEOChat from "../components/agents/ceo/CEOChat";
+import AgentStatus from "../components/dashboard/AgentStatus";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
 import DashboardResearch from "../components/dashboard/DashboardResearch";
 import DashboardSummaryGrid from "../components/dashboard/DashboardSummaryGrid";
 import ExecutiveBrief from "../components/dashboard/ExecutiveBrief";
 import ExecutiveHeader from "../components/dashboard/ExecutiveHeader";
 import MissionControl from "../components/dashboard/MissionControl";
+import OpportunityPanel from "../components/dashboard/OpportunityPanel";
+import QuickActions from "../components/dashboard/QuickActions";
+import RecentActivity from "../components/dashboard/RecentActivity";
 import KPICard from "../components/KPICard";
 
 import {
@@ -29,7 +34,7 @@ function Dashboard() {
         ]);
 
         setDashboardSummary(summaryData);
-        setLeads(leadsData);
+        setLeads(Array.isArray(leadsData) ? leadsData : []);
       } catch (error) {
         console.error("Failed to load dashboard:", error);
       } finally {
@@ -50,7 +55,7 @@ function Dashboard() {
         quantity: searchData.quantity || "20",
       });
 
-      setLeads(data);
+      setLeads(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to search businesses:", error);
       alert("Unable to fetch businesses.");
@@ -58,6 +63,34 @@ function Dashboard() {
       setIsLoading(false);
     }
   }
+
+  function scrollToSection(sectionId) {
+    document
+      .getElementById(sectionId)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function handleOpenCRM() {
+    window.location.href = "/crm";
+  }
+
+  function handleGenerateProposal() {
+    alert("Proposal Generator will be added in the upcoming sprint.");
+  }
+
+  function handleWebsiteAudit() {
+    alert("Website Intelligence Center will be added in the upcoming sprint.");
+  }
+
+  const topOpportunity = useMemo(() => {
+    if (!leads.length) return null;
+
+    return [...leads].sort(
+      (firstLead, secondLead) =>
+        (secondLead.ai_score ?? secondLead.opportunityScore ?? 0) -
+        (firstLead.ai_score ?? firstLead.opportunityScore ?? 0)
+    )[0];
+  }, [leads]);
 
   const kpis = dashboardSummary
     ? [
@@ -94,40 +127,75 @@ function Dashboard() {
       ]
     : [];
 
+  const metrics = (
+    <section className="cards">
+      {kpis.map((kpi) => (
+        <KPICard key={kpi.title} {...kpi} />
+      ))}
+    </section>
+  );
+
+  if (isDashboardLoading) {
+    return (
+      <main className="dashboard-page">
+        <ExecutiveHeader />
+
+        <section className="panel">
+          <p>Loading executive dashboard...</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!dashboardSummary) {
+    return (
+      <main className="dashboard-page">
+        <ExecutiveHeader />
+
+        <section className="panel">
+          <p>Unable to load the executive dashboard.</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="dashboard-page">
-      <ExecutiveHeader />
+      <DashboardLayout
+        hero={<ExecutiveHeader />}
+        metrics={metrics}
+        primary={<ExecutiveBrief />}
+        secondary={<OpportunityPanel lead={topOpportunity} />}
+        lowerLeft={
+          <QuickActions
+            onRunMission={() => scrollToSection("mission-control-section")}
+            onOpenCRM={handleOpenCRM}
+            onGenerateProposal={handleGenerateProposal}
+            onWebsiteAudit={handleWebsiteAudit}
+          />
+        }
+        lowerRight={
+          <RecentActivity items={dashboardSummary.activity || []} />
+        }
+        fullWidth={
+          <>
+            <AgentStatus />
 
-      {isDashboardLoading ? (
-        <section className="panel">
-          <p>Loading dashboard summary...</p>
-        </section>
-      ) : dashboardSummary ? (
-        <>
-          <section className="cards">
-            {kpis.map((kpi) => (
-              <KPICard key={kpi.title} {...kpi} />
-            ))}
-          </section>
+            <CEOChat />
 
-          <ExecutiveBrief />
+            <DashboardSummaryGrid summary={dashboardSummary} />
 
-          <CEOChat />
+            <div id="mission-control-section">
+              <MissionControl />
+            </div>
 
-          <DashboardSummaryGrid summary={dashboardSummary} />
-
-          <MissionControl />
-        </>
-      ) : (
-        <section className="panel">
-          <p>Unable to load dashboard summary.</p>
-        </section>
-      )}
-
-      <DashboardResearch
-        leads={leads}
-        isLoading={isLoading}
-        onSearch={handleLeadSearch}
+            <DashboardResearch
+              leads={leads}
+              isLoading={isLoading}
+              onSearch={handleLeadSearch}
+            />
+          </>
+        }
       />
     </main>
   );

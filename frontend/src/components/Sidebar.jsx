@@ -4,6 +4,7 @@ import {
   Brain,
   Building2,
   Home,
+  Rocket,
   Search,
   Settings,
 } from "lucide-react";
@@ -16,6 +17,7 @@ function Sidebar() {
         { label: "Dashboard", path: "/", icon: Home },
         { label: "Lead Finder", path: "/leads", icon: Search },
         { label: "CRM", path: "/crm", icon: Building2 },
+        { label: "Mission Center", path: "/missions", icon: Rocket },
       ],
     },
     {
@@ -27,7 +29,9 @@ function Sidebar() {
     },
     {
       title: "System",
-      items: [{ label: "Settings", path: "/settings", icon: Settings }],
+      items: [
+        { label: "Settings", path: "/settings", icon: Settings },
+      ],
     },
   ];
 
@@ -35,6 +39,7 @@ function Sidebar() {
     <aside className="sidebar">
       <div className="brand">
         <div className="brand-mark">N</div>
+
         <div>
           <h2>Nestora AI</h2>
           <p>Business Operating System</p>
