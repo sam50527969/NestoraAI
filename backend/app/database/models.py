@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
@@ -65,4 +66,134 @@ class Lead(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
         nullable=False,
+    )
+
+
+class AgentTask(Base):
+    __tablename__ = "agent_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    task_uid = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+
+    mission_id = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    agent_name = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    task_type = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    title = Column(
+        String,
+        nullable=False,
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+    )
+
+    status = Column(
+        String,
+        nullable=False,
+        default="pending",
+        index=True,
+    )
+
+    priority = Column(
+        String,
+        nullable=False,
+        default="medium",
+        index=True,
+    )
+
+    progress = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    sequence_number = Column(
+        Integer,
+        nullable=False,
+        default=0,
+        index=True,
+    )
+
+    depends_on_task_uid = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
+    input_data = Column(
+        Text,
+        nullable=True,
+    )
+
+    output_data = Column(
+        Text,
+        nullable=True,
+    )
+
+    error_message = Column(
+        Text,
+        nullable=True,
+    )
+
+    retry_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    max_retries = Column(
+        Integer,
+        nullable=False,
+        default=3,
+    )
+
+    estimated_value = Column(
+        Float,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
+
+    started_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    completed_at = Column(
+        DateTime,
+        nullable=True,
     )

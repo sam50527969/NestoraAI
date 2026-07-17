@@ -3,10 +3,17 @@ import uuid
 from app.database.database import SessionLocal
 from app.schemas.crm import LeadCreate
 from app.schemas.outreach import OutreachLead, OutreachRequest
-from app.services.mission_activity import log_mission_activity
 from app.services.business_search import search_businesses
 from app.services.crm_service import create_lead, update_ai_analysis
+from app.services.mission_activity import log_mission_activity
 from app.services.mission_filters import filter_leads, has_real_value
+from app.services.mission_task_planner import create_mission_task_plan
+from app.services.mission_task_runtime import (
+    complete_mission_task,
+    fail_mission_task,
+    start_mission_task,
+    update_mission_task_progress,
+)
 from app.services.opportunity_engine import analyze_opportunity
 from app.services.outreach_service import generate_outreach
 from app.services.sales_ai import analyze_lead
@@ -88,6 +95,7 @@ def create_mission():
         "searched": 0,
         "analyzed": 0,
         "outreach_generated": 0,
+        "task_count": 0,
         "agents": build_default_agents(),
         "activity": [],
     }
@@ -153,10 +161,65 @@ def get_mission(mission_id):
 
 
 def complete_empty_mission(
+    db,
     mission_id,
     *,
     current_step,
+    raw_result_count,
+    rejected_count,
 ):
+    complete_mission_task(
+        db,
+        mission_id,
+        "save_leads",
+        output_data={
+            "saved_count": 0,
+            "reason": "No businesses matched the filters",
+        },
+    )
+
+    complete_mission_task(
+        db,
+        mission_id,
+        "lead_analysis",
+        output_data={
+            "analyzed_count": 0,
+            "reason": "No leads were available",
+        },
+    )
+
+    complete_mission_task(
+        db,
+        mission_id,
+        "website_analysis",
+        output_data={
+            "websites_analyzed": 0,
+            "skipped": True,
+            "reason": "No websites were available",
+        },
+    )
+
+    complete_mission_task(
+        db,
+        mission_id,
+        "generate_outreach",
+        output_data={
+            "outreach_generated": 0,
+            "skipped": True,
+            "reason": "No leads were available",
+        },
+    )
+
+    complete_mission_task(
+        db,
+        mission_id,
+        "proposal_generation",
+        output_data={
+            "skipped": True,
+            "reason": "Proposal generation is not enabled yet",
+        },
+    )
+
     update_agent(
         mission_id,
         "CRM Agent",
@@ -192,12 +255,9 @@ def complete_empty_mission(
     update_agent(
         mission_id,
         "Proposal Agent",
-        status="waiting",
-        progress=0,
-        current_task=(
-            "Proposal generation is planned "
-            "for a future sprint"
-        ),
+        status="completed",
+        progress=100,
+        current_task="Proposal generation skipped",
     )
 
     log_mission_activity(
@@ -214,13 +274,36 @@ def complete_empty_mission(
         searched=0,
         analyzed=0,
         outreach_generated=0,
+        raw_results=raw_result_count,
+        rejected=rejected_count,
     )
 
 
 async def run_real_mission(mission_id, request):
     db = SessionLocal()
+    active_task_type = None
 
     try:
+        mission_tasks = create_mission_task_plan(
+            db,
+            mission_id,
+            request,
+        )
+
+        update_mission(
+            mission_id,
+            task_count=len(mission_tasks),
+        )
+
+        log_mission_activity(
+            MISSIONS[mission_id],
+            "CEO Agent",
+            (
+                f"Created execution plan with "
+                f"{len(mission_tasks)} tasks."
+            ),
+        )
+
         update_mission(
             mission_id,
             status="running",
@@ -254,6 +337,25 @@ async def run_real_mission(mission_id, request):
             MISSIONS[mission_id],
             "CEO Agent",
             "Mission plan completed.",
+        )
+
+        # ---------------------------------------------------------
+        # Research task
+        # ---------------------------------------------------------
+
+        active_task_type = "business_search"
+
+        start_mission_task(
+            db,
+            mission_id,
+            active_task_type,
+        )
+
+        update_mission_task_progress(
+            db,
+            mission_id,
+            active_task_type,
+            10,
         )
 
         update_agent(
@@ -290,6 +392,13 @@ async def run_real_mission(mission_id, request):
 
         raw_result_count = len(search_results)
 
+        update_mission_task_progress(
+            db,
+            mission_id,
+            active_task_type,
+            80,
+        )
+
         update_agent(
             mission_id,
             "Research Agent",
@@ -308,6 +417,21 @@ async def run_real_mission(mission_id, request):
 
         accepted_count = len(leads)
         rejected_count = raw_result_count - accepted_count
+
+        complete_mission_task(
+            db,
+            mission_id,
+            active_task_type,
+            output_data={
+                "raw_result_count": raw_result_count,
+                "accepted_count": accepted_count,
+                "rejected_count": rejected_count,
+                "business_type": request.business_type,
+                "location": request.location,
+            },
+        )
+
+        active_task_type = None
 
         update_agent(
             mission_id,
@@ -341,11 +465,14 @@ async def run_real_mission(mission_id, request):
 
         if accepted_count == 0:
             complete_empty_mission(
+                db,
                 mission_id,
                 current_step=(
                     "Mission completed with no businesses "
                     "matching the selected filters"
                 ),
+                raw_result_count=raw_result_count,
+                rejected_count=rejected_count,
             )
             return
 
@@ -358,6 +485,22 @@ async def run_real_mission(mission_id, request):
             1
             for lead in leads
             if has_real_value(lead.get("website"))
+        )
+
+        # ---------------------------------------------------------
+        # Start CRM and Sales tasks
+        # ---------------------------------------------------------
+
+        start_mission_task(
+            db,
+            mission_id,
+            "save_leads",
+        )
+
+        start_mission_task(
+            db,
+            mission_id,
+            "lead_analysis",
         )
 
         update_agent(
@@ -376,7 +519,17 @@ async def run_real_mission(mission_id, request):
             current_task="Preparing lead analysis",
         )
 
+        # ---------------------------------------------------------
+        # Website task setup
+        # ---------------------------------------------------------
+
         if request.analyze_websites:
+            start_mission_task(
+                db,
+                mission_id,
+                "website_analysis",
+            )
+
             update_agent(
                 mission_id,
                 "Website Agent",
@@ -385,6 +538,17 @@ async def run_real_mission(mission_id, request):
                 current_task="Preparing website analysis",
             )
         else:
+            complete_mission_task(
+                db,
+                mission_id,
+                "website_analysis",
+                output_data={
+                    "skipped": True,
+                    "reason": "Website analysis was disabled",
+                    "websites_analyzed": 0,
+                },
+            )
+
             update_agent(
                 mission_id,
                 "Website Agent",
@@ -392,6 +556,10 @@ async def run_real_mission(mission_id, request):
                 progress=100,
                 current_task="Website analysis disabled",
             )
+
+        # ---------------------------------------------------------
+        # Outreach task setup
+        # ---------------------------------------------------------
 
         if request.generate_outreach:
             update_agent(
@@ -402,6 +570,17 @@ async def run_real_mission(mission_id, request):
                 current_task="Waiting for lead analysis",
             )
         else:
+            complete_mission_task(
+                db,
+                mission_id,
+                "generate_outreach",
+                output_data={
+                    "skipped": True,
+                    "reason": "Outreach generation was disabled",
+                    "outreach_generated": 0,
+                },
+            )
+
             update_agent(
                 mission_id,
                 "Outreach Agent",
@@ -410,24 +589,42 @@ async def run_real_mission(mission_id, request):
                 current_task="Outreach generation disabled",
             )
 
+        # ---------------------------------------------------------
+        # Process accepted leads
+        # ---------------------------------------------------------
+
         for index, lead in enumerate(
             leads,
             start=1,
         ):
             business_name = str(
-                lead.get("businessName")
+                lead.get("businessName") or "Unnamed Business"
             ).strip()
 
             category = lead.get("category")
             phone = lead.get("phone")
             website = lead.get("website")
             priority = lead.get("priority") or "Medium"
+
             search_recommendation = lead.get(
                 "aiRecommendation"
             )
 
             item_progress = int(
                 (index / accepted_count) * 100
+            )
+
+            # -----------------------------------------------------
+            # CRM task
+            # -----------------------------------------------------
+
+            active_task_type = "save_leads"
+
+            update_mission_task_progress(
+                db,
+                mission_id,
+                active_task_type,
+                item_progress,
             )
 
             update_mission(
@@ -476,6 +673,19 @@ async def run_real_mission(mission_id, request):
                 MISSIONS[mission_id],
                 "CRM Agent",
                 f"Saved {business_name}.",
+            )
+
+            # -----------------------------------------------------
+            # Sales task
+            # -----------------------------------------------------
+
+            active_task_type = "lead_analysis"
+
+            update_mission_task_progress(
+                db,
+                mission_id,
+                active_task_type,
+                item_progress,
             )
 
             update_mission(
@@ -531,15 +741,19 @@ async def run_real_mission(mission_id, request):
             saved_lead.opportunity_score = (
                 opportunity["opportunity_score"]
             )
+
             saved_lead.estimated_value = (
                 opportunity["estimated_value"]
             )
+
             saved_lead.closing_probability = (
                 opportunity["closing_probability"]
             )
+
             saved_lead.business_potential = (
                 opportunity["business_potential"]
             )
+
             saved_lead.opportunity_recommendation = (
                 opportunity["recommended_service"]
             )
@@ -567,10 +781,16 @@ async def run_real_mission(mission_id, request):
                 ),
             )
 
+            # -----------------------------------------------------
+            # Website task
+            # -----------------------------------------------------
+
             if (
                 request.analyze_websites
                 and has_real_value(website)
             ):
+                active_task_type = "website_analysis"
+
                 website_progress = (
                     int(
                         (
@@ -581,6 +801,13 @@ async def run_real_mission(mission_id, request):
                     )
                     if websites_to_analyze
                     else 100
+                )
+
+                update_mission_task_progress(
+                    db,
+                    mission_id,
+                    active_task_type,
+                    website_progress,
                 )
 
                 update_agent(
@@ -604,10 +831,11 @@ async def run_real_mission(mission_id, request):
                             f"{business_name}."
                         ),
                     )
-                except Exception as error:
+
+                except Exception as website_error:
                     print(
                         "Website analysis failed for "
-                        f"{business_name}: {error}"
+                        f"{business_name}: {website_error}"
                     )
 
                     log_mission_activity(
@@ -628,7 +856,27 @@ async def run_real_mission(mission_id, request):
                 analyzed=analyzed_count,
             )
 
+            # -----------------------------------------------------
+            # Outreach task
+            # -----------------------------------------------------
+
             if request.generate_outreach:
+                active_task_type = "generate_outreach"
+
+                if outreach_count == 0:
+                    start_mission_task(
+                        db,
+                        mission_id,
+                        active_task_type,
+                    )
+
+                update_mission_task_progress(
+                    db,
+                    mission_id,
+                    active_task_type,
+                    item_progress,
+                )
+
                 update_mission(
                     mission_id,
                     current_step=(
@@ -687,6 +935,68 @@ async def run_real_mission(mission_id, request):
                     ),
                 )
 
+        # ---------------------------------------------------------
+        # Complete persistent tasks
+        # ---------------------------------------------------------
+
+        complete_mission_task(
+            db,
+            mission_id,
+            "save_leads",
+            output_data={
+                "saved_count": saved_count,
+            },
+        )
+
+        complete_mission_task(
+            db,
+            mission_id,
+            "lead_analysis",
+            output_data={
+                "analyzed_count": analyzed_count,
+            },
+        )
+
+        if request.analyze_websites:
+            complete_mission_task(
+                db,
+                mission_id,
+                "website_analysis",
+                output_data={
+                    "websites_analyzed": websites_analyzed,
+                    "websites_available": websites_to_analyze,
+                },
+            )
+
+        if request.generate_outreach:
+            complete_mission_task(
+                db,
+                mission_id,
+                "generate_outreach",
+                output_data={
+                    "outreach_generated": outreach_count,
+                },
+            )
+
+        complete_mission_task(
+            db,
+            mission_id,
+            "proposal_generation",
+            output_data={
+                "skipped": True,
+                "reason": (
+                    "Proposal generation is planned "
+                    "for a future sprint"
+                ),
+            },
+        )
+
+        active_task_type = None
+
+        # ---------------------------------------------------------
+        # Complete visible agents
+        # ---------------------------------------------------------
+
         update_agent(
             mission_id,
             "CRM Agent",
@@ -733,11 +1043,11 @@ async def run_real_mission(mission_id, request):
         update_agent(
             mission_id,
             "Proposal Agent",
-            status="waiting",
-            progress=0,
+            status="completed",
+            progress=100,
             current_task=(
-                "Proposal generation is planned "
-                "for a future sprint"
+                "Proposal generation skipped "
+                "until the feature is implemented"
             ),
         )
 
@@ -762,6 +1072,20 @@ async def run_real_mission(mission_id, request):
 
         print(f"Real mission failed: {error}")
 
+        if active_task_type:
+            try:
+                fail_mission_task(
+                    db,
+                    mission_id,
+                    active_task_type,
+                    str(error),
+                )
+            except Exception as task_error:
+                print(
+                    "Could not mark persistent task as failed: "
+                    f"{task_error}"
+                )
+
         fail_running_agents(mission_id)
 
         if mission_id in MISSIONS:
@@ -775,7 +1099,7 @@ async def run_real_mission(mission_id, request):
             mission_id,
             status="failed",
             progress=100,
-            current_step="Mission failed",
+            current_step=f"Mission failed: {error}",
         )
 
     finally:
