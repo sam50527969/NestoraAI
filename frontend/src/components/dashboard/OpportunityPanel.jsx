@@ -8,9 +8,16 @@ export default function OpportunityPanel({ lead }) {
     <Card className="opportunity-panel">
       <div className="dashboard-card-header">
         <div>
-          <p className="eyebrow">Top Opportunity</p>
-          <h2>{hasLead ? lead.name : "No opportunity available"}</h2>
-        </div>
+  <p className="eyebrow">Top Opportunity</p>
+
+  <h2 className="opportunity-title">
+    {hasLead
+      ? lead.name ||
+        lead.businessName ||
+        "Unnamed Business"
+      : "No opportunity available"}
+  </h2>
+</div>
 
         <Badge variant={hasLead ? "success" : "default"}>
           {hasLead ? "Recommended" : "Waiting"}
