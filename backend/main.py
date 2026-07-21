@@ -1,26 +1,74 @@
+from contextlib import asynccontextmanager
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.bootstrap import (
+    create_application,
+    register_routes,
+)
 from app.config import APP_NAME
-from app.database.database import Base, engine
+from app.core.registry import (
+    executive_registry,
+    load_executives,
+)
+from app.core.tools import tool_registry
 from app.database import models
-from app.routes.crm import router as crm_router
-from app.routes.dashboard import router as dashboard_router
-from app.routes.leads import router as leads_router
-from app.routes.search import router as search_router
-from app.routes.outreach import router as outreach_router
-from app.routes.sales_ai import router as sales_ai_router
-from app.routes.website import router as website_router
-from app.routes.ai_agent import router as ai_agent_router
-from app.routes.mission import router as mission_router
-from app.routes.ceo import router as ceo_router
-from app.routes.ceo_advisor import router as ceo_advisor_router
-from app.routes.agent_tasks import router as agent_tasks_router
-from app.routes import mission_scheduler
+from app.database.database import Base, engine
+from app.tools.loader import load_tools
+
+logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=APP_NAME)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Initialize and shut down shared Nestora platform services.
+    """
+
+    executive_registry.clear()
+    tool_registry.clear()
+
+    report = load_executives(
+        replace=False,
+        raise_on_error=False,
+    )
+
+    load_tools()
+
+    if report.error_count:
+        logger.warning(
+            "Nestora started with executive loading errors: %s",
+            report.to_dict(),
+        )
+    else:
+        logger.info(
+            "Executive registry initialized successfully: %s",
+            report.to_dict(),
+        )
+
+    logger.info(
+        "Tool registry initialized successfully: %s",
+        tool_registry.list_tools(),
+    )
+
+    app.state.executive_registry = executive_registry
+    app.state.executive_load_report = report
+    app.state.tool_registry = tool_registry
+
+    yield
+
+    executive_registry.clear()
+    tool_registry.clear()
+
+
+app = create_application(
+    title=APP_NAME,
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,21 +83,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(leads_router)
-app.include_router(search_router)
-app.include_router(crm_router)
-app.include_router(dashboard_router)
-app.include_router(outreach_router)
-app.include_router(sales_ai_router)
-app.include_router(website_router)
-app.include_router(ai_agent_router)
-app.include_router(mission_router)
-app.include_router(agent_tasks_router)
-app.include_router(ceo_router)
-app.include_router(ceo_advisor_router)
-app.include_router(mission_scheduler.router)
+register_routes(app)
 
 
 @app.get("/")
 def home():
-    return {"message": "Nestora AI backend is running"}
+    return {
+        "message": "Nestora AI backend is running",
+    }

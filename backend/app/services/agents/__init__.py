@@ -5,6 +5,13 @@ from app.services.agents.outreach_agent import OutreachAgent
 from app.services.agents.research_agent import ResearchAgent
 from app.services.agents.sales_agent import SalesAgent
 from app.services.agents.website_agent import WebsiteAgent
+from app.services.agents.executive_agent import (
+    ExecutiveAgent,
+    ExecutiveContext,
+    ExecutiveRunStatus,
+    ExecutiveStage,
+    ExecutiveStageResult,
+)
 
 
 __all__ = [
@@ -15,4 +22,9 @@ __all__ = [
     "SalesAgent",
     "WebsiteAgent",
     "OutreachAgent",
+    "ExecutiveAgent",
+    "ExecutiveContext",
+    "ExecutiveRunStatus",
+    "ExecutiveStage",
+    "ExecutiveStageResult",
 ]
