@@ -17,6 +17,7 @@ from app.core.tools import tool_registry
 from app.database import models
 from app.database.database import Base, engine
 from app.tools.loader import load_tools
+from app.clinic.routes import router as clinic_router
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,8 @@ app.add_middleware(
 )
 
 register_routes(app)
+
+app.include_router(clinic_router)
 
 
 @app.get("/")
