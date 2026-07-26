@@ -2,19 +2,23 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from app.core.executives.context import (
-    ExecutiveContext,
-)
-from app.core.executives.result import (
-    ExecutiveResult,
-)
+from app.core.executives.context import ExecutiveContext
+from app.core.executives.exceptions import ExecutiveValidationError
+from app.core.executives.result import ExecutiveResult
 
 
 class ExecutiveBase(ABC):
     """
-    Base class for every Nestora Executive.
+    Base class for every Nestora executive.
 
-    Every executive follows exactly the same lifecycle.
+    Every executive follows the same lifecycle:
+
+    validate
+        -> analyze
+        -> plan
+        -> execute
+        -> learn
+        -> report
     """
 
     def __init__(self) -> None:
@@ -25,18 +29,14 @@ class ExecutiveBase(ABC):
         context: ExecutiveContext,
     ) -> ExecutiveResult:
         """
-        Complete executive workflow.
+        Execute the complete executive lifecycle.
         """
 
         await self.validate(context)
-
         await self.analyze(context)
-
         await self.plan(context)
 
-        result = await self.execute(
-            context,
-        )
+        result = await self.execute(context)
 
         await self.learn(
             context,
@@ -55,12 +55,41 @@ class ExecutiveBase(ABC):
         context: ExecutiveContext,
     ) -> None:
         """
-        Validate execution context.
+        Validate the supplied execution context.
         """
 
+        if not isinstance(context, ExecutiveContext):
+            raise ExecutiveValidationError(
+                "Context must be an ExecutiveContext instance."
+            )
+
         if not context.mission.strip():
-            raise ValueError(
+            raise ExecutiveValidationError(
                 "Mission cannot be empty."
+            )
+
+        if (
+            context.objective is not None
+            and not context.objective.strip()
+        ):
+            raise ExecutiveValidationError(
+                "Objective cannot contain only whitespace."
+            )
+
+        if (
+            context.business_id is not None
+            and not context.business_id.strip()
+        ):
+            raise ExecutiveValidationError(
+                "Business ID cannot contain only whitespace."
+            )
+
+        if (
+            context.user_id is not None
+            and not context.user_id.strip()
+        ):
+            raise ExecutiveValidationError(
+                "User ID cannot contain only whitespace."
             )
 
     @abstractmethod
@@ -68,6 +97,10 @@ class ExecutiveBase(ABC):
         self,
         context: ExecutiveContext,
     ) -> None:
+        """
+        Analyze the mission and available business context.
+        """
+
         ...
 
     @abstractmethod
@@ -75,6 +108,10 @@ class ExecutiveBase(ABC):
         self,
         context: ExecutiveContext,
     ) -> None:
+        """
+        Prepare the executive's execution plan.
+        """
+
         ...
 
     @abstractmethod
@@ -82,6 +119,10 @@ class ExecutiveBase(ABC):
         self,
         context: ExecutiveContext,
     ) -> ExecutiveResult:
+        """
+        Perform the executive's assigned work.
+        """
+
         ...
 
     async def learn(
@@ -91,6 +132,9 @@ class ExecutiveBase(ABC):
     ) -> None:
         """
         Optional learning stage.
+
+        Executives may override this method to store lessons,
+        update memory, or improve future execution.
         """
 
         return None
@@ -102,6 +146,9 @@ class ExecutiveBase(ABC):
     ) -> None:
         """
         Optional reporting stage.
+
+        Executives may override this method to publish audit
+        information, events, notifications, or summaries.
         """
 
         return None
