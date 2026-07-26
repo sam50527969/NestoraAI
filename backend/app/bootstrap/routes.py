@@ -12,10 +12,12 @@ from app.routes.dashboard import router as dashboard_router
 from app.routes.leads import router as leads_router
 from app.routes.marketing import router as marketing_router
 from app.routes.mission import router as mission_router
+from app.routes.objective import router as objective_router
 from app.routes.outreach import router as outreach_router
 from app.routes.sales_ai import router as sales_ai_router
 from app.routes.search import router as search_router
 from app.routes.website import router as website_router
+from app.routes.business import router as business_router
 
 
 def register_routes(app: FastAPI) -> None:
@@ -35,5 +37,7 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(agent_tasks_router)
     app.include_router(ceo_router)
     app.include_router(ceo_advisor_router)
+    app.include_router(business_router)
+    app.include_router(objective_router)
     app.include_router(mission_scheduler.router)
     app.include_router(marketing_router)
