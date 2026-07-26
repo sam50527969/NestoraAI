@@ -179,6 +179,188 @@ class Lead(Base):
         nullable=False,
     )
 
+class Business(Base):
+    __tablename__ = "businesses"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    business_uid = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+
+    name = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    industry = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    country = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    size = Column(
+        String,
+        nullable=False,
+        default="small",
+        index=True,
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+    )
+
+    currency = Column(
+        String,
+        nullable=False,
+        default="QAR",
+    )
+
+    employee_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    departments = Column(
+        Text,
+        nullable=True,
+    )
+
+    roles = Column(
+        Text,
+        nullable=True,
+    )
+
+    total_customers = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    active_customers = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    inactive_customers = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    average_monthly_customers = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    returning_customer_rate = Column(
+        Float,
+        nullable=True,
+    )
+
+    average_customer_value = Column(
+        Float,
+        nullable=True,
+    )
+
+    monthly_revenue = Column(
+        Float,
+        nullable=True,
+    )
+
+    monthly_expenses = Column(
+        Float,
+        nullable=True,
+    )
+
+    average_transaction_value = Column(
+        Float,
+        nullable=True,
+    )
+
+    marketing_budget = Column(
+        Float,
+        nullable=True,
+    )
+
+    outstanding_receivables = Column(
+        Float,
+        nullable=True,
+    )
+
+    daily_capacity = Column(
+        Integer,
+        nullable=True,
+    )
+
+    average_daily_volume = Column(
+        Integer,
+        nullable=True,
+    )
+
+    cancellation_rate = Column(
+        Float,
+        nullable=True,
+    )
+
+    utilization_rate = Column(
+        Float,
+        nullable=True,
+    )
+
+    locations_count = Column(
+        Integer,
+        nullable=False,
+        default=1,
+    )
+
+    working_hours = Column(
+        Text,
+        nullable=True,
+    )
+
+    goals = Column(
+        Text,
+        nullable=True,
+    )
+
+    metadata_json = Column(
+        Text,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
 
 class AgentTask(Base):
     __tablename__ = "agent_tasks"
