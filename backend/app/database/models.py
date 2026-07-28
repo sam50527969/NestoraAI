@@ -362,6 +362,174 @@ class Business(Base):
         nullable=False,
     )
 
+class Mission(Base):
+    __tablename__ = "missions"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    mission_uid = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True,
+        default=lambda: f"mis_{uuid.uuid4().hex[:12]}",
+    )
+
+    business_uid = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    objective_uid = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
+    title = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    objective = Column(
+        Text,
+        nullable=False,
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+    )
+
+    status = Column(
+        String,
+        nullable=False,
+        default="planned",
+        index=True,
+    )
+
+    priority = Column(
+        String,
+        nullable=False,
+        default="medium",
+        index=True,
+    )
+
+    estimated_value = Column(
+        Float,
+        nullable=True,
+    )
+
+    expected_roi = Column(
+        Float,
+        nullable=True,
+    )
+
+    progress = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    strategy_data = Column(
+        Text,
+        nullable=True,
+    )
+
+    metadata_json = Column(
+        Text,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
+
+    started_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    completed_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+class MissionEvent(Base):
+    __tablename__ = "mission_events"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    event_uid = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True,
+        default=lambda: f"evt_{uuid.uuid4().hex[:12]}",
+    )
+
+    mission_uid = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    executive = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    event_type = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    status = Column(
+        String,
+        nullable=False,
+        default="info",
+        index=True,
+    )
+
+    message = Column(
+        Text,
+        nullable=False,
+    )
+
+    metadata_json = Column(
+        Text,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
+
 class AgentTask(Base):
     __tablename__ = "agent_tasks"
 

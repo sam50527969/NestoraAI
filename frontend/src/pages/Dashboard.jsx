@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 
-import CEOChat from "../components/agents/ceo/CEOChat";
-import AgentStatus from "../components/dashboard/AgentStatus";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import DashboardResearch from "../components/dashboard/DashboardResearch";
-import DashboardSummaryGrid from "../components/dashboard/DashboardSummaryGrid";
 import ExecutiveBrief from "../components/dashboard/ExecutiveBrief";
 import ExecutiveHeader from "../components/dashboard/ExecutiveHeader";
-import MissionControl from "../components/dashboard/MissionControl";
 import OpportunityPanel from "../components/dashboard/OpportunityPanel";
 import QuickActions from "../components/dashboard/QuickActions";
-import RecentActivity from "../components/dashboard/RecentActivity";
 import KPICard from "../components/KPICard";
+
+import ActivityPanel from "../components/dashboard/panels/ActivityPanel";
+import AnalyticsPanel from "../components/dashboard/panels/AnalyticsPanel";
+import MissionPanel from "../components/dashboard/panels/MissionPanel";
+import WorkforcePanel from "../components/dashboard/panels/WorkforcePanel";
 
 import {
   getDashboardSummary,
@@ -26,6 +26,8 @@ function Dashboard() {
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadDashboard() {
       try {
         const [summaryData, leadsData] = await Promise.all([
@@ -33,16 +35,26 @@ function Dashboard() {
           getSampleLeads(),
         ]);
 
+        if (!isMounted) {
+          return;
+        }
+
         setDashboardSummary(summaryData);
         setLeads(Array.isArray(leadsData) ? leadsData : []);
       } catch (error) {
         console.error("Failed to load dashboard:", error);
       } finally {
-        setIsDashboardLoading(false);
+        if (isMounted) {
+          setIsDashboardLoading(false);
+        }
       }
     }
 
     loadDashboard();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   async function handleLeadSearch(searchData) {
@@ -67,7 +79,10 @@ function Dashboard() {
   function scrollToSection(sectionId) {
     document
       .getElementById(sectionId)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
   }
 
   function handleOpenCRM() {
@@ -75,57 +90,71 @@ function Dashboard() {
   }
 
   function handleGenerateProposal() {
-    alert("Proposal Generator will be added in the upcoming sprint.");
+    alert("Proposal Generator will be added in an upcoming sprint.");
   }
 
   function handleWebsiteAudit() {
-    alert("Website Intelligence Center will be added in the upcoming sprint.");
+    alert("Website Intelligence Center will be added in an upcoming sprint.");
   }
 
   const topOpportunity = useMemo(() => {
-    if (!leads.length) return null;
+    if (leads.length === 0) {
+      return null;
+    }
 
-    return [...leads].sort(
-      (firstLead, secondLead) =>
-        (secondLead.ai_score ?? secondLead.opportunityScore ?? 0) -
-        (firstLead.ai_score ?? firstLead.opportunityScore ?? 0)
-    )[0];
+    return [...leads].sort((firstLead, secondLead) => {
+      const firstScore =
+        firstLead.ai_score ?? firstLead.opportunityScore ?? 0;
+
+      const secondScore =
+        secondLead.ai_score ?? secondLead.opportunityScore ?? 0;
+
+      return secondScore - firstScore;
+    })[0];
   }, [leads]);
 
-  const kpis = dashboardSummary
-    ? [
-        {
-          title: "Total Leads",
-          value: dashboardSummary.kpis.total_leads.toString(),
-          subtitle: "Saved in CRM",
-          color: "#22c55e",
-        },
-        {
-          title: "High Priority",
-          value: dashboardSummary.kpis.high_priority_leads.toString(),
-          subtitle: "Best opportunities",
-          color: "#f59e0b",
-        },
-        {
-          title: "Qualified",
-          value: dashboardSummary.kpis.qualified_leads.toString(),
-          subtitle: "Ready for follow-up",
-          color: "#38bdf8",
-        },
-        {
-          title: "Pipeline Value",
-          value: `QAR ${dashboardSummary.kpis.pipeline_value.toLocaleString()}`,
-          subtitle: `${dashboardSummary.kpis.won_leads} won leads`,
-          color: "#8b5cf6",
-        },
-        {
-          title: "AI Score",
-          value: `${dashboardSummary.kpis.ai_score}%`,
-          subtitle: "Business confidence",
-          color: "#22c55e",
-        },
-      ]
-    : [];
+  const kpis = useMemo(() => {
+    if (!dashboardSummary?.kpis) {
+      return [];
+    }
+
+    const summaryKpis = dashboardSummary.kpis;
+
+    return [
+      {
+        title: "Total Leads",
+        value: String(summaryKpis.total_leads ?? 0),
+        subtitle: "Saved in CRM",
+        color: "#22c55e",
+      },
+      {
+        title: "High Priority",
+        value: String(summaryKpis.high_priority_leads ?? 0),
+        subtitle: "Best opportunities",
+        color: "#f59e0b",
+      },
+      {
+        title: "Qualified",
+        value: String(summaryKpis.qualified_leads ?? 0),
+        subtitle: "Ready for follow-up",
+        color: "#38bdf8",
+      },
+      {
+        title: "Pipeline Value",
+        value: `QAR ${Number(
+          summaryKpis.pipeline_value ?? 0
+        ).toLocaleString("en-US")}`,
+        subtitle: `${summaryKpis.won_leads ?? 0} won leads`,
+        color: "#8b5cf6",
+      },
+      {
+        title: "AI Score",
+        value: `${summaryKpis.ai_score ?? 0}%`,
+        subtitle: "Business confidence",
+        color: "#22c55e",
+      },
+    ];
+  }, [dashboardSummary]);
 
   const metrics = (
     <section className="cards">
@@ -168,25 +197,27 @@ function Dashboard() {
         secondary={<OpportunityPanel lead={topOpportunity} />}
         lowerLeft={
           <QuickActions
-            onRunMission={() => scrollToSection("mission-control-section")}
+            onRunMission={() =>
+              scrollToSection("mission-control-section")
+            }
             onOpenCRM={handleOpenCRM}
             onGenerateProposal={handleGenerateProposal}
             onWebsiteAudit={handleWebsiteAudit}
           />
         }
         lowerRight={
-          <RecentActivity items={dashboardSummary.activity || []} />
+          <ActivityPanel
+            activity={dashboardSummary.activity || []}
+          />
         }
         fullWidth={
           <>
-            <AgentStatus />
+            <WorkforcePanel />
 
-            <CEOChat />
-
-            <DashboardSummaryGrid summary={dashboardSummary} />
+            <AnalyticsPanel summary={dashboardSummary} />
 
             <div id="mission-control-section">
-              <MissionControl />
+              <MissionPanel />
             </div>
 
             <DashboardResearch

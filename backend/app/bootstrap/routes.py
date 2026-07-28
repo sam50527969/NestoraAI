@@ -18,6 +18,9 @@ from app.routes.sales_ai import router as sales_ai_router
 from app.routes.search import router as search_router
 from app.routes.website import router as website_router
 from app.routes.business import router as business_router
+from app.routes.mission_events import (
+    router as mission_events_router,
+)
 
 
 def register_routes(app: FastAPI) -> None:
@@ -34,6 +37,7 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(website_router)
     app.include_router(ai_agent_router)
     app.include_router(mission_router)
+    app.include_router(mission_events_router)
     app.include_router(agent_tasks_router)
     app.include_router(ceo_router)
     app.include_router(ceo_advisor_router)

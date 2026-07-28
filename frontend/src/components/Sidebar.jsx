@@ -2,12 +2,14 @@ import { NavLink } from "react-router-dom";
 import {
   BarChart3,
   Brain,
-  Building2,
   Briefcase,
+  Building2,
+  Database,
   Home,
   Rocket,
   Search,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 function Sidebar() {
@@ -31,9 +33,14 @@ function Sidebar() {
           icon: Building2,
         },
         {
-          label: "Mission Center",
+          label: "Mission Dashboard",
           path: "/missions",
           icon: Rocket,
+        },
+        {
+          label: "AI Mission Creator",
+          path: "/ai-missions",
+          icon: Sparkles,
         },
       ],
     },
@@ -68,6 +75,11 @@ function Sidebar() {
     {
       title: "System",
       items: [
+        {
+          label: "Admin Explorer",
+          path: "/admin-explorer",
+          icon: Database,
+        },
         {
           label: "Settings",
           path: "/settings",

@@ -61,10 +61,15 @@ class StrategyResponse(BaseModel):
 
 class ObjectiveResponse(BaseModel):
     """
-    Complete AI CEO response.
+    Complete AI CEO response, including the persisted mission
+    created from the analyzed objective.
     """
 
     success: bool
+
+    mission_uid: str
+
+    mission_status: str
 
     opportunities: list[OpportunityResponse]
 

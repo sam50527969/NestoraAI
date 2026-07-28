@@ -1,17 +1,22 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 
 import DashboardV2 from "./features/dashboard/DashboardV2";
 
+import AdminExplorer from "./pages/AdminExplorer";
+import AIMissionCreator from "./pages/AIMissionCreator";
 import CEO from "./pages/CEO";
 import CRM from "./pages/CRM";
 import MarketingDirector from "./pages/MarketingDirector";
-import MissionCenter from "./pages/MissionCenter";
+import MissionDashboard from "./pages/MissionDashboard";
 
 import "./App.css";
-
 
 function PlaceholderPage({ title }) {
   return (
@@ -26,7 +31,6 @@ function PlaceholderPage({ title }) {
     </section>
   );
 }
-
 
 function App() {
   return (
@@ -55,7 +59,17 @@ function App() {
 
             <Route
               path="/missions"
-              element={<MissionCenter />}
+              element={<MissionDashboard />}
+            />
+
+            <Route
+              path="/ai-missions"
+              element={<AIMissionCreator />}
+            />
+
+            <Route
+              path="/admin-explorer"
+              element={<AdminExplorer />}
             />
 
             <Route
@@ -109,6 +123,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
 
 export default App;
