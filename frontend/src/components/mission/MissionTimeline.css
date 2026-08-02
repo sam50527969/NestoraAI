@@ -1,0 +1,311 @@
+/* =========================================================
+   Nestora AI — Mission Timeline
+   Component: MissionTimeline
+   ========================================================= */
+
+.mission-timeline-panel {
+  min-height: 100%;
+}
+
+.mission-timeline-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mission-timeline-panel-header h3 {
+  margin: 6px 0;
+}
+
+.mission-timeline-eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mission-timeline-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.mission-timeline-refresh-button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--radius);
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.mission-timeline-refresh-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.mission-timeline-refresh-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+/* Timeline list */
+
+.mission-timeline-list {
+  max-height: 650px;
+  padding: 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(148, 163, 184, 0.35)
+    transparent;
+}
+
+.mission-timeline-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.mission-timeline-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.3);
+}
+
+/* Timeline event */
+
+.mission-timeline-event {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 84px;
+}
+
+.mission-timeline-rail {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.mission-timeline-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-light);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mission-timeline-event.status-running
+  .mission-timeline-marker {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--primary);
+}
+
+.mission-timeline-event.status-completed
+  .mission-timeline-marker {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--accent);
+}
+
+.mission-timeline-event.status-failed
+  .mission-timeline-marker {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.mission-timeline-event.status-blocked
+  .mission-timeline-marker,
+.mission-timeline-event.status-paused
+  .mission-timeline-marker,
+.mission-timeline-event.status-skipped
+  .mission-timeline-marker {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.mission-timeline-line {
+  width: 1px;
+  flex: 1;
+  min-height: 48px;
+  background:
+    linear-gradient(
+      to bottom,
+      var(--border),
+      rgba(255, 255, 255, 0.03)
+    );
+}
+
+.mission-timeline-event-content {
+  min-width: 0;
+  padding: 0 0 22px;
+}
+
+.mission-timeline-event-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.mission-timeline-executive {
+  margin: 2px 0 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.mission-timeline-message {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mission-timeline-event-meta {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 7px;
+}
+
+.mission-timeline-time {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.mission-timeline-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.mission-timeline-details span {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+/* Status badges */
+
+.mission-timeline-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 25px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.mission-timeline-status.status-planned,
+.mission-timeline-status.status-pending,
+.mission-timeline-status.status-unknown,
+.mission-timeline-status.status-info {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+}
+
+.mission-timeline-status.status-running {
+  background: rgba(56, 189, 248, 0.13);
+  color: var(--primary);
+}
+
+.mission-timeline-status.status-completed {
+  background: rgba(34, 197, 94, 0.13);
+  color: var(--accent);
+}
+
+.mission-timeline-status.status-failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.mission-timeline-status.status-blocked,
+.mission-timeline-status.status-paused,
+.mission-timeline-status.status-skipped {
+  background: rgba(245, 158, 11, 0.13);
+  color: #f59e0b;
+}
+
+/* Loading, empty and error states */
+
+.mission-timeline-empty,
+.mission-timeline-loading,
+.mission-timeline-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 28px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.mission-timeline-error {
+  flex-direction: column;
+  gap: 14px;
+  color: var(--danger);
+}
+
+.mission-timeline-empty p,
+.mission-timeline-error p {
+  margin: 0;
+}
+
+/* Responsive layout */
+
+@media (max-width: 580px) {
+  .mission-timeline-panel-header {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .mission-timeline-panel-header
+    .mission-timeline-refresh-button {
+    width: 100%;
+  }
+
+  .mission-timeline-list {
+    padding: 18px;
+  }
+
+  .mission-timeline-event-header {
+    flex-direction: column;
+  }
+
+  .mission-timeline-event-meta {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+}

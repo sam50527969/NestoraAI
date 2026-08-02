@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import "./MissionTaskList.css";
 
 function formatTaskStatus(status) {
   const labels = {

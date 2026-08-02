@@ -1,0 +1,225 @@
+.workforce-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100%;
+  padding: 28px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(37, 99, 235, 0.08),
+      transparent 32%
+    ),
+    #f7f8fb;
+}
+
+.workforce-command-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 30px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #dbe4f0;
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(239, 246, 255, 0.96)
+    );
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.05);
+}
+
+.workforce-command-header::after {
+  width: 240px;
+  height: 240px;
+  position: absolute;
+  top: -130px;
+  right: -70px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.08);
+  content: "";
+  pointer-events: none;
+}
+
+.workforce-command-copy {
+  max-width: 760px;
+  position: relative;
+  z-index: 1;
+}
+
+.workforce-command-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workforce-command-copy h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.workforce-command-copy p {
+  max-width: 680px;
+  margin: 14px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.workforce-live-badge {
+  display: grid;
+  grid-template-columns: 22px auto;
+  gap: 2px 9px;
+  min-width: 220px;
+  padding: 15px 17px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  background: #fff7f7;
+  color: #b91c1c;
+}
+
+.workforce-live-badge.live {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.workforce-live-badge svg {
+  grid-row: span 2;
+  margin-top: 3px;
+}
+
+.workforce-live-badge span {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.workforce-live-badge small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.workforce-command-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(320px, 0.75fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.workforce-command-main,
+.workforce-command-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.workforce-executives-panel {
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.workforce-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.workforce-section-header p {
+  margin: 0;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workforce-section-header h2 {
+  margin: 6px 0 0;
+  color: #111827;
+  font-size: 24px;
+}
+
+.workforce-section-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 1250px) {
+  .workforce-command-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .workforce-command-sidebar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .workforce-dashboard {
+    padding: 20px;
+  }
+
+  .workforce-command-header {
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  .workforce-live-badge {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .workforce-command-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .workforce-dashboard {
+    gap: 18px;
+    padding: 14px;
+  }
+
+  .workforce-command-header,
+  .workforce-executives-panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .workforce-section-header {
+    flex-direction: column;
+  }
+
+  .workforce-section-header h2 {
+    font-size: 21px;
+  }
+}

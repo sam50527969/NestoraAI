@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import Card from "../components/ui/Card";
 import MissionDetails from "../components/mission/MissionDetails";
+import MissionKPICards from "../components/mission/MissionKPICards";
 import MissionList from "../components/mission/MissionList";
 import MissionTaskList from "../components/mission/MissionTaskList";
 import MissionTimeline from "../components/mission/MissionTimeline";
@@ -273,6 +274,11 @@ export default function MissionDashboard() {
           </button>
         </div>
       </Card>
+
+      <MissionKPICards
+        missions={missions}
+        loading={missionLoading}
+      />
 
       <div className="mission-dashboard-grid">
         <Card className="mission-dashboard-panel mission-dashboard-missions">

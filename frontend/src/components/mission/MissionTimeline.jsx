@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 
 import TimelineEvent from "./TimelineEvent";
+import "./MissionTimeline.css";
 
 export default function MissionTimeline({
   missionUid,

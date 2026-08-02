@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import "./MissionDetails.css";
 
 function formatDate(value) {
   if (!value) return "—";

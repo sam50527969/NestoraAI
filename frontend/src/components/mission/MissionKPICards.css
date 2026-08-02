@@ -1,0 +1,197 @@
+/* Executive KPI cards */
+
+.mission-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mission-kpi-card {
+  position: relative;
+  min-width: 0;
+  min-height: 150px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.015)
+    );
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.mission-kpi-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--border);
+  content: "";
+}
+
+.mission-kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.35);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.mission-kpi-card.status-running {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(56, 189, 248, 0.09),
+      rgba(255, 255, 255, 0.018)
+    );
+  color: inherit;
+}
+
+.mission-kpi-card.status-running::before {
+  background: var(--primary);
+}
+
+.mission-kpi-card.status-completed {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(34, 197, 94, 0.09),
+      rgba(255, 255, 255, 0.018)
+    );
+  color: inherit;
+}
+
+.mission-kpi-card.status-completed::before {
+  background: var(--accent);
+}
+
+.mission-kpi-card.status-failed {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(239, 68, 68, 0.09),
+      rgba(255, 255, 255, 0.018)
+    );
+  color: inherit;
+}
+
+.mission-kpi-card.status-failed::before {
+  background: var(--danger);
+}
+
+.mission-kpi-card.status-value {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(245, 158, 11, 0.09),
+      rgba(255, 255, 255, 0.018)
+    );
+}
+
+.mission-kpi-card.status-value::before {
+  background: #f59e0b;
+}
+
+.mission-kpi-label {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mission-kpi-value {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  font-size: clamp(24px, 2.2vw, 34px);
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-kpi-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.mission-kpi-loading {
+  pointer-events: none;
+}
+
+.mission-kpi-skeleton {
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.08),
+      rgba(148, 163, 184, 0.2),
+      rgba(148, 163, 184, 0.08)
+    );
+  background-size: 220% 100%;
+  animation: mission-kpi-pulse 1.4s ease-in-out infinite;
+}
+
+.mission-kpi-skeleton.short {
+  width: 46%;
+  height: 10px;
+  margin-bottom: 22px;
+}
+
+.mission-kpi-skeleton.large {
+  width: 68%;
+  height: 30px;
+  margin-bottom: 17px;
+}
+
+.mission-kpi-skeleton.medium {
+  width: 78%;
+  height: 10px;
+}
+
+@keyframes mission-kpi-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -20% 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .mission-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .mission-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .mission-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-kpi-card {
+    min-height: 132px;
+  }
+}

@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Users,
 } from "lucide-react";
 
 function Sidebar() {
@@ -41,6 +42,11 @@ function Sidebar() {
           label: "AI Mission Creator",
           path: "/ai-missions",
           icon: Sparkles,
+        },
+        {
+          label: "AI Workforce",
+          path: "/workforce",
+          icon: Users,
         },
       ],
     },
@@ -117,6 +123,7 @@ function Sidebar() {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  end={item.path === "/"}
                   className={({ isActive }) =>
                     isActive
                       ? "nav-item active"

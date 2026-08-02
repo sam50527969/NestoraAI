@@ -1,0 +1,110 @@
+/* =========================================================
+   Nestora AI — Mission Details
+   Component: MissionDetails
+   ========================================================= */
+
+.mission-details-panel {
+  min-height: 100%;
+}
+
+.mission-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mission-details-title {
+  margin: 6px 0;
+  color: var(--text-primary);
+}
+
+.mission-details-eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.mission-details-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.mission-details-body {
+  padding: 24px;
+}
+
+.mission-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.mission-details-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.03);
+}
+
+.mission-details-card h4 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.mission-details-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.mission-details-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.mission-details-empty,
+.mission-details-loading,
+.mission-details-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 260px;
+  padding: 30px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mission-details-error {
+  color: var(--danger);
+}
+
+@media (max-width: 768px) {
+
+  .mission-details-header {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .mission-details-body {
+    padding: 20px;
+  }
+
+  .mission-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
