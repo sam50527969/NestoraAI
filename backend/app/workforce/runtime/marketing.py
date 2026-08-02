@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from app.ai.marketing_schema import MarketingReport
-from app.workforce.executors.base import BaseExecutive
+from app.workforce.runtime.base import BaseExecutive
 
 
 class MarketingExecutive(BaseExecutive):

@@ -4,7 +4,7 @@ from time import perf_counter
 from typing import Any, Protocol
 
 from app.workforce.executive_response import ExecutiveResponse
-from app.workforce.executors import (
+from app.workforce.runtime import (
     FinanceExecutive,
     FollowUpExecutive,
     MarketingExecutive,

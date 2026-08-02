@@ -11,6 +11,9 @@ from app.repositories.mission_event_repository import (
 )
 from app.repositories.mission_repository import MissionRepository
 from app.workforce.executive_router import ExecutiveRouter
+from app.realtime.mission_event_publisher import (
+    mission_event_publisher,
+)
 
 
 class MissionNotFoundError(Exception):
@@ -61,6 +64,49 @@ class WorkforceOrchestrator:
             executive_router or ExecutiveRouter()
         )
 
+    def _record_event(
+        self,
+        *,
+        mission_uid: str,
+        executive: str,
+        event_type: str,
+        status: str,
+        message: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> Any:
+        """
+        Persist a mission event and publish it to realtime subscribers.
+        """
+        print(f"RECORD EVENT: {event_type} | {message}")
+
+        event = self._mission_event_repository.create_event(
+            mission_uid=mission_uid,
+            executive=executive,
+            event_type=event_type,
+            status=status,
+            message=message,
+            metadata=metadata or {},
+        )
+
+        event_data = {
+            "event_uid": getattr(event, "event_uid", None),
+            "mission_uid": mission_uid,
+            "executive": executive,
+            "event_type": event_type,
+            "status": status,
+            "message": message,
+            "metadata": metadata or {},
+            "created_at": (
+                event.created_at.isoformat()
+                if getattr(event, "created_at", None)
+                else None
+            ),
+        }
+
+        mission_event_publisher.publish(event_data)
+
+        return event
+
     def execute_mission(
         self,
         mission_uid: str,
@@ -92,7 +138,7 @@ class WorkforceOrchestrator:
 
         self._mission_repository.mark_running(mission_uid)
 
-        self._mission_event_repository.create_event(
+        self._record_event(
             mission_uid=mission_uid,
             executive="CEO",
             event_type="mission_started",
@@ -163,7 +209,7 @@ class WorkforceOrchestrator:
                     "blocked",
                 )
 
-                self._mission_event_repository.create_event(
+                self._record_event(
                     mission_uid=mission_uid,
                     executive="CEO",
                     event_type="mission_blocked",
@@ -196,7 +242,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._mission_event_repository.create_event(
+            self._record_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_completed",
@@ -222,7 +268,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._mission_event_repository.create_event(
+            self._record_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_failed",
@@ -240,7 +286,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._mission_event_repository.create_event(
+            self._record_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_failed",
@@ -266,7 +312,7 @@ class WorkforceOrchestrator:
             task.task_uid
         )
 
-        self._mission_event_repository.create_event(
+        self._record_event(
             mission_uid=mission.mission_uid,
             executive=task.agent_name,
             event_type="task_started",
@@ -319,7 +365,7 @@ class WorkforceOrchestrator:
                 output,
             )
 
-            self._mission_event_repository.create_event(
+            self._record_event(
                 mission_uid=mission.mission_uid,
                 executive=task.agent_name,
                 event_type="task_completed",
@@ -338,7 +384,7 @@ class WorkforceOrchestrator:
                 str(exc),
             )
 
-            self._mission_event_repository.create_event(
+            self._record_event(
                 mission_uid=mission.mission_uid,
                 executive=task.agent_name,
                 event_type="task_failed",
