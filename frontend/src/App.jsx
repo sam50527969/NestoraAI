@@ -15,6 +15,7 @@ import CEO from "./pages/CEO";
 import CRM from "./pages/CRM";
 import MarketingDirector from "./pages/MarketingDirector";
 import MissionDashboard from "./pages/MissionDashboard";
+import WorkforceDashboard from "./pages/WorkforceDashboard";
 
 import "./App.css";
 
@@ -65,6 +66,11 @@ function App() {
             <Route
               path="/ai-missions"
               element={<AIMissionCreator />}
+            />
+
+            <Route
+              path="/workforce"
+              element={<WorkforceDashboard />}
             />
 
             <Route
