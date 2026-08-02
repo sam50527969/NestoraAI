@@ -1,0 +1,143 @@
+.mission-pipeline {
+  height: 100%;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.mission-pipeline-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mission-pipeline-header p {
+  margin: 0;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mission-pipeline-header h3 {
+  margin: 6px 0 0;
+  color: #111827;
+  font-size: 22px;
+}
+
+.mission-pipeline-header > span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mission-pipeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mission-pipeline-item {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.mission-pipeline-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mission-pipeline-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mission-pipeline-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.mission-pipeline-label strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.mission-pipeline-item-header > span {
+  color: #111827;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.mission-pipeline-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.mission-pipeline-fill {
+  height: 100%;
+  min-width: 3px;
+  border-radius: inherit;
+  background: #2563eb;
+  transition: width 0.35s ease;
+}
+
+.mission-pipeline-item small {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.mission-pipeline-item.completed .mission-pipeline-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.mission-pipeline-item.completed .mission-pipeline-fill {
+  background: #16a34a;
+}
+
+.mission-pipeline-item.pending .mission-pipeline-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.mission-pipeline-item.pending .mission-pipeline-fill {
+  background: #f59e0b;
+}
+
+.mission-pipeline-item.failed .mission-pipeline-icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.mission-pipeline-item.failed .mission-pipeline-fill {
+  background: #dc2626;
+}
+
+.mission-pipeline-item.running .mission-pipeline-icon svg {
+  animation: mission-pipeline-spin 1.4s linear infinite;
+}
+
+@keyframes mission-pipeline-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

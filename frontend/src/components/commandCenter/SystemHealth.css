@@ -1,0 +1,157 @@
+.system-health {
+  height: 100%;
+  padding: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.system-health-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.system-health-header p {
+  margin: 0;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.system-health-header h3 {
+  margin: 6px 0 0;
+  color: #111827;
+  font-size: 22px;
+}
+
+.system-health-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.system-health-status.connected {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.system-health-status.disconnected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.system-health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.system-health-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #eef0f3;
+  border-radius: 15px;
+  background: #fafafa;
+}
+
+.system-health-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.system-health-content {
+  min-width: 0;
+}
+
+.system-health-content span {
+  display: block;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.system-health-content strong {
+  display: block;
+  margin-top: 3px;
+  color: #111827;
+  font-size: 14px;
+}
+
+.system-health-content small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #9ca3af;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.system-health-check {
+  color: #16a34a;
+}
+
+.system-health-item.error .system-health-icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.system-health-item.error .system-health-check {
+  color: #dc2626;
+}
+
+.system-health-item.normal .system-health-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.system-health-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.system-health-footer span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.system-health-footer strong {
+  color: #111827;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .system-health-header {
+    flex-direction: column;
+  }
+
+  .system-health-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}

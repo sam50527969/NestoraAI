@@ -1,0 +1,76 @@
+.activity-feed{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    padding:22px;
+    height:100%;
+}
+
+.activity-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:22px;
+}
+
+.activity-header p{
+    margin:0;
+    color:#2563eb;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+}
+
+.activity-header h3{
+    margin:6px 0 0;
+    font-size:22px;
+}
+
+.activity-header span{
+    background:#dcfce7;
+    color:#15803d;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+}
+
+.activity-list{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.activity-item{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+}
+
+.activity-icon{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:#eff6ff;
+    color:#2563eb;
+    flex-shrink:0;
+}
+
+.activity-content{
+    display:flex;
+    flex-direction:column;
+}
+
+.activity-content strong{
+    font-size:14px;
+    color:#111827;
+    line-height:1.5;
+}
+
+.activity-content small{
+    margin-top:3px;
+    color:#9ca3af;
+}
