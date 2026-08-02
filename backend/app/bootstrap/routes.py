@@ -21,7 +21,8 @@ from app.routes.business import router as business_router
 from app.routes.mission_events import (
     router as mission_events_router,
 )
-
+from app.realtime.router import router as realtime_router
+from app.memory.routes import router as memory_router
 
 def register_routes(app: FastAPI) -> None:
     """
@@ -45,3 +46,5 @@ def register_routes(app: FastAPI) -> None:
     app.include_router(objective_router)
     app.include_router(mission_scheduler.router)
     app.include_router(marketing_router)
+    app.include_router(realtime_router)
+    app.include_router(memory_router)
