@@ -1635,3 +1635,15 @@ button {
     }
 
 }
+.topbar-compact {
+  min-height: 64px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  align-items: center;
+}
+
+.topbar-compact-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}

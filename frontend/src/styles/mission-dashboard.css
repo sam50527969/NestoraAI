@@ -1,12 +1,17 @@
 /* =========================================================
    Nestora AI — Mission Dashboard
-   Page Layout Only
+   Page Layout and Spacing
    ========================================================= */
 
 .mission-dashboard-page {
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 24px;
+
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* =========================================================
@@ -17,201 +22,281 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 28px;
+  gap: 24px;
 
-  padding: 36px;
+  padding: 24px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 
   background:
     linear-gradient(
       135deg,
-      rgba(34,197,94,.08),
-      rgba(56,189,248,.05)
+      rgba(34, 197, 94, 0.08),
+      rgba(56, 189, 248, 0.05)
     );
 }
 
-.mission-dashboard-header h1{
-  margin:10px 0 12px;
+.mission-dashboard-header > div:first-child {
+  min-width: 0;
 }
 
-.mission-dashboard-header p:last-child{
-  max-width:760px;
-  margin-bottom:0;
-  color:var(--text-secondary);
-  line-height:1.7;
+.mission-dashboard-header h1 {
+  margin: 6px 0 8px;
+  line-height: 1.2;
 }
 
-.mission-dashboard-header-actions{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  flex-shrink:0;
+.mission-dashboard-header p {
+  margin: 0;
+}
+
+.mission-dashboard-header p:last-child {
+  max-width: 760px;
+
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.mission-dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 /* =========================================================
    Dashboard Buttons
    ========================================================= */
 
-.mission-dashboard-refresh-button{
+.mission-dashboard-refresh-button {
+  min-height: 40px;
+  padding: 9px 15px;
 
-  min-height:40px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--radius);
 
-  padding:9px 15px;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
 
-  border:1px solid rgba(34,197,94,.30);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
 
-  border-radius:var(--radius);
-
-  background:rgba(34,197,94,.10);
-
-  color:var(--accent);
-
-  font:inherit;
-
-  font-size:13px;
-
-  font-weight:700;
-
-  cursor:pointer;
+  cursor: pointer;
 
   transition:
-    transform .2s ease,
-    border-color .2s ease,
-    background .2s ease;
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
-.mission-dashboard-refresh-button:hover{
-
-  transform:translateY(-1px);
-
-  border-color:var(--accent);
-
-  background:rgba(34,197,94,.16);
-
+.mission-dashboard-refresh-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.16);
 }
 
-.mission-dashboard-refresh-button:disabled{
-
-  opacity:.55;
-
-  cursor:not-allowed;
-
-  transform:none;
-
+.mission-dashboard-refresh-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.mission-dashboard-refresh-button.secondary{
+.mission-dashboard-refresh-button.secondary {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
 
-  border-color:var(--border);
+/* =========================================================
+   KPI Area
+   ========================================================= */
 
-  background:rgba(255,255,255,.04);
+.mission-dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
 
-  color:var(--text-secondary);
-
+.mission-dashboard-kpis > * {
+  min-width: 0;
 }
 
 /* =========================================================
    Dashboard Grid
    ========================================================= */
 
-.mission-dashboard-grid{
-
-  display:grid;
-
+.mission-dashboard-grid {
+  display: grid;
   grid-template-columns:
+    minmax(300px, 0.8fr)
+    minmax(460px, 1.4fr);
 
-      minmax(320px,.8fr)
-
-      minmax(480px,1.4fr);
-
-  gap:24px;
-
-  align-items:start;
-
+  gap: 20px;
+  align-items: stretch;
 }
 
-.mission-dashboard-panel{
+.mission-dashboard-panel {
+  min-width: 0;
+  height: 100%;
 
-  min-width:0;
+  padding: 0;
+  overflow: hidden;
+}
 
-  padding:0;
-
-  overflow:hidden;
-
+.mission-dashboard-panel > * {
+  height: 100%;
 }
 
 .mission-dashboard-missions,
-.mission-dashboard-timeline{
-
-  min-height:520px;
-
+.mission-dashboard-timeline {
+  min-height: 460px;
 }
 
 .mission-dashboard-tasks,
-.mission-dashboard-details{
+.mission-dashboard-details {
+  min-height: 360px;
+}
 
-  min-height:420px;
+/* =========================================================
+   Shared Panel Spacing
+   ========================================================= */
 
+.mission-dashboard-panel-header {
+  padding: 20px 20px 14px;
+}
+
+.mission-dashboard-panel-body {
+  padding: 0 20px 20px;
+}
+
+.mission-dashboard-panel-header h2,
+.mission-dashboard-panel-header h3 {
+  margin: 0;
+}
+
+.mission-dashboard-panel-header p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   Mission Section Spacing
+   ========================================================= */
+
+.mission-generated-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mission-generated-header {
+  margin: 0;
+}
+
+.mission-opportunity-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(320px, 0.9fr);
+
+  gap: 20px;
+  align-items: stretch;
+}
+
+.mission-opportunity-grid > * {
+  height: 100%;
+}
+
+.mission-executive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mission-execute-button {
+  margin-top: 18px;
 }
 
 /* =========================================================
    Responsive
    ========================================================= */
 
-@media (max-width:1180px){
+@media (max-width: 1280px) {
+  .mission-dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
-  .mission-dashboard-grid{
+@media (max-width: 1180px) {
+  .mission-dashboard-page {
+    padding: 20px;
+  }
 
-      grid-template-columns:1fr;
-
+  .mission-dashboard-grid,
+  .mission-opportunity-grid {
+    grid-template-columns: 1fr;
   }
 
   .mission-dashboard-missions,
   .mission-dashboard-timeline,
   .mission-dashboard-tasks,
-  .mission-dashboard-details{
-
-      min-height:auto;
-
+  .mission-dashboard-details {
+    min-height: auto;
   }
-
 }
 
-@media (max-width:800px){
-
-  .mission-dashboard-header{
-
-      flex-direction:column;
-
+@media (max-width: 800px) {
+  .mission-dashboard-page {
+    gap: 16px;
   }
 
-  .mission-dashboard-header-actions{
-
-      width:100%;
-
+  .mission-dashboard-header {
+    flex-direction: column;
+    padding: 20px;
   }
 
-  .mission-dashboard-header-actions button{
-
-      flex:1;
-
+  .mission-dashboard-header-actions {
+    width: 100%;
   }
 
+  .mission-dashboard-header-actions button {
+    flex: 1;
+  }
+
+  .mission-dashboard-kpis {
+    gap: 14px;
+  }
 }
 
-@media (max-width:580px){
-
-  .mission-dashboard-header{
-
-      padding:22px;
-
+@media (max-width: 580px) {
+  .mission-dashboard-page {
+    padding: 14px;
   }
 
-  .mission-dashboard-header-actions{
-
-      flex-direction:column;
-
-      align-items:stretch;
-
+  .mission-dashboard-header {
+    padding: 18px;
   }
 
+  .mission-dashboard-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mission-dashboard-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-dashboard-grid {
+    gap: 16px;
+  }
+
+  .mission-dashboard-panel-header {
+    padding: 18px 18px 12px;
+  }
+
+  .mission-dashboard-panel-body {
+    padding: 0 18px 18px;
+  }
 }

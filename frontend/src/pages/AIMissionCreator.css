@@ -1,0 +1,412 @@
+/* =========================================================
+   Nestora AI — AI Mission Creator
+   Scoped page layout and spacing
+   ========================================================= */
+
+.ai-mission-page {
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 28px 20px 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* =========================================================
+   Shared Panels
+   ========================================================= */
+
+.ai-mission-page > .panel,
+.ai-mission-page .mission-result-grid > .panel {
+  padding: 20px;
+}
+
+.ai-mission-page .section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+.ai-mission-page .section-heading h2 {
+  margin: 4px 0 0;
+  line-height: 1.25;
+}
+
+.ai-mission-page .eyebrow {
+  margin: 0;
+}
+
+.ai-mission-page .page-description {
+  margin: 8px 0 0;
+  max-width: 760px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   Hero
+   ========================================================= */
+
+.ai-mission-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  min-height: auto;
+  padding: 20px 22px !important;
+}
+
+.ai-mission-hero h1 {
+  margin: 5px 0 6px;
+  line-height: 1.2;
+}
+
+.ai-mission-hero-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  border-radius: 14px;
+
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+}
+
+/* =========================================================
+   Mission Form
+   ========================================================= */
+
+.ai-mission-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ai-mission-page .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ai-mission-page .form-field > span {
+  font-weight: 700;
+}
+
+.ai-mission-page .form-field select,
+.ai-mission-page .form-field textarea {
+  width: 100%;
+}
+
+.ai-mission-page .form-field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.ai-mission-page .form-field small {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.mission-generate-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 2px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mission-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+/* =========================================================
+   Generated Mission Header
+   ========================================================= */
+
+.mission-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+
+  padding: 0 2px;
+  margin-top: 2px;
+}
+
+.mission-result-header h2 {
+  margin: 4px 0 5px;
+}
+
+.mission-result-header p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.mission-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+
+  padding: 8px 12px;
+}
+
+/* =========================================================
+   Mission Metrics
+   ========================================================= */
+
+.mission-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mission-metric-card {
+  min-width: 0;
+  padding: 16px !important;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mission-metric-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+}
+
+.mission-metric-card > div:last-child {
+  min-width: 0;
+}
+
+.mission-metric-card span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+.mission-metric-card strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Mission Result Grid
+   ========================================================= */
+
+.mission-result-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(340px, 0.95fr);
+
+  gap: 18px;
+  align-items: stretch;
+}
+
+.mission-result-grid > .panel {
+  min-width: 0;
+  height: 100%;
+}
+
+/* =========================================================
+   Opportunities
+   ========================================================= */
+
+.opportunity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.opportunity-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.opportunity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.opportunity-card-header > div {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opportunity-card h3 {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.opportunity-card p {
+  margin: 10px 0 12px;
+  line-height: 1.55;
+}
+
+.opportunity-number {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+}
+
+.executive-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* =========================================================
+   Executive Team
+   ========================================================= */
+
+.executive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.executive-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.executive-row-number {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+}
+
+.executive-row > div:nth-child(2) {
+  min-width: 0;
+}
+
+.executive-row strong,
+.executive-row span {
+  display: block;
+}
+
+.executive-row span {
+  margin-top: 3px;
+  color: var(--text-secondary);
+}
+
+.execute-mission-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.execution-note {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .mission-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mission-result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .ai-mission-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .ai-mission-hero {
+    align-items: flex-start;
+  }
+
+  .mission-result-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .ai-mission-page {
+    padding: 12px;
+  }
+
+  .ai-mission-page > .panel,
+  .ai-mission-page .mission-result-grid > .panel {
+    padding: 16px;
+  }
+
+  .ai-mission-hero-icon {
+    display: none;
+  }
+
+  .mission-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-metric-card {
+    padding: 14px !important;
+  }
+}
+.ai-mission-page .mission-result-header {
+  margin-top: -2px;
+}
+
+.ai-mission-page .mission-result-grid {
+  margin-bottom: 24px;
+}

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { createObjectiveMission } from "../api";
+import "./AIMissionCreator.css";
 
 
 const DEFAULT_BUSINESS_ID = "biz_5d86879387a7";
@@ -49,7 +50,9 @@ function AIMissionCreator() {
 
   const [mission, setMission] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState("");
+  const [executionResult, setExecutionResult] = useState(null);
 
 
   async function handleGenerateMission(event) {
@@ -72,6 +75,7 @@ function AIMissionCreator() {
 
     setError("");
     setMission(null);
+    setExecutionResult(null);
     setIsGenerating(true);
 
     try {
@@ -93,6 +97,65 @@ function AIMissionCreator() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+
+  async function handleExecuteMission() {
+    const missionUid = mission?.mission_uid;
+
+    if (!missionUid) {
+      setError(
+        "Mission ID is missing. Please generate the mission again.",
+      );
+      return;
+    }
+
+    setError("");
+    setExecutionResult(null);
+    setIsExecuting(true);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/missions/${missionUid}/execute`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+
+      const responseData = await response.json().catch(
+        () => null,
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          responseData?.detail ||
+            `Mission execution failed with status ${response.status}.`,
+        );
+      }
+
+      setExecutionResult(responseData);
+
+      setMission((currentMission) => ({
+        ...currentMission,
+        mission_status:
+          responseData?.status || "completed",
+      }));
+    } catch (requestError) {
+      console.error(
+        "Mission execution failed:",
+        requestError,
+      );
+
+      setError(
+        requestError?.message ||
+          "Nestora could not execute the mission. Please check the backend and try again.",
+      );
+    } finally {
+      setIsExecuting(false);
     }
   }
 
@@ -398,17 +461,42 @@ function AIMissionCreator() {
               <button
                 type="button"
                 className="primary-button execute-mission-button"
-                disabled
-                title="Mission execution will be connected in the next step."
+                onClick={handleExecuteMission}
+                disabled={
+                  isExecuting ||
+                  !mission?.mission_uid ||
+                  mission?.mission_status === "completed"
+                }
               >
-                <Rocket size={19} />
+                {isExecuting ? (
+                  <>
+                    <Loader2
+                      className="spin"
+                      size={19}
+                    />
 
-                Execute Mission
+                    Executing Mission...
+                  </>
+                ) : mission?.mission_status === "completed" ? (
+                  <>
+                    <CheckCircle2 size={19} />
+
+                    Mission Completed
+                  </>
+                ) : (
+                  <>
+                    <Rocket size={19} />
+
+                    Execute Mission
+                  </>
+                )}
               </button>
 
               <p className="execution-note">
-                The mission has been saved as planned.
-                Execution will be connected in the next step.
+                {isExecuting
+                  ? "Nestora's executives are processing the mission."
+                  : executionResult?.message ||
+                    "The mission is ready for execution."}
               </p>
             </section>
           </div>

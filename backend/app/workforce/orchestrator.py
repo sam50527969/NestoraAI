@@ -2,6 +2,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.memory.schemas import ExecutiveMemoryCreate
+from app.memory.service import ExecutiveMemoryService
 from app.database.models import AgentTask, Mission
 from app.repositories.agent_task_repository import (
     AgentTaskRepository,
@@ -11,9 +13,7 @@ from app.repositories.mission_event_repository import (
 )
 from app.repositories.mission_repository import MissionRepository
 from app.workforce.executive_router import ExecutiveRouter
-from app.realtime.mission_event_publisher import (
-    mission_event_publisher,
-)
+from app.learning.service import ExecutiveLearningService
 
 
 class MissionNotFoundError(Exception):
@@ -63,49 +63,8 @@ class WorkforceOrchestrator:
         self._executive_router = (
             executive_router or ExecutiveRouter()
         )
-
-    def _record_event(
-        self,
-        *,
-        mission_uid: str,
-        executive: str,
-        event_type: str,
-        status: str,
-        message: str,
-        metadata: dict[str, Any] | None = None,
-    ) -> Any:
-        """
-        Persist a mission event and publish it to realtime subscribers.
-        """
-        print(f"RECORD EVENT: {event_type} | {message}")
-
-        event = self._mission_event_repository.create_event(
-            mission_uid=mission_uid,
-            executive=executive,
-            event_type=event_type,
-            status=status,
-            message=message,
-            metadata=metadata or {},
-        )
-
-        event_data = {
-            "event_uid": getattr(event, "event_uid", None),
-            "mission_uid": mission_uid,
-            "executive": executive,
-            "event_type": event_type,
-            "status": status,
-            "message": message,
-            "metadata": metadata or {},
-            "created_at": (
-                event.created_at.isoformat()
-                if getattr(event, "created_at", None)
-                else None
-            ),
-        }
-
-        mission_event_publisher.publish(event_data)
-
-        return event
+        self._learning_service = ExecutiveLearningService(db)
+        
 
     def execute_mission(
         self,
@@ -138,7 +97,7 @@ class WorkforceOrchestrator:
 
         self._mission_repository.mark_running(mission_uid)
 
-        self._record_event(
+        self._mission_event_repository.create_event(
             mission_uid=mission_uid,
             executive="CEO",
             event_type="mission_started",
@@ -209,7 +168,7 @@ class WorkforceOrchestrator:
                     "blocked",
                 )
 
-                self._record_event(
+                self._mission_event_repository.create_event(
                     mission_uid=mission_uid,
                     executive="CEO",
                     event_type="mission_blocked",
@@ -242,7 +201,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._record_event(
+            self._mission_event_repository.create_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_completed",
@@ -268,7 +227,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._record_event(
+            self._mission_event_repository.create_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_failed",
@@ -286,7 +245,7 @@ class WorkforceOrchestrator:
                 mission_uid
             )
 
-            self._record_event(
+            self._mission_event_repository.create_event(
                 mission_uid=mission_uid,
                 executive="CEO",
                 event_type="mission_failed",
@@ -312,7 +271,7 @@ class WorkforceOrchestrator:
             task.task_uid
         )
 
-        self._record_event(
+        self._mission_event_repository.create_event(
             mission_uid=mission.mission_uid,
             executive=task.agent_name,
             event_type="task_started",
@@ -338,6 +297,12 @@ class WorkforceOrchestrator:
                 current_task=task,
             )
 
+            learning_context = (
+                self._learning_service.build_context(
+                    task.agent_name
+                )
+            )
+
             enriched_input = {
                 **input_data,
                 "mission_uid": mission.mission_uid,
@@ -351,6 +316,9 @@ class WorkforceOrchestrator:
                 ),
                 "expected_roi": mission.expected_roi,
                 "executive_context": executive_context,
+                "learning_context": (
+                    learning_context.model_dump()
+                ),
             }
 
             output = self._executive_router.execute_task(
@@ -365,7 +333,13 @@ class WorkforceOrchestrator:
                 output,
             )
 
-            self._record_event(
+            self._save_task_memory(
+                task=task,
+                mission=mission,
+                output=output,
+            )
+
+            self._mission_event_repository.create_event(
                 mission_uid=mission.mission_uid,
                 executive=task.agent_name,
                 event_type="task_completed",
@@ -384,7 +358,7 @@ class WorkforceOrchestrator:
                 str(exc),
             )
 
-            self._record_event(
+            self._mission_event_repository.create_event(
                 mission_uid=mission.mission_uid,
                 executive=task.agent_name,
                 event_type="task_failed",
@@ -402,6 +376,102 @@ class WorkforceOrchestrator:
             raise MissionExecutionError(
                 f"Task '{task.task_uid}' failed: {exc}"
             ) from exc
+
+    def _save_task_memory(
+        self,
+        *,
+        task: AgentTask,
+        mission: Mission,
+        output: Any,
+    ) -> None:
+        """
+        Store a persistent memory for a successfully completed task.
+
+        A memory failure is logged and does not cause the completed
+        task or mission to fail.
+        """
+
+        try:
+            memory_service = ExecutiveMemoryService(
+                self._db
+            )
+
+            memory_service.create_memory(
+                ExecutiveMemoryCreate(
+                    executive=task.agent_name,
+                    category=(
+                        task.task_type
+                        or "mission_learning"
+                    ),
+                    memory=(
+                        f"Completed task '{task.title}' "
+                        f"for mission '{mission.title}'. "
+                        "Outcome: "
+                        f"{self._summarize_memory_output(output)}"
+                    ),
+                    importance=7,
+                    source=(
+                        f"mission:{mission.mission_uid}"
+                    ),
+                )
+            )
+
+            print(
+                "[Executive Memory] Saved memory for "
+                f"{task.agent_name}: {task.title}"
+            )
+
+        except Exception as memory_error:
+            print(
+                "[Executive Memory] Could not save memory "
+                f"for task '{task.task_uid}': "
+                f"{memory_error}"
+            )
+
+    @staticmethod
+    def _summarize_memory_output(
+        output: Any,
+    ) -> str:
+        if output is None:
+            return (
+                "Task completed without a recorded output."
+            )
+
+        if isinstance(output, str):
+            cleaned_output = output.strip()
+
+            return (
+                cleaned_output[:500]
+                if cleaned_output
+                else "Task completed successfully."
+            )
+
+        if isinstance(output, dict):
+            for key in (
+                "summary",
+                "message",
+                "result",
+                "output",
+                "recommendation",
+            ):
+                value = output.get(key)
+
+                if value:
+                    if isinstance(value, dict):
+                        nested_summary = value.get(
+                            "summary"
+                        )
+
+                        if nested_summary:
+                            return str(
+                                nested_summary
+                            ).strip()[:500]
+
+                    return str(value).strip()[:500]
+
+            return str(output)[:500]
+
+        return str(output).strip()[:500]
 
     def _build_executive_context(
         self,
