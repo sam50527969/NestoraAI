@@ -1,0 +1,125 @@
+.conversation-message {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 14px;
+  background: rgba(15,23,42,.45);
+  transition: .2s ease;
+}
+
+.conversation-message:hover {
+  transform: translateY(-1px);
+  border-color: rgba(56,189,248,.25);
+}
+
+.conversation-message-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(37,99,235,.12);
+  color: #93c5fd;
+}
+
+.conversation-message-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.conversation-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.conversation-message-route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.conversation-message-route strong {
+  color: var(--text-primary);
+}
+
+.conversation-message-route span {
+  color: var(--text-secondary);
+}
+
+.conversation-message-header h4 {
+  margin: 6px 0 0;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.conversation-message-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(56,189,248,.10);
+  color: #7dd3fc;
+  font-size: 11px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.conversation-message-body p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.conversation-message-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.conversation-message-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.message-read {
+  color: #86efac;
+}
+
+.message-unread {
+  color: #fcd34d;
+}
+
+.priority-high {
+  border-left: 4px solid #ef4444;
+}
+
+.priority-normal {
+  border-left: 4px solid #3b82f6;
+}
+
+.priority-low {
+  border-left: 4px solid #22c55e;
+}
+
+@media (max-width:700px){
+  .conversation-message-header,
+  .conversation-message-footer{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
