@@ -1,32 +1,39 @@
 # ==========================
 # Node
 # ==========================
+
 node_modules/
 **/node_modules/
 
 # Build output
 dist/
 build/
+**/dist/
+**/build/
 
 # ==========================
 # Python
 # ==========================
+
 venv/
 .venv/
 **/venv/
+**/.venv/
 
-__pycache__/
+**/__pycache__/
 *.py[cod]
 
 # SQLite databases
 backend/nestora.db
 backend/*.db
+backend/*.db-*
 backend/*.sqlite
 backend/*.sqlite3
 
 # ==========================
 # Environment
 # ==========================
+
 .env
 .env.*
 backend/.env
@@ -35,16 +42,28 @@ frontend/.env
 # ==========================
 # IDE
 # ==========================
+
 .vscode/
 .idea/
 
 # ==========================
 # Logs
 # ==========================
+
 *.log
 
 # ==========================
 # Operating System
 # ==========================
+
 .DS_Store
 Thumbs.db
+
+# ==========================
+# Local archives and reports
+# ==========================
+
+backend.zip
+backend/app.zip
+backend/app.rar
+git-status.txt
