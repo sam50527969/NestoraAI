@@ -4,6 +4,7 @@ import {
   useState,
 } from "react";
 
+import CEOApprovalQueue from "../components/agents/ceo/CEOApprovalQueue";
 import CEOChat from "../components/agents/ceo/CEOChat";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
@@ -45,20 +46,27 @@ function formatDate(value) {
   ).format(date);
 }
 
-function truncateText(value, maxLength = 240) {
+function truncateText(
+  value,
+  maxLength = 240,
+) {
   const text = String(value || "").trim();
 
   if (text.length <= maxLength) {
     return text;
   }
 
-  return `${text.slice(0, maxLength).trim()}…`;
+  return `${text
+    .slice(0, maxLength)
+    .trim()}…`;
 }
 
 export default function CEO() {
   const [brief, setBrief] = useState(null);
+
   const [isLoading, setIsLoading] =
     useState(true);
+
   const [errorMessage, setErrorMessage] =
     useState("");
 
@@ -249,6 +257,8 @@ export default function CEO() {
               </small>
             </Card>
           </section>
+
+          <CEOApprovalQueue />
 
           <section className="ceo-page-grid">
             <Card className="ceo-reports-card">

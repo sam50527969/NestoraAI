@@ -2,11 +2,17 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
 
+from app.approvals import models as approval_models
 from app.bootstrap import (
     create_application,
     register_routes,
+)
+from app.clinic.routes import (
+    router as clinic_router,
 )
 from app.config import APP_NAME
 from app.core.registry import (
@@ -15,11 +21,21 @@ from app.core.registry import (
 )
 from app.core.tools import tool_registry
 from app.database import models
-from app.database.database import Base, engine
+from app.database.database import (
+    Base,
+    engine,
+)
 from app.tools.loader import load_tools
-from app.clinic.routes import router as clinic_router
+
 
 logger = logging.getLogger(__name__)
+
+# Importing both model modules above registers
+# their SQLAlchemy tables before create_all runs.
+_ = (
+    models,
+    approval_models,
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,7 +43,8 @@ Base.metadata.create_all(bind=engine)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Initialize and shut down shared Nestora platform services.
+    Initialize and shut down shared Nestora
+    platform services.
     """
 
     executive_registry.clear()
@@ -42,22 +59,29 @@ async def lifespan(app: FastAPI):
 
     if report.error_count:
         logger.warning(
-            "Nestora started with executive loading errors: %s",
+            "Nestora started with executive "
+            "loading errors: %s",
             report.to_dict(),
         )
     else:
         logger.info(
-            "Executive registry initialized successfully: %s",
+            "Executive registry initialized "
+            "successfully: %s",
             report.to_dict(),
         )
 
     logger.info(
-        "Tool registry initialized successfully: %s",
+        "Tool registry initialized "
+        "successfully: %s",
         tool_registry.list_tools(),
     )
 
-    app.state.executive_registry = executive_registry
-    app.state.executive_load_report = report
+    app.state.executive_registry = (
+        executive_registry
+    )
+    app.state.executive_load_report = (
+        report
+    )
     app.state.tool_registry = tool_registry
 
     yield
@@ -92,5 +116,7 @@ app.include_router(clinic_router)
 @app.get("/")
 def home():
     return {
-        "message": "Nestora AI backend is running",
+        "message": (
+            "Nestora AI backend is running"
+        ),
     }
