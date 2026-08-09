@@ -5,12 +5,15 @@ from typing import Any, Protocol
 
 from app.workforce.executive_response import ExecutiveResponse
 from app.workforce.runtime import (
+    AnalyticsExecutive,
+    CustomerSuccessExecutive,
     FinanceExecutive,
     FollowUpExecutive,
     MarketingExecutive,
     OperationsExecutive,
     QualityControlExecutive,
     ReceptionExecutive,
+    SalesExecutive,
 )
 
 
@@ -29,26 +32,41 @@ class ExecutiveProtocol(Protocol):
 
 class ExecutiveRouter:
     """
-    Selects and executes the correct executive for a persisted task.
+    Select and execute the correct executive for a persisted task.
 
-    The router also converts every executive result into Nestora's
-    standard ExecutiveResponse structure.
+    The router also:
+    - injects experience-based reasoning guidance,
+    - preserves the original task input,
+    - normalizes every executive result into Nestora's standard
+      ExecutiveResponse structure.
     """
 
     def __init__(self) -> None:
+        analytics = AnalyticsExecutive()
+        customer_success = CustomerSuccessExecutive()
         marketing = MarketingExecutive()
         follow_up = FollowUpExecutive()
         reception = ReceptionExecutive()
+        sales = SalesExecutive()
         finance = FinanceExecutive()
         operations = OperationsExecutive()
         quality_control = QualityControlExecutive()
 
         self._executives: dict[str, ExecutiveProtocol] = {
+            "analytics": analytics,
+            "analytics executive": analytics,
+            "analytics-executive": analytics,
+            "customer success": customer_success,
+            "customer-success": customer_success,
+            "customersuccess": customer_success,
             "marketing": marketing,
             "follow-up": follow_up,
             "followup": follow_up,
             "follow up": follow_up,
             "reception": reception,
+            "sales": sales,
+            "sales executive": sales,
+            "sales-executive": sales,
             "finance": finance,
             "operations": operations,
             "operation": operations,
@@ -92,9 +110,19 @@ class ExecutiveRouter:
     ) -> dict[str, Any]:
         """
         Execute a task and return a standardized response.
+
+        Relevant executive memories are converted into explicit
+        reasoning guidance before the runtime executive is called.
         """
 
         executive = self.get_executive(agent_name)
+
+        prepared_input = self._prepare_experience_input(
+            agent_name=agent_name,
+            title=title,
+            description=description,
+            input_data=input_data,
+        )
 
         started_at = perf_counter()
 
@@ -102,7 +130,7 @@ class ExecutiveRouter:
             raw_output = executive.execute(
                 title=title,
                 description=description,
-                input_data=input_data,
+                input_data=prepared_input,
             )
 
             execution_time_ms = round(
@@ -149,6 +177,157 @@ class ExecutiveRouter:
 
             return response.to_dict()
 
+    def _prepare_experience_input(
+        self,
+        *,
+        agent_name: str,
+        title: str,
+        description: str | None,
+        input_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Build final executive input without mutating the caller's data.
+        """
+
+        prepared_input = dict(input_data or {})
+
+        learning_context = prepared_input.get(
+            "learning_context"
+        )
+
+        memories = self._extract_learning_memories(
+            learning_context
+        )
+
+        prepared_input["experience_reasoning"] = {
+            "executive": agent_name,
+            "task_title": title,
+            "task_description": description or "",
+            "memory_count": len(memories),
+            "previous_experience": memories,
+            "instructions": self._build_reasoning_instructions(
+                agent_name=agent_name,
+                memories=memories,
+            ),
+        }
+
+        prepared_input["reasoning_prompt"] = (
+            self._build_reasoning_prompt(
+                agent_name=agent_name,
+                title=title,
+                description=description,
+                memories=memories,
+            )
+        )
+
+        return prepared_input
+
+    @staticmethod
+    def _extract_learning_memories(
+        learning_context: Any,
+    ) -> list[str]:
+        if not isinstance(learning_context, dict):
+            return []
+
+        raw_memories = learning_context.get("memories")
+
+        if not isinstance(raw_memories, list):
+            return []
+
+        memories: list[str] = []
+
+        for memory in raw_memories:
+            if memory is None:
+                continue
+
+            cleaned_memory = str(memory).strip()
+
+            if cleaned_memory:
+                memories.append(cleaned_memory)
+
+        return memories
+
+    @staticmethod
+    def _build_reasoning_instructions(
+        *,
+        agent_name: str,
+        memories: list[str],
+    ) -> list[str]:
+        instructions = [
+            (
+                f"Act as Nestora's {agent_name} executive and complete "
+                "the assigned task using sound business judgment."
+            ),
+            (
+                "Use relevant past experience when it improves the "
+                "current recommendation or output."
+            ),
+            (
+                "Do not copy previous outputs blindly. Adapt useful "
+                "lessons to the current mission, business, and objective."
+            ),
+            (
+                "Avoid repeating approaches that the available experience "
+                "suggests were ineffective or low value."
+            ),
+            (
+                "When memories conflict, prefer the most recent, specific, "
+                "and business-relevant evidence."
+            ),
+        ]
+
+        if memories:
+            instructions.append(
+                f"Review the {len(memories)} retrieved memory record(s) before finalizing the response."
+            )
+        else:
+            instructions.append(
+                "No previous executive memories were retrieved. Proceed using the current mission context."
+            )
+
+        return instructions
+
+    @staticmethod
+    def _build_reasoning_prompt(
+        *,
+        agent_name: str,
+        title: str,
+        description: str | None,
+        memories: list[str],
+    ) -> str:
+        memory_section = (
+            "\n".join(
+                f"{index}. {memory}"
+                for index, memory in enumerate(
+                    memories,
+                    start=1,
+                )
+            )
+            if memories
+            else "No previous memories were retrieved."
+        )
+
+        task_description = (
+            description.strip()
+            if isinstance(description, str)
+            and description.strip()
+            else "No additional task description was provided."
+        )
+
+        return (
+            f"You are Nestora's {agent_name} Executive.\n\n"
+            f"Current task:\n{title}\n\n"
+            f"Task description:\n{task_description}\n\n"
+            "Relevant previous experience:\n"
+            f"{memory_section}\n\n"
+            "Reasoning requirements:\n"
+            "- Consider the previous experience before deciding.\n"
+            "- Reuse proven approaches only when relevant.\n"
+            "- Adapt past lessons to the current business context.\n"
+            "- Avoid repeating ineffective strategies.\n"
+            "- Produce a clear, practical, and task-specific result."
+        )
+
     @staticmethod
     def _normalize_agent_name(
         agent_name: str,
@@ -181,10 +360,6 @@ class ExecutiveRouter:
     def _normalize_output(
         raw_output: Any,
     ) -> dict[str, Any]:
-        """
-        Convert legacy executive outputs into a dictionary.
-        """
-
         if isinstance(raw_output, dict):
             if (
                 "output" in raw_output
@@ -204,11 +379,6 @@ class ExecutiveRouter:
         title: str,
         raw_output: Any,
     ) -> str:
-        """
-        Use an executive-provided summary when available.
-        Otherwise create a safe default summary.
-        """
-
         if isinstance(raw_output, dict):
             summary = raw_output.get("summary")
 

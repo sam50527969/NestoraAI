@@ -5,6 +5,7 @@ import ExecutiveBrief from "../../components/dashboard/ExecutiveBrief";
 import OpportunityPanel from "../../components/dashboard/OpportunityPanel";
 import QuickActions from "../../components/dashboard/QuickActions";
 import RecentActivity from "../../components/dashboard/RecentActivity";
+import ExecutiveOperationsCenter from "../../components/operations/ExecutiveOperationsCenter";
 
 import CEOSection from "./components/CEOSection";
 import ExecutiveHero from "./components/ExecutiveHero";
@@ -13,6 +14,7 @@ import ResearchSection from "./components/ResearchSection";
 import useDashboardData from "./hooks/useDashboardData";
 
 import "./styles/dashboard.css";
+
 
 export default function DashboardV2() {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export default function DashboardV2() {
     searchLeads,
   } = useDashboardData();
 
+
   function scrollToMissionControl() {
     document
       .getElementById("dashboard-v2-research")
@@ -36,6 +39,7 @@ export default function DashboardV2() {
         block: "start",
       });
   }
+
 
   if (isDashboardLoading) {
     return (
@@ -47,17 +51,21 @@ export default function DashboardV2() {
     );
   }
 
+
   if (errorMessage || !dashboardSummary) {
     return (
       <main className="dashboard-v2-page">
         <section className="dashboard-v2-state dashboard-v2-error">
-          {errorMessage || "Unable to load the executive dashboard."}
+          {errorMessage
+            || "Unable to load the executive dashboard."}
         </section>
       </main>
     );
   }
 
+
   const kpis = dashboardSummary.kpis || {};
+
 
   return (
     <main className="dashboard-v2-page">
@@ -67,21 +75,38 @@ export default function DashboardV2() {
         aiConfidence={kpis.ai_score}
         onRunMission={scrollToMissionControl}
         onOpenCRM={() => navigate("/crm")}
-        onGenerateProposal={() => navigate("/proposal")}
+        onGenerateProposal={() =>
+          navigate("/proposal")
+        }
       />
 
       <MetricsGrid metrics={metrics} />
 
+      <ExecutiveOperationsCenter />
+
       <section className="dashboard-v2-grid">
         <ExecutiveBrief />
-        <OpportunityPanel lead={topOpportunity} />
+
+        <OpportunityPanel
+          lead={topOpportunity}
+        />
+
         <QuickActions
           onRunMission={scrollToMissionControl}
           onOpenCRM={() => navigate("/crm")}
-          onGenerateProposal={() => navigate("/proposal")}
-          onWebsiteAudit={() => navigate("/website-intelligence")}
+          onGenerateProposal={() =>
+            navigate("/proposal")
+          }
+          onWebsiteAudit={() =>
+            navigate("/website-intelligence")
+          }
         />
-        <RecentActivity items={dashboardSummary.activity || []} />
+
+        <RecentActivity
+          items={
+            dashboardSummary.activity || []
+          }
+        />
       </section>
 
       <AgentStatus />

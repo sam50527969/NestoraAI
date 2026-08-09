@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import Badge from "../ui/Badge";
 import Card from "../ui/Card";
+import "./AgentStatus.css";
 
 const DEFAULT_AGENTS = [
   {

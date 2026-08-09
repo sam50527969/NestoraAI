@@ -1,0 +1,121 @@
+.executive-operations-center {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.executive-operations-header {
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(56, 189, 248, 0.05));
+}
+
+.executive-operations-header > div:first-child {
+  min-width: 0;
+}
+
+.executive-operations-eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.executive-operations-header h1 {
+  margin: 7px 0 8px;
+  color: var(--text-primary);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+}
+
+.executive-operations-description {
+  max-width: 760px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.executive-operations-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.executive-operations-grid > * {
+  min-width: 0;
+}
+
+.executive-operations-grid > .ops-status-panel {
+  grid-row: span 2;
+}
+
+.operations-placeholder {
+  min-height: 180px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.62), rgba(8, 15, 30, 0.72));
+  color: var(--text-secondary);
+}
+
+.operations-placeholder h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.operations-placeholder p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .executive-operations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .executive-operations-grid > .ops-status-panel {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .executive-operations-header {
+    padding: 20px;
+  }
+
+  .executive-operations-center,
+  .executive-operations-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .executive-operations-header {
+    padding: 17px;
+  }
+
+  .operations-placeholder {
+    min-height: 150px;
+    padding: 17px;
+  }
+}
