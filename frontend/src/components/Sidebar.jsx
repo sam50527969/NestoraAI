@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Telescope,
   Users,
 } from "lucide-react";
 
@@ -71,6 +72,11 @@ function Sidebar() {
       title: "Business Intelligence",
       items: [
         {
+          label: "Business Analysis",
+          path: "/business-analysis",
+          icon: Telescope,
+        },
+        {
           label: "Analytics",
           path: "/analytics",
           icon: BarChart3,
@@ -98,11 +104,16 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark">N</div>
+        <div className="brand-mark">
+          N
+        </div>
 
         <div>
           <h2>Nestora AI</h2>
-          <p>Business Operating System</p>
+
+          <p>
+            Business Operating System
+          </p>
         </div>
       </div>
 
@@ -116,29 +127,37 @@ function Sidebar() {
               {section.title}
             </p>
 
-            {section.items.map((item) => {
-              const Icon = item.icon;
+            {section.items.map(
+              (item) => {
+                const Icon = item.icon;
 
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === "/"}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "nav-item active"
-                      : "nav-item"
-                  }
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={2.2}
-                  />
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end={
+                      item.path === "/"
+                    }
+                    className={({
+                      isActive,
+                    }) =>
+                      isActive
+                        ? "nav-item active"
+                        : "nav-item"
+                    }
+                  >
+                    <Icon
+                      size={18}
+                      strokeWidth={2.2}
+                    />
 
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
+                    <span>
+                      {item.label}
+                    </span>
+                  </NavLink>
+                );
+              }
+            )}
           </div>
         ))}
       </nav>
@@ -146,7 +165,9 @@ function Sidebar() {
       <div className="sidebar-footer">
         <p>Current Plan</p>
 
-        <strong>Founder Build</strong>
+        <strong>
+          Founder Build
+        </strong>
       </div>
     </aside>
   );

@@ -11,6 +11,7 @@ import DashboardV2 from "./features/dashboard/DashboardV2";
 
 import AdminExplorer from "./pages/AdminExplorer";
 import AIMissionCreator from "./pages/AIMissionCreator";
+import BusinessAnalysis from "./pages/BusinessAnalysis";
 import CEO from "./pages/CEO";
 import CRM from "./pages/CRM";
 import MarketingDirector from "./pages/MarketingDirector";
@@ -22,12 +23,15 @@ import "./App.css";
 function PlaceholderPage({ title }) {
   return (
     <section className="panel">
-      <p className="eyebrow">Coming Soon</p>
+      <p className="eyebrow">
+        Coming Soon
+      </p>
 
       <h2>{title}</h2>
 
       <p>
-        This module will be added in the next sprints.
+        This module will be added in the next
+        sprints.
       </p>
     </section>
   );
@@ -86,6 +90,11 @@ function App() {
             <Route
               path="/marketing"
               element={<MarketingDirector />}
+            />
+
+            <Route
+              path="/business-analysis"
+              element={<BusinessAnalysis />}
             />
 
             <Route

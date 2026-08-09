@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   MARKETING_CHANNELS,
@@ -6,6 +6,22 @@ import {
   runMarketingDirector,
 } from "../api/marketingApi";
 
+import { getSavedBusinesses } from "../api/business";
+import BusinessSelector from "../components/business/BusinessSelector";
+import BusinessHealthCard from "../components/marketing/BusinessHealthCard";
+import ExecutiveAssessment from "../components/marketing/ExecutiveAssessment";
+import CompetitorIntelligence from "../components/competitors/CompetitorIntelligence";
+import {
+  generateBusinessDescription,
+} from "../services/businessDescription";
+
+function formatCategory(value) {
+  return String(value || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) =>
+      letter.toUpperCase(),
+    );
+}
 
 function splitCommaSeparated(value) {
   return value
@@ -84,6 +100,54 @@ export default function MarketingDirector() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [businesses, setBusinesses] = useState([]);
+  const [selectedBusinessId, setSelectedBusinessId] =
+    useState("");
+  const [isBusinessesLoading, setIsBusinessesLoading] =
+    useState(true);
+  const [businessesError, setBusinessesError] =
+    useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadBusinesses() {
+      setIsBusinessesLoading(true);
+      setBusinessesError("");
+
+      try {
+        const savedBusinesses =
+          await getSavedBusinesses();
+
+        if (isMounted) {
+          setBusinesses(savedBusinesses);
+        }
+      } catch (requestError) {
+        console.error(
+          "Saved business loading failed:",
+          requestError,
+        );
+
+        if (isMounted) {
+          setBusinessesError(
+            requestError?.message
+              || "Unable to load businesses from CRM.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsBusinessesLoading(false);
+        }
+      }
+    }
+
+    loadBusinesses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const selectedCurrentChannels = useMemo(
     () => request.business.current_channels || [],
     [request.business.current_channels],
@@ -92,6 +156,16 @@ export default function MarketingDirector() {
   const selectedPreferredChannels = useMemo(
     () => request.goal.preferred_channels || [],
     [request.goal.preferred_channels],
+  );
+
+  const selectedBusiness = useMemo(
+    () =>
+      businesses.find(
+        (business) =>
+          String(business.id)
+          === String(selectedBusinessId),
+      ) || null,
+    [businesses, selectedBusinessId],
   );
 
   function updateBusinessField(
@@ -172,6 +246,70 @@ export default function MarketingDirector() {
     });
   }
 
+  function handleBusinessSelect(businessId) {
+    setSelectedBusinessId(businessId);
+  setResult(null);
+  setError("");
+
+  const selectedBusiness = businesses.find(
+    (business) =>
+      String(business.id) === String(businessId),
+  );
+
+  if (!selectedBusiness) {
+    return;
+  }
+
+  const descriptionParts = [
+    selectedBusiness.notes,
+    selectedBusiness.aiRecommendation,
+    selectedBusiness.aiOpportunity,
+  ].filter(Boolean);
+
+  const validWebsite =
+    selectedBusiness.website
+    && String(selectedBusiness.website)
+      .trim()
+      .toLowerCase() !== "not found";
+
+  setRequest((current) => ({
+    ...current,
+
+    business: {
+      ...current.business,
+
+      business_id: String(
+        selectedBusiness.id,
+      ),
+
+      business_name:
+        selectedBusiness.name || "",
+
+      industry:
+        formatCategory(
+          selectedBusiness.category,
+        ),
+
+      location:
+        selectedBusiness.address
+        || selectedBusiness.location
+        || "Doha, Qatar",
+
+      description:
+        descriptionParts.join("\n\n")
+        || generateBusinessDescription(
+          selectedBusiness,
+        ),
+    },
+
+    additional_instructions:
+      validWebsite
+        ? `Use the available business website for context: ${selectedBusiness.website}`
+        : "",
+  }));
+  }
+
+
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -200,6 +338,7 @@ export default function MarketingDirector() {
       createDefaultMarketingRequest(),
     );
 
+    setSelectedBusinessId("");
     setResult(null);
     setError("");
   }
@@ -221,6 +360,18 @@ export default function MarketingDirector() {
           </p>
         </div>
       </div>
+
+      <BusinessSelector
+        businesses={businesses}
+        selectedBusinessId={selectedBusinessId}
+        isLoading={isBusinessesLoading}
+        errorMessage={businessesError}
+        onSelect={handleBusinessSelect}
+      />
+
+      <BusinessHealthCard
+        business={selectedBusiness}
+      />
 
       <form
         className="marketing-director-layout"
@@ -613,16 +764,16 @@ export default function MarketingDirector() {
 
         <div className="marketing-results-column">
           {!result && !isLoading ? (
-            <section className="panel marketing-empty-state">
-              <h2>Your strategy will appear here</h2>
+  <>
+    <ExecutiveAssessment
+      business={selectedBusiness}
+    />
 
-              <p>
-                Enter the business profile and goal,
-                then generate a complete executive
-                marketing plan.
-              </p>
-            </section>
-          ) : null}
+    <CompetitorIntelligence
+      business={selectedBusiness}
+    />
+  </>
+) : null}
 
           {isLoading ? (
             <section className="panel marketing-loading-state">

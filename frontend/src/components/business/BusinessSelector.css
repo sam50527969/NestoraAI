@@ -1,0 +1,229 @@
+.business-selector-panel {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(34, 197, 94, 0.07),
+      rgba(56, 189, 248, 0.045)
+    );
+}
+
+.business-selector-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.business-selector-eyebrow {
+  margin: 0 0 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.business-selector-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 21px;
+}
+
+.business-selector-header > div > p:last-child {
+  max-width: 620px;
+  margin: 7px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.business-selector-count {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.business-selector-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.business-selector-field > span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.business-selector-control {
+  min-height: 46px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text-muted);
+}
+
+.business-selector-control:focus-within {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.business-selector-control select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.business-selector-control option {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.business-selector-card {
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.business-selector-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.business-selector-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.11);
+  color: #86efac;
+}
+
+.business-selector-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.business-selector-title-row h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 17px;
+}
+
+.business-selector-card-main p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.business-priority {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.business-priority.priority-high {
+  background: rgba(34, 197, 94, 0.11);
+  color: #86efac;
+}
+
+.business-priority.priority-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+}
+
+.business-priority.priority-low {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+}
+
+.business-selector-details,
+.business-selector-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 15px;
+}
+
+.business-selector-details span,
+.business-selector-health span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.business-selector-health {
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.business-selector-health span:first-child {
+  color: #86efac;
+}
+
+.business-selector-error {
+  padding: 11px 13px;
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  border-radius: 11px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  font-size: 12px;
+}
+
+.business-selector-spin {
+  animation: business-selector-spin 0.8s linear infinite;
+}
+
+@keyframes business-selector-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .business-selector-panel {
+    padding: 18px;
+  }
+
+  .business-selector-header {
+    flex-direction: column;
+  }
+}

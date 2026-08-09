@@ -1,0 +1,204 @@
+.business-health-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.business-health-empty {
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.business-health-empty h2 {
+  margin: 6px 0 0;
+  color: var(--text-primary);
+}
+
+.business-health-empty p {
+  max-width: 420px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.business-health-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.business-health-header h2 {
+  margin: 4px 0 6px;
+}
+
+.business-health-header > div:first-child > p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.business-health-score {
+  width: 92px;
+  height: 92px;
+  flex: 0 0 92px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(34, 197, 94, 0.24);
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(34, 197, 94, 0.15),
+      rgba(34, 197, 94, 0.04)
+    );
+}
+
+.business-health-score strong {
+  color: #86efac;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.business-health-score span {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.business-health-progress {
+  height: 10px;
+  overflow: hidden;
+
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.13);
+}
+
+.business-health-progress-fill {
+  height: 100%;
+
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #22c55e,
+      #38bdf8
+    );
+
+  transition: width 0.35s ease;
+}
+
+.business-health-metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.business-health-metric {
+  min-width: 0;
+  padding: 14px;
+
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.business-health-metric-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.1);
+  color: #7dd3fc;
+}
+
+.business-health-metric span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.business-health-metric strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.business-health-checks {
+  padding-top: 14px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.business-health-checks span {
+  padding: 7px 10px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.business-health-checks .available {
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+}
+
+.business-health-checks .missing {
+  background: rgba(239, 68, 68, 0.09);
+  color: #fca5a5;
+}
+
+@media (max-width: 1000px) {
+  .business-health-metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .business-health-header {
+    flex-direction: column;
+  }
+
+  .business-health-score {
+    width: 82px;
+    height: 82px;
+    flex-basis: 82px;
+  }
+
+  .business-health-metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -6,8 +6,14 @@ export { generateOutreach } from "./outreach";
 export { analyzeLead } from "./salesAi";
 export { analyzeWebsite } from "./website";
 export { startMission, getMissionStatus } from "./mission";
-export {
-  askCEO,
-  createObjectiveMission,
-} from "./ceo";
+export { askCEO, createObjectiveMission } from "./ceo";
 export { getCEOBrief } from "./ceoAdvisor";
+export {
+  getConversation,
+  getExecutiveInbox,
+  getExecutiveOutbox,
+  getMissionMessages,
+  markExecutiveMessageRead,
+  replyToExecutiveMessage,
+  sendExecutiveMessage,
+} from "./communication";
