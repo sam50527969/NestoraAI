@@ -28,7 +28,12 @@ function getTaskName(task) {
 }
 
 function getTaskUid(task) {
-  return task.task_uid || task.uid || task.id || "";
+  return (
+    task.task_uid ||
+    task.uid ||
+    task.id ||
+    ""
+  );
 }
 
 function getTaskSequence(task, index) {
@@ -40,15 +45,27 @@ function getTaskSequence(task, index) {
   );
 }
 
+function getTaskExecutive(task) {
+  return (
+    task.agent_name ||
+    task.executive ||
+    task.assigned_to ||
+    task.agent ||
+    "Unassigned"
+  );
+}
+
 export default function MissionTaskList({
   tasks = [],
+  selectedTask = null,
   loading = false,
   error = "",
+  onSelectTask,
   onRefresh,
 }) {
   if (loading) {
     return (
-      <section className="mission-task-list-panel">
+      <section className="mission-task-list">
         <div className="mission-task-list-state">
           Loading mission tasks...
         </div>
@@ -58,8 +75,8 @@ export default function MissionTaskList({
 
   if (error) {
     return (
-      <section className="mission-task-list-panel">
-        <div className="mission-task-list-state mission-task-list-error">
+      <section className="mission-task-list">
+        <div className="mission-task-list-state error">
           <p>{error}</p>
 
           {onRefresh && (
@@ -78,9 +95,12 @@ export default function MissionTaskList({
 
   if (!tasks.length) {
     return (
-      <section className="mission-task-list-panel">
+      <section className="mission-task-list">
         <div className="mission-task-list-state">
-          <p>No tasks are available for this mission.</p>
+          <p>
+            No tasks are available for this
+            mission.
+          </p>
 
           {onRefresh && (
             <button
@@ -96,13 +116,26 @@ export default function MissionTaskList({
     );
   }
 
+  const selectedTaskUid =
+    getTaskUid(selectedTask || {});
+
+  function handleKeyDown(event, task) {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      onSelectTask?.(task);
+    }
+  }
+
   return (
-    <section className="mission-task-list-panel">
+    <section className="mission-task-list">
       <div className="mission-task-list-header">
         <div>
-          <p className="mission-task-list-eyebrow">
+          <span className="mission-task-list-eyebrow">
             Execution Plan
-          </p>
+          </span>
 
           <h2>Mission Tasks</h2>
 
@@ -126,14 +159,41 @@ export default function MissionTaskList({
       <div className="mission-task-list-items">
         {tasks.map((task, index) => {
           const taskUid = getTaskUid(task);
-          const sequence = getTaskSequence(task, index);
+          const sequence =
+            getTaskSequence(task, index);
+          const taskName = getTaskName(task);
+          const executive =
+            getTaskExecutive(task);
+
+          const isSelected = taskUid
+            ? taskUid === selectedTaskUid
+            : task === selectedTask;
 
           return (
             <article
-              key={taskUid || `task-${index}`}
-              className={`mission-task-item status-${
-                task.status || "unknown"
-              }`}
+              key={
+                taskUid || `task-${index}`
+              }
+              className={[
+                "mission-task-item",
+                `status-${
+                  task.status || "unknown"
+                }`,
+                isSelected
+                  ? "is-selected"
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              onClick={() =>
+                onSelectTask?.(task)
+              }
+              onKeyDown={(event) =>
+                handleKeyDown(event, task)
+              }
             >
               <div className="mission-task-sequence">
                 {sequence}
@@ -142,7 +202,7 @@ export default function MissionTaskList({
               <div className="mission-task-content">
                 <div className="mission-task-top-row">
                   <div>
-                    <h3>{getTaskName(task)}</h3>
+                    <h3>{taskName}</h3>
 
                     {taskUid && (
                       <p
@@ -156,15 +216,19 @@ export default function MissionTaskList({
 
                   <span
                     className={`mission-task-status status-${
-                      task.status || "unknown"
+                      task.status ||
+                      "unknown"
                     }`}
                   >
-                    {formatTaskStatus(task.status)}
+                    {formatTaskStatus(
+                      task.status,
+                    )}
                   </span>
                 </div>
 
                 {task.description &&
-                  task.description !== getTaskName(task) && (
+                  task.description !==
+                    taskName && (
                     <p className="mission-task-description">
                       {task.description}
                     </p>
@@ -172,11 +236,7 @@ export default function MissionTaskList({
 
                 <div className="mission-task-meta">
                   <span>
-                    Executive:{" "}
-                    {task.executive ||
-                      task.assigned_to ||
-                      task.agent ||
-                      "Unassigned"}
+                    Executive: {executive}
                   </span>
 
                   {task.task_type && (
@@ -185,9 +245,11 @@ export default function MissionTaskList({
                     </span>
                   )}
 
-                  {task.attempt_count != null && (
+                  {task.attempt_count !=
+                    null && (
                     <span>
-                      Attempts: {task.attempt_count}
+                      Attempts:{" "}
+                      {task.attempt_count}
                     </span>
                   )}
                 </div>
@@ -197,6 +259,13 @@ export default function MissionTaskList({
                     {task.error_message}
                   </div>
                 )}
+
+                <span className="mission-task-view-report">
+                  {task.status ===
+                  "completed"
+                    ? "View executive report"
+                    : "View task details"}
+                </span>
               </div>
             </article>
           );
@@ -221,6 +290,7 @@ MissionTaskList.propTypes = {
       objective: PropTypes.string,
       description: PropTypes.string,
       status: PropTypes.string,
+      agent_name: PropTypes.string,
       executive: PropTypes.string,
       assigned_to: PropTypes.string,
       agent: PropTypes.string,
@@ -232,7 +302,9 @@ MissionTaskList.propTypes = {
       error_message: PropTypes.string,
     }),
   ),
+  selectedTask: PropTypes.object,
   loading: PropTypes.bool,
   error: PropTypes.string,
+  onSelectTask: PropTypes.func,
   onRefresh: PropTypes.func,
 };

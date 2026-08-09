@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 import Card from "../components/ui/Card";
 import MissionDetails from "../components/mission/MissionDetails";
 import MissionKPICards from "../components/mission/MissionKPICards";
 import MissionList from "../components/mission/MissionList";
 import MissionTaskList from "../components/mission/MissionTaskList";
+import MissionTaskOutput from "../components/mission/MissionTaskOutput";
 import MissionTimeline from "../components/mission/MissionTimeline";
 
 import {
@@ -24,7 +29,19 @@ function getMissionUid(mission) {
   );
 }
 
-function getErrorMessage(error, fallbackMessage) {
+function getTaskUid(task) {
+  return (
+    task?.task_uid ||
+    task?.uid ||
+    task?.id ||
+    ""
+  );
+}
+
+function getErrorMessage(
+  error,
+  fallbackMessage,
+) {
   return (
     error?.message ||
     error?.detail ||
@@ -43,6 +60,8 @@ export default function MissionDashboard() {
     useState("");
 
   const [tasks, setTasks] = useState([]);
+  const [selectedTask, setSelectedTask] =
+    useState(null);
   const [tasksLoading, setTasksLoading] =
     useState(false);
   const [tasksError, setTasksError] =
@@ -62,10 +81,11 @@ export default function MissionDashboard() {
     setMissionError("");
 
     try {
-      const response = await getPersistedMissions({
-        limit: 100,
-        offset: 0,
-      });
+      const response =
+        await getPersistedMissions({
+          limit: 100,
+          offset: 0,
+        });
 
       const missionItems = Array.isArray(
         response?.missions,
@@ -82,7 +102,8 @@ export default function MissionDashboard() {
         const existingMission =
           missionItems.find(
             (mission) =>
-              getMissionUid(mission) === currentUid,
+              getMissionUid(mission) ===
+              currentUid,
           );
 
         return (
@@ -110,6 +131,7 @@ export default function MissionDashboard() {
     async (missionUid) => {
       if (!missionUid) {
         setTasks([]);
+        setSelectedTask(null);
         setTasksError("");
         return;
       }
@@ -123,13 +145,34 @@ export default function MissionDashboard() {
             missionUid,
           );
 
-        setTasks(
-          Array.isArray(response?.tasks)
-            ? response.tasks
-            : [],
-        );
+        const taskItems = Array.isArray(
+          response?.tasks,
+        )
+          ? response.tasks
+          : [];
+
+        setTasks(taskItems);
+
+        setSelectedTask((currentTask) => {
+          const currentTaskUid =
+            getTaskUid(currentTask);
+
+          const existingTask =
+            taskItems.find(
+              (task) =>
+                getTaskUid(task) ===
+                currentTaskUid,
+            );
+
+          return (
+            existingTask ||
+            taskItems[0] ||
+            null
+          );
+        });
       } catch (error) {
         setTasks([]);
+        setSelectedTask(null);
 
         setTasksError(
           getErrorMessage(
@@ -157,7 +200,9 @@ export default function MissionDashboard() {
 
       try {
         const response =
-          await getMissionTimeline(missionUid);
+          await getMissionTimeline(
+            missionUid,
+          );
 
         setEvents(
           Array.isArray(response?.events)
@@ -165,20 +210,24 @@ export default function MissionDashboard() {
             : [],
         );
       } catch (error) {
-        const errorMessage = getErrorMessage(
-          error,
-          "Unable to load mission timeline.",
-        );
+        const errorMessage =
+          getErrorMessage(
+            error,
+            "Unable to load mission timeline.",
+          );
 
-        const noEventsFound =
-          errorMessage
-            .toLowerCase()
-            .includes("no mission events found");
+        const noEventsFound = errorMessage
+          .toLowerCase()
+          .includes(
+            "no mission events found",
+          );
 
         setEvents([]);
 
         setEventsError(
-          noEventsFound ? "" : errorMessage,
+          noEventsFound
+            ? ""
+            : errorMessage,
         );
       } finally {
         setEventsLoading(false);
@@ -187,23 +236,25 @@ export default function MissionDashboard() {
     [],
   );
 
-  const refreshSelectedMission = useCallback(
-    async () => {
+  const refreshSelectedMission =
+    useCallback(async () => {
       if (!selectedMissionUid) {
         return;
       }
 
       await Promise.all([
-        loadMissionTasks(selectedMissionUid),
-        loadMissionEvents(selectedMissionUid),
+        loadMissionTasks(
+          selectedMissionUid,
+        ),
+        loadMissionEvents(
+          selectedMissionUid,
+        ),
       ]);
-    },
-    [
+    }, [
       selectedMissionUid,
       loadMissionTasks,
       loadMissionEvents,
-    ],
-  );
+    ]);
 
   useEffect(() => {
     loadMissions();
@@ -212,6 +263,7 @@ export default function MissionDashboard() {
   useEffect(() => {
     if (!selectedMissionUid) {
       setTasks([]);
+      setSelectedTask(null);
       setEvents([]);
       setTasksError("");
       setEventsError("");
@@ -228,23 +280,25 @@ export default function MissionDashboard() {
 
   function handleSelectMission(mission) {
     setSelectedMission(mission);
+    setSelectedTask(null);
   }
 
   return (
-    <main className="mission-dashboard-page">
+    <main className="mission-dashboard">
       <Card className="mission-dashboard-header">
         <div>
-          <p className="eyebrow">
+          <span className="mission-dashboard-eyebrow">
             AI Workforce
-          </p>
+          </span>
 
           <h1>Mission Dashboard</h1>
 
           <p>
             Monitor autonomous AI missions,
             review executive activity, inspect
-            execution timelines and manage every
-            mission from a single workspace.
+            execution timelines and manage
+            every mission from a single
+            workspace.
           </p>
         </div>
 
@@ -298,7 +352,9 @@ export default function MissionDashboard() {
 
         <Card className="mission-dashboard-panel mission-dashboard-timeline">
           <MissionTimeline
-            missionUid={selectedMissionUid}
+            missionUid={
+              selectedMissionUid
+            }
             events={events}
             loading={eventsLoading}
             error={eventsError}
@@ -313,13 +369,21 @@ export default function MissionDashboard() {
         <Card className="mission-dashboard-panel mission-dashboard-tasks">
           <MissionTaskList
             tasks={tasks}
+            selectedTask={selectedTask}
             loading={tasksLoading}
             error={tasksError}
+            onSelectTask={setSelectedTask}
             onRefresh={() =>
               loadMissionTasks(
                 selectedMissionUid,
               )
             }
+          />
+        </Card>
+
+        <Card className="mission-dashboard-panel mission-dashboard-output">
+          <MissionTaskOutput
+            task={selectedTask}
           />
         </Card>
 

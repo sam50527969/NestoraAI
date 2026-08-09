@@ -3,15 +3,15 @@
    Page Layout and Spacing
    ========================================================= */
 
+.mission-dashboard,
 .mission-dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
   max-width: 1560px;
   margin: 0 auto;
   padding: 24px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
 
 /* =========================================================
@@ -20,25 +20,29 @@
 
 .mission-dashboard-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 24px;
-
   padding: 24px;
-
   border: 1px solid var(--border);
   border-radius: var(--radius);
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(34, 197, 94, 0.08),
-      rgba(56, 189, 248, 0.05)
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.08),
+    rgba(56, 189, 248, 0.05)
+  );
 }
 
 .mission-dashboard-header > div:first-child {
   min-width: 0;
+}
+
+.mission-dashboard-eyebrow {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .mission-dashboard-header h1 {
@@ -47,21 +51,17 @@
 }
 
 .mission-dashboard-header p {
-  margin: 0;
-}
-
-.mission-dashboard-header p:last-child {
   max-width: 760px;
-
+  margin: 0;
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .mission-dashboard-header-actions {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
 }
 
 /* =========================================================
@@ -71,19 +71,15 @@
 .mission-dashboard-refresh-button {
   min-height: 40px;
   padding: 9px 15px;
-
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid
+    rgba(34, 197, 94, 0.3);
   border-radius: var(--radius);
-
   background: rgba(34, 197, 94, 0.1);
   color: var(--accent);
-
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-
   cursor: pointer;
-
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -94,6 +90,11 @@
   transform: translateY(-1px);
   border-color: var(--accent);
   background: rgba(34, 197, 94, 0.16);
+}
+
+.mission-dashboard-refresh-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .mission-dashboard-refresh-button:disabled {
@@ -114,7 +115,8 @@
 
 .mission-dashboard-kpis {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -131,7 +133,10 @@
   grid-template-columns:
     minmax(300px, 0.8fr)
     minmax(460px, 1.4fr);
-
+  grid-template-areas:
+    "missions timeline"
+    "tasks output"
+    "details details";
   gap: 20px;
   align-items: stretch;
 }
@@ -139,7 +144,6 @@
 .mission-dashboard-panel {
   min-width: 0;
   height: 100%;
-
   padding: 0;
   overflow: hidden;
 }
@@ -148,14 +152,36 @@
   height: 100%;
 }
 
-.mission-dashboard-missions,
-.mission-dashboard-timeline {
+.mission-dashboard-missions {
+  grid-area: missions;
   min-height: 460px;
 }
 
-.mission-dashboard-tasks,
+.mission-dashboard-timeline {
+  grid-area: timeline;
+  min-height: 460px;
+}
+
+.mission-dashboard-tasks {
+  grid-area: tasks;
+  min-height: 420px;
+}
+
+.mission-dashboard-output {
+  grid-area: output;
+  min-height: 420px;
+}
+
 .mission-dashboard-details {
-  min-height: 360px;
+  grid-area: details;
+  min-height: 300px;
+}
+
+.mission-dashboard-output
+  > .mission-task-output {
+  box-sizing: border-box;
+  padding: 24px;
+  overflow-y: auto;
 }
 
 /* =========================================================
@@ -200,7 +226,6 @@
   grid-template-columns:
     minmax(0, 1.3fr)
     minmax(320px, 0.9fr);
-
   gap: 20px;
   align-items: stretch;
 }
@@ -225,16 +250,27 @@
 
 @media (max-width: 1280px) {
   .mission-dashboard-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 1180px) {
+  .mission-dashboard,
   .mission-dashboard-page {
     padding: 20px;
   }
 
-  .mission-dashboard-grid,
+  .mission-dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "missions"
+      "timeline"
+      "tasks"
+      "output"
+      "details";
+  }
+
   .mission-opportunity-grid {
     grid-template-columns: 1fr;
   }
@@ -242,12 +278,14 @@
   .mission-dashboard-missions,
   .mission-dashboard-timeline,
   .mission-dashboard-tasks,
+  .mission-dashboard-output,
   .mission-dashboard-details {
     min-height: auto;
   }
 }
 
 @media (max-width: 800px) {
+  .mission-dashboard,
   .mission-dashboard-page {
     gap: 16px;
   }
@@ -271,6 +309,7 @@
 }
 
 @media (max-width: 580px) {
+  .mission-dashboard,
   .mission-dashboard-page {
     padding: 14px;
   }
@@ -290,6 +329,11 @@
 
   .mission-dashboard-grid {
     gap: 16px;
+  }
+
+  .mission-dashboard-output
+    > .mission-task-output {
+    padding: 18px;
   }
 
   .mission-dashboard-panel-header {
