@@ -5,6 +5,9 @@ from fastapi import (
     status,
 )
 
+from app.approvals.executor import (
+    execute_approval,
+)
 from app.approvals.schemas import (
     ApprovalCreate,
     ApprovalDecision,
@@ -113,6 +116,29 @@ def reject_request(
             approval_uid,
             "rejected",
             data,
+        )
+    except LookupError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+    except ValueError as error:
+        raise HTTPException(
+            status_code=409,
+            detail=str(error),
+        ) from error
+
+
+@router.post(
+    "/{approval_uid}/execute",
+    response_model=ApprovalResponse,
+)
+def execute_approved_request(
+    approval_uid: str,
+):
+    try:
+        return execute_approval(
+            approval_uid
         )
     except LookupError as error:
         raise HTTPException(

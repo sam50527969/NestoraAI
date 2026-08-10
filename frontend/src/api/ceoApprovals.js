@@ -1,5 +1,6 @@
 import { request } from "./client";
 
+
 export function getCEOApprovals({
   status,
   limit = 100,
@@ -24,12 +25,14 @@ export function getCEOApprovals({
   );
 }
 
+
 export function createCEOApproval(data) {
   return request("/ceo-approvals", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
+
 
 export function approveCEOApproval(
   approvalUid,
@@ -49,6 +52,7 @@ export function approveCEOApproval(
   );
 }
 
+
 export function rejectCEOApproval(
   approvalUid,
   data = {},
@@ -63,6 +67,18 @@ export function rejectCEOApproval(
         decision_note:
           data.decision_note || null,
       }),
+    },
+  );
+}
+
+
+export function executeCEOApproval(
+  approvalUid,
+) {
+  return request(
+    `/ceo-approvals/${approvalUid}/execute`,
+    {
+      method: "POST",
     },
   );
 }

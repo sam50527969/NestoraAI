@@ -2,52 +2,64 @@ export {
   getDashboardSummary,
 } from "./dashboard";
 
+
 export {
   getSavedLeads,
   saveLead,
   updateLead,
 } from "./crm";
 
+
 export {
   getSampleLeads,
 } from "./leads";
+
 
 export {
   searchBusinesses,
 } from "./search";
 
+
 export {
   generateOutreach,
 } from "./outreach";
+
 
 export {
   analyzeLead,
 } from "./salesAi";
 
+
 export {
   analyzeWebsite,
 } from "./website";
+
 
 export {
   startMission,
   getMissionStatus,
 } from "./mission";
 
+
 export {
   askCEO,
   createObjectiveMission,
 } from "./ceo";
 
+
 export {
   getCEOBrief,
 } from "./ceoAdvisor";
 
+
 export {
   approveCEOApproval,
   createCEOApproval,
+  executeCEOApproval,
   getCEOApprovals,
   rejectCEOApproval,
 } from "./ceoApprovals";
+
 
 export {
   getConversation,

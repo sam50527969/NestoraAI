@@ -6,6 +6,7 @@ import {
 
 import {
   approveCEOApproval,
+  executeCEOApproval,
   getCEOApprovals,
   rejectCEOApproval,
 } from "../../../api";
@@ -14,6 +15,7 @@ import Badge from "../../ui/Badge";
 import Card from "../../ui/Card";
 
 import "./CEOApprovalQueue.css";
+
 
 function formatDate(value) {
   if (!value) {
@@ -35,8 +37,12 @@ function formatDate(value) {
   ).format(date);
 }
 
+
 function getStatusVariant(status) {
-  if (status === "approved") {
+  if (
+    status === "approved"
+    || status === "executed"
+  ) {
     return "success";
   }
 
@@ -47,6 +53,28 @@ function getStatusVariant(status) {
   return "primary";
 }
 
+
+function getExecutionResult(approval) {
+  return (
+    approval?.payload?.execution_result
+    || null
+  );
+}
+
+
+function getOutreachPackages(approval) {
+  const result = getExecutionResult(
+    approval,
+  );
+
+  return Array.isArray(
+    result?.outreach_packages,
+  )
+    ? result.outreach_packages
+    : [];
+}
+
+
 export default function CEOApprovalQueue() {
   const [approvals, setApprovals] =
     useState([]);
@@ -54,11 +82,14 @@ export default function CEOApprovalQueue() {
   const [isLoading, setIsLoading] =
     useState(true);
 
-  const [activeApprovalUid, setActiveApprovalUid] =
-    useState("");
+  const [
+    activeApprovalUid,
+    setActiveApprovalUid,
+  ] = useState("");
 
   const [errorMessage, setErrorMessage] =
     useState("");
+
 
   const loadApprovals = useCallback(
     async () => {
@@ -92,9 +123,25 @@ export default function CEOApprovalQueue() {
     [],
   );
 
+
   useEffect(() => {
     loadApprovals();
   }, [loadApprovals]);
+
+
+  function updateApproval(
+    updatedApproval,
+  ) {
+    setApprovals((current) =>
+      current.map((item) =>
+        item.approval_uid ===
+        updatedApproval.approval_uid
+          ? updatedApproval
+          : item,
+      ),
+    );
+  }
+
 
   async function handleDecision(
     approval,
@@ -120,13 +167,8 @@ export default function CEOApprovalQueue() {
           },
         );
 
-      setApprovals((current) =>
-        current.map((item) =>
-          item.approval_uid ===
-          updatedApproval.approval_uid
-            ? updatedApproval
-            : item,
-        ),
+      updateApproval(
+        updatedApproval,
       );
     } catch (error) {
       console.error(
@@ -135,18 +177,59 @@ export default function CEOApprovalQueue() {
       );
 
       setErrorMessage(
-        error?.message ||
-          "Unable to update the approval request.",
+        error?.message
+        || "Unable to update the approval request.",
       );
     } finally {
       setActiveApprovalUid("");
     }
   }
 
+
+  async function handleExecute(
+    approval,
+  ) {
+    setActiveApprovalUid(
+      approval.approval_uid,
+    );
+
+    setErrorMessage("");
+
+    try {
+      const updatedApproval =
+        await executeCEOApproval(
+          approval.approval_uid,
+        );
+
+      updateApproval(
+        updatedApproval,
+      );
+    } catch (error) {
+      console.error(
+        "Unable to execute approved action:",
+        error,
+      );
+
+      setErrorMessage(
+        error?.message
+        || "Unable to execute the approved action.",
+      );
+    } finally {
+      setActiveApprovalUid("");
+    }
+  }
+
+
   const pendingCount = approvals.filter(
     (approval) =>
       approval.status === "pending",
   ).length;
+
+  const approvedCount = approvals.filter(
+    (approval) =>
+      approval.status === "approved",
+  ).length;
+
 
   return (
     <Card className="ceo-approval-queue">
@@ -175,6 +258,12 @@ export default function CEOApprovalQueue() {
             {pendingCount} Pending
           </Badge>
 
+          {approvedCount > 0 && (
+            <Badge variant="success">
+              {approvedCount} Ready
+            </Badge>
+          )}
+
           <button
             type="button"
             className="ceo-approval-refresh-button"
@@ -202,6 +291,16 @@ export default function CEOApprovalQueue() {
             const isUpdating =
               activeApprovalUid ===
               approval.approval_uid;
+
+            const executionResult =
+              getExecutionResult(
+                approval,
+              );
+
+            const outreachPackages =
+              getOutreachPackages(
+                approval,
+              );
 
             return (
               <article
@@ -249,7 +348,7 @@ export default function CEOApprovalQueue() {
                 </div>
 
                 {approval.status ===
-                "pending" ? (
+                "pending" && (
                   <div className="ceo-approval-actions">
                     <button
                       type="button"
@@ -281,14 +380,107 @@ export default function CEOApprovalQueue() {
                       Reject
                     </button>
                   </div>
-                ) : (
+                )}
+
+                {approval.status ===
+                "approved" && (
+                  <>
+                    <div className="ceo-approval-reviewed">
+                      Approved by{" "}
+                      {approval.reviewed_by
+                        || "CEO"}{" "}
+                      on{" "}
+                      {formatDate(
+                        approval.reviewed_at,
+                      )}
+                    </div>
+
+                    <div className="ceo-approval-actions">
+                      <button
+                        type="button"
+                        className="ceo-approval-button execute"
+                        disabled={isUpdating}
+                        onClick={() =>
+                          handleExecute(
+                            approval,
+                          )
+                        }
+                      >
+                        {isUpdating
+                          ? "Executing..."
+                          : "Execute Approved Action"}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {approval.status ===
+                "rejected" && (
                   <div className="ceo-approval-reviewed">
-                    Reviewed by{" "}
-                    {approval.reviewed_by ||
-                      "CEO"}{" "}
+                    Rejected by{" "}
+                    {approval.reviewed_by
+                      || "CEO"}{" "}
                     on{" "}
                     {formatDate(
                       approval.reviewed_at,
+                    )}
+                  </div>
+                )}
+
+                {approval.status ===
+                "executed" && (
+                  <div className="ceo-approval-execution">
+                    <div className="ceo-approval-execution-header">
+                      <div>
+                        <span className="ceo-approval-type">
+                          Execution Result
+                        </span>
+
+                        <h4>
+                          {executionResult?.message
+                            || "Approved action executed successfully."}
+                        </h4>
+                      </div>
+
+                      <span className="ceo-approval-executed-at">
+                        {formatDate(
+                          approval.executed_at,
+                        )}
+                      </span>
+                    </div>
+
+                    {outreachPackages.length > 0 && (
+                      <div className="ceo-approval-outreach-list">
+                        {outreachPackages.map(
+                          (outreach) => (
+                            <div
+                              className="ceo-approval-outreach-item"
+                              key={
+                                outreach.lead_id
+                                || outreach.lead_name
+                              }
+                            >
+                              <div>
+                                <strong>
+                                  {outreach.lead_name}
+                                </strong>
+
+                                <span>
+                                  {outreach.priority
+                                    || "Priority"}{" "}
+                                  · Score{" "}
+                                  {outreach.score
+                                    ?? 0}
+                                </span>
+                              </div>
+
+                              <span className="ceo-approval-outreach-status">
+                                Prepared
+                              </span>
+                            </div>
+                          ),
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
