@@ -1,0 +1,71 @@
+.ceo-recommendation-content {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+
+.ceo-recommendation-content p {
+  flex: 1;
+}
+
+
+.ceo-recommendation-approval-button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid
+    rgba(56, 189, 248, 0.32);
+  border-radius: var(--radius);
+  background: rgba(56, 189, 248, 0.09);
+  color: #7dd3fc;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.ceo-recommendation-approval-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+
+.ceo-recommendation-approval-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+.ceo-recommendation-error {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid
+    rgba(239, 68, 68, 0.28);
+  border-radius: var(--radius);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+
+@media (max-width: 700px) {
+  .ceo-recommendation-content {
+    flex-direction: column;
+  }
+
+
+  .ceo-recommendation-approval-button {
+    width: 100%;
+  }
+}

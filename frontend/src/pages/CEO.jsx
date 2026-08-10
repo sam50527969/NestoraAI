@@ -6,17 +6,20 @@ import {
 
 import CEOApprovalQueue from "../components/agents/ceo/CEOApprovalQueue";
 import CEOChat from "../components/agents/ceo/CEOChat";
+import CEORecommendationActions from "../components/agents/ceo/CEORecommendationActions";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
 import { getCEOBrief } from "../api";
 
 import "../styles/ceo.css";
 
+
 function formatNumber(value) {
   return new Intl.NumberFormat(
     "en-US",
   ).format(Number(value) || 0);
 }
+
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
@@ -25,6 +28,7 @@ function formatCurrency(value) {
     maximumFractionDigits: 0,
   }).format(Number(value) || 0);
 }
+
 
 function formatDate(value) {
   if (!value) {
@@ -46,11 +50,14 @@ function formatDate(value) {
   ).format(date);
 }
 
+
 function truncateText(
   value,
   maxLength = 240,
 ) {
-  const text = String(value || "").trim();
+  const text = String(
+    value || "",
+  ).trim();
 
   if (text.length <= maxLength) {
     return text;
@@ -61,39 +68,63 @@ function truncateText(
     .trim()}…`;
 }
 
+
 export default function CEO() {
-  const [brief, setBrief] = useState(null);
+  const [brief, setBrief] =
+    useState(null);
 
   const [isLoading, setIsLoading] =
     useState(true);
 
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
 
-  const loadBrief = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage("");
+  const [
+    approvalQueueVersion,
+    setApprovalQueueVersion,
+  ] = useState(0);
 
-    try {
-      const response = await getCEOBrief();
-      setBrief(response);
-    } catch (error) {
-      console.error(
-        "Unable to load CEO brief:",
-        error,
-      );
 
-      setErrorMessage(
-        "Unable to load the executive brief.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const loadBrief = useCallback(
+    async () => {
+      setIsLoading(true);
+      setErrorMessage("");
+
+      try {
+        const response =
+          await getCEOBrief();
+
+        setBrief(response);
+      } catch (error) {
+        console.error(
+          "Unable to load CEO brief:",
+          error,
+        );
+
+        setErrorMessage(
+          "Unable to load the executive brief.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
 
   useEffect(() => {
     loadBrief();
   }, [loadBrief]);
+
+
+  function handleApprovalCreated() {
+    setApprovalQueueVersion(
+      (current) => current + 1,
+    );
+  }
+
 
   const missionOverview =
     brief?.mission_overview || {};
@@ -106,6 +137,7 @@ export default function CEO() {
 
   const recommendations =
     brief?.recommendations || [];
+
 
   return (
     <main className="ceo-page">
@@ -258,7 +290,9 @@ export default function CEO() {
             </Card>
           </section>
 
-          <CEOApprovalQueue />
+          <CEOApprovalQueue
+            key={approvalQueueVersion}
+          />
 
           <section className="ceo-page-grid">
             <Card className="ceo-reports-card">
@@ -337,35 +371,18 @@ export default function CEO() {
               )}
             </Card>
 
-            <Card className="ceo-decisions-card">
-              <p className="eyebrow">
-                Recommended Decisions
-              </p>
-
-              <h2>What to Do Next</h2>
-
-              <div className="ceo-recommendation-list">
-                {recommendations.map(
-                  (
-                    recommendation,
-                    index,
-                  ) => (
-                    <div
-                      className="ceo-recommendation-item"
-                      key={`${index}-${recommendation}`}
-                    >
-                      <span>
-                        {index + 1}
-                      </span>
-
-                      <p>
-                        {recommendation}
-                      </p>
-                    </div>
-                  ),
-                )}
-              </div>
-            </Card>
+            <CEORecommendationActions
+              recommendations={
+                recommendations
+              }
+              highPriorityCount={
+                brief?.high_priority_count
+                || 0
+              }
+              onApprovalCreated={
+                handleApprovalCreated
+              }
+            />
           </section>
 
           <section className="ceo-page-grid">
@@ -430,12 +447,14 @@ export default function CEO() {
 
               <div className="ceo-mission-list">
                 {(
-                  missionOverview.recent_completed ||
-                  []
+                  missionOverview.recent_completed
+                  || []
                 ).map((mission) => (
                   <article
                     className="ceo-mission-item"
-                    key={mission.mission_uid}
+                    key={
+                      mission.mission_uid
+                    }
                   >
                     <div>
                       <h3>
