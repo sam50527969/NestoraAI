@@ -11,6 +11,7 @@ import {
   rejectCEOApproval,
 } from "../../../api";
 
+import CEOOutreachPackage from "./CEOOutreachPackage";
 import Badge from "../../ui/Badge";
 import Card from "../../ui/Card";
 
@@ -452,32 +453,19 @@ export default function CEOApprovalQueue() {
                     {outreachPackages.length > 0 && (
                       <div className="ceo-approval-outreach-list">
                         {outreachPackages.map(
-                          (outreach) => (
-                            <div
-                              className="ceo-approval-outreach-item"
+                          (
+                            outreach,
+                            index,
+                          ) => (
+                            <CEOOutreachPackage
                               key={
                                 outreach.lead_id
-                                || outreach.lead_name
+                                || `${outreach.lead_name}-${index}`
                               }
-                            >
-                              <div>
-                                <strong>
-                                  {outreach.lead_name}
-                                </strong>
-
-                                <span>
-                                  {outreach.priority
-                                    || "Priority"}{" "}
-                                  · Score{" "}
-                                  {outreach.score
-                                    ?? 0}
-                                </span>
-                              </div>
-
-                              <span className="ceo-approval-outreach-status">
-                                Prepared
-                              </span>
-                            </div>
+                              outreach={
+                                outreach
+                              }
+                            />
                           ),
                         )}
                       </div>
