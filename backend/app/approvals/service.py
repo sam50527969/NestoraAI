@@ -15,6 +15,22 @@ VALID_DECISIONS = {
     "rejected",
 }
 
+ACTIVE_APPROVAL_STATUSES = {
+    "pending",
+    "approved",
+}
+
+
+def normalize_text(
+    value: Any,
+) -> str:
+    return " ".join(
+        str(value or "")
+        .strip()
+        .lower()
+        .split()
+    )
+
 
 def parse_payload(
     value: str | None,
@@ -85,12 +101,99 @@ def serialize_approval(
     }
 
 
+def find_active_duplicate(
+    db,
+    data: ApprovalCreate,
+) -> CEOApproval | None:
+    decision_type = (
+        data.decision_type.strip()
+        or "executive_action"
+    )
+
+    source_type = (
+        data.source_type.strip()
+        or "executive_report"
+    )
+
+    source_uid = (
+        data.source_uid.strip()
+        if data.source_uid
+        else None
+    )
+
+    title = data.title.strip()
+
+    description = (
+        data.description.strip()
+        if data.description
+        else None
+    )
+
+    query = db.query(CEOApproval).filter(
+        CEOApproval.status.in_(
+            ACTIVE_APPROVAL_STATUSES
+        ),
+        CEOApproval.decision_type
+        == decision_type,
+        CEOApproval.source_type
+        == source_type,
+        CEOApproval.title
+        == title,
+    )
+
+    if source_uid is None:
+        query = query.filter(
+            CEOApproval.source_uid.is_(
+                None
+            )
+        )
+    else:
+        query = query.filter(
+            CEOApproval.source_uid
+            == source_uid
+        )
+
+    candidates = (
+        query.order_by(
+            CEOApproval.created_at.desc()
+        )
+        .all()
+    )
+
+    normalized_description = (
+        normalize_text(description)
+    )
+
+    for approval in candidates:
+        if (
+            normalize_text(
+                approval.description
+            )
+            == normalized_description
+        ):
+            return approval
+
+    return None
+
+
 def create_approval(
     data: ApprovalCreate,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
+        existing_approval = (
+            find_active_duplicate(
+                db,
+                data,
+            )
+        )
+
+        if existing_approval is not None:
+            return serialize_approval(
+                existing_approval
+            )
+
         approval = CEOApproval(
             title=data.title.strip(),
             description=(
