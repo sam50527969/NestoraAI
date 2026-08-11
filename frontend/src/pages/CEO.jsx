@@ -10,6 +10,7 @@ import CEOOutreachHistory from "../components/agents/ceo/CEOOutreachHistory";
 import CEORecommendationActions from "../components/agents/ceo/CEORecommendationActions";
 import CEOFollowUpQueue from "../components/agents/ceo/CEOFollowUpQueue";
 import CEOFollowUpHistory from "../components/agents/ceo/CEOFollowUpHistory";
+import CEOFollowUpMetrics from "../components/agents/ceo/CEOFollowUpMetrics";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
 import { getCEOBrief } from "../api";
@@ -298,6 +299,7 @@ export default function CEO() {
           />
 
           <CEOOutreachHistory />
+          <CEOFollowUpMetrics />
           <CEOFollowUpQueue />
           <CEOFollowUpHistory />
 

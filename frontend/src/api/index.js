@@ -6,6 +6,7 @@ export {
 export {
   getDueFollowUps,
   getFollowUpActivities,
+  getFollowUpMetrics,
   getSavedLeads,
   recordFollowUpOutcome,
   saveLead,

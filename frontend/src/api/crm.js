@@ -84,3 +84,10 @@ export function recordFollowUpOutcome(
     },
   );
 }
+
+
+export function getFollowUpMetrics() {
+  return request(
+    "/follow-up-activities/metrics",
+  );
+}
