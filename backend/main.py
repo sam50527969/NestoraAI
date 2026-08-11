@@ -27,6 +27,9 @@ from app.database.database import (
     Base,
     engine,
 )
+from app.follow_up_activity import (
+    models as follow_up_activity_models,
+)
 from app.outreach_activity import (
     models as outreach_activity_models,
 )
@@ -36,23 +39,28 @@ from app.tools.loader import load_tools
 logger = logging.getLogger(__name__)
 
 
-# Importing these model modules registers
-# their SQLAlchemy tables before create_all runs.
+# Importing these model modules registers their
+# SQLAlchemy tables before create_all runs.
 _ = (
     models,
     approval_models,
     outreach_activity_models,
+    follow_up_activity_models,
 )
 
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(
+    bind=engine,
+)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(
+    app: FastAPI,
+):
     """
-    Initialize and shut down shared Nestora
-    platform services.
+    Initialize and shut down shared
+    Nestora platform services.
     """
 
     executive_registry.clear()
@@ -124,7 +132,9 @@ app.add_middleware(
 
 register_routes(app)
 
-app.include_router(clinic_router)
+app.include_router(
+    clinic_router
+)
 
 
 @app.get("/")

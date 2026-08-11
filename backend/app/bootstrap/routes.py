@@ -72,6 +72,9 @@ from app.routes.search import (
 from app.routes.website import (
     router as website_router,
 )
+from app.follow_up_activity.routes import (
+    router as follow_up_activities_router,
+)
 
 
 def register_routes(
@@ -124,3 +127,6 @@ def register_routes(
     app.include_router(
         collaboration_router
     )
+    app.include_router(
+    follow_up_activities_router
+)
