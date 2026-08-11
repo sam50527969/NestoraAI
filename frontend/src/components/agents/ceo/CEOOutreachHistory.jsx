@@ -6,14 +6,14 @@ import {
 
 import {
   getOutreachActivities,
-} from "../../../api";
+  markOutreachActivitySent,
+} from "../../../api/outreachActivities";
 
 import Badge from "../../ui/Badge";
 import Card from "../../ui/Card";
 import CEOOutreachPackage from "./CEOOutreachPackage";
 
 import "./CEOOutreachHistory.css";
-
 
 export default function CEOOutreachHistory() {
   const [activities, setActivities] =
@@ -22,9 +22,13 @@ export default function CEOOutreachHistory() {
   const [isLoading, setIsLoading] =
     useState(true);
 
+  const [
+    activeActivityUid,
+    setActiveActivityUid,
+  ] = useState("");
+
   const [errorMessage, setErrorMessage] =
     useState("");
-
 
   const loadActivities = useCallback(
     async () => {
@@ -59,11 +63,57 @@ export default function CEOOutreachHistory() {
     [],
   );
 
-
   useEffect(() => {
     loadActivities();
   }, [loadActivities]);
 
+  async function handleMarkSent(
+    activity,
+  ) {
+    setActiveActivityUid(
+      activity.activity_uid,
+    );
+
+    setErrorMessage("");
+
+    try {
+      const updatedActivity =
+        await markOutreachActivitySent(
+          activity.activity_uid,
+        );
+
+      setActivities((current) =>
+        current.map((item) =>
+          item.activity_uid ===
+          updatedActivity.activity_uid
+            ? updatedActivity
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.error(
+        "Unable to mark outreach as sent:",
+        error,
+      );
+
+      setErrorMessage(
+        error?.message ||
+          "Unable to update outreach status.",
+      );
+    } finally {
+      setActiveActivityUid("");
+    }
+  }
+
+  const preparedCount = activities.filter(
+    (activity) =>
+      activity.status === "prepared",
+  ).length;
+
+  const sentCount = activities.filter(
+    (activity) =>
+      activity.status === "sent",
+  ).length;
 
   return (
     <Card className="ceo-outreach-history">
@@ -74,18 +124,22 @@ export default function CEOOutreachHistory() {
           </p>
 
           <h2>
-            Prepared Outreach History
+            Outreach Activity History
           </h2>
 
           <p>
-            Review outreach assets saved
-            from approved CEO actions.
+            Review prepared outreach and
+            record when each package is sent.
           </p>
         </div>
 
         <div className="ceo-outreach-history-actions">
           <Badge variant="primary">
-            {activities.length}
+            {preparedCount} Prepared
+          </Badge>
+
+          <Badge variant="success">
+            {sentCount} Sent
           </Badge>
 
           <button
@@ -116,6 +170,11 @@ export default function CEOOutreachHistory() {
             <CEOOutreachPackage
               key={activity.activity_uid}
               outreach={activity}
+              onMarkSent={handleMarkSent}
+              isUpdating={
+                activeActivityUid ===
+                activity.activity_uid
+              }
             />
           ))}
         </div>

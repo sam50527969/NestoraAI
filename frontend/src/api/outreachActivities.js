@@ -1,6 +1,5 @@
 import { request } from "./client";
 
-
 export function getOutreachActivities({
   status,
   approvalUid,
@@ -33,11 +32,21 @@ export function getOutreachActivities({
   );
 }
 
-
 export function getOutreachActivity(
   activityUid,
 ) {
   return request(
     `/outreach-activities/${activityUid}`,
+  );
+}
+
+export function markOutreachActivitySent(
+  activityUid,
+) {
+  return request(
+    `/outreach-activities/${activityUid}/mark-sent`,
+    {
+      method: "POST",
+    },
   );
 }

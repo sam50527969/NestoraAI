@@ -1,7 +1,10 @@
+from datetime import datetime
 from typing import Any
 
 from app.database.database import SessionLocal
-from app.outreach_activity.models import OutreachActivity
+from app.outreach_activity.models import (
+    OutreachActivity,
+)
 
 
 def serialize_outreach_activity(
@@ -18,9 +21,15 @@ def serialize_outreach_activity(
         "website": activity.website,
         "email_subject": activity.email_subject,
         "email_body": activity.email_body,
-        "whatsapp_message": activity.whatsapp_message,
-        "cold_call_script": activity.cold_call_script,
-        "proposal_summary": activity.proposal_summary,
+        "whatsapp_message": (
+            activity.whatsapp_message
+        ),
+        "cold_call_script": (
+            activity.cold_call_script
+        ),
+        "proposal_summary": (
+            activity.proposal_summary
+        ),
         "created_at": activity.created_at,
         "updated_at": activity.updated_at,
         "sent_at": activity.sent_at,
@@ -138,6 +147,55 @@ def get_outreach_activity(
         return serialize_outreach_activity(
             activity
         )
+
+    finally:
+        db.close()
+
+
+def mark_outreach_activity_sent(
+    activity_uid: str,
+) -> dict[str, Any]:
+    db = SessionLocal()
+
+    try:
+        activity = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.activity_uid
+                == activity_uid
+            )
+            .first()
+        )
+
+        if activity is None:
+            raise LookupError(
+                "Outreach activity was not found."
+            )
+
+        if activity.status == "sent":
+            return serialize_outreach_activity(
+                activity
+            )
+
+        if activity.status != "prepared":
+            raise ValueError(
+                "Only prepared outreach can be "
+                "marked as sent."
+            )
+
+        activity.status = "sent"
+        activity.sent_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(activity)
+
+        return serialize_outreach_activity(
+            activity
+        )
+
+    except Exception:
+        db.rollback()
+        raise
 
     finally:
         db.close()

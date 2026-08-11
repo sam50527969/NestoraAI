@@ -6,13 +6,14 @@
   overflow: hidden;
 }
 
-
 .ceo-outreach-package.expanded {
   grid-column: 1 / -1;
-  border-color:
-    rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.28);
 }
 
+.ceo-outreach-package.status-sent {
+  border-color: rgba(34, 197, 94, 0.28);
+}
 
 .ceo-outreach-package-summary {
   display: flex;
@@ -29,14 +30,12 @@
   cursor: pointer;
 }
 
-
 .ceo-outreach-package-summary > div:first-child {
   display: flex;
   flex-direction: column;
   min-width: 0;
   gap: 5px;
 }
-
 
 .ceo-outreach-package-summary strong {
   overflow: hidden;
@@ -46,12 +45,10 @@
   white-space: nowrap;
 }
 
-
 .ceo-outreach-package-summary span {
   color: var(--text-muted);
   font-size: 10px;
 }
-
 
 .ceo-outreach-package-controls {
   display: flex;
@@ -60,16 +57,19 @@
   gap: 8px;
 }
 
-
 .ceo-outreach-package-status {
   padding: 5px 8px;
   border-radius: 999px;
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--accent) !important;
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc !important;
   font-weight: 800;
   text-transform: uppercase;
 }
 
+.ceo-outreach-package-status.status-sent {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--accent) !important;
+}
 
 .ceo-outreach-package-toggle {
   display: inline-flex;
@@ -84,14 +84,12 @@
   font-weight: 700;
 }
 
-
 .ceo-outreach-package-details {
   display: grid;
   gap: 12px;
   padding: 0 14px 14px;
   border-top: 1px solid var(--border);
 }
-
 
 .ceo-outreach-contact-grid {
   display: grid;
@@ -100,7 +98,6 @@
   gap: 10px;
   padding-top: 14px;
 }
-
 
 .ceo-outreach-contact-grid > div {
   display: flex;
@@ -112,7 +109,6 @@
   background: rgba(255, 255, 255, 0.035);
 }
 
-
 .ceo-outreach-contact-grid span {
   color: var(--text-muted);
   font-size: 9px;
@@ -121,7 +117,6 @@
   text-transform: uppercase;
 }
 
-
 .ceo-outreach-contact-grid strong,
 .ceo-outreach-contact-grid a {
   overflow-wrap: anywhere;
@@ -129,17 +124,24 @@
   font-size: 11px;
 }
 
-
 .ceo-outreach-contact-grid a {
   color: #7dd3fc;
   text-decoration: none;
 }
 
-
 .ceo-outreach-contact-grid a:hover {
   text-decoration: underline;
 }
 
+.ceo-outreach-sent-notice {
+  padding: 10px 12px;
+  border: 1px solid rgba(34, 197, 94, 0.24);
+  border-radius: var(--radius);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
 
 .ceo-outreach-section {
   padding: 12px;
@@ -148,7 +150,6 @@
   background: rgba(2, 6, 23, 0.28);
 }
 
-
 .ceo-outreach-section-header {
   display: flex;
   align-items: center;
@@ -156,8 +157,7 @@
   gap: 12px;
 }
 
-
-.ceo-outreach-section-header h5 {
+.ceo-outreach-section-header h4 {
   margin: 0;
   color: #a5b4fc;
   font-size: 10px;
@@ -165,11 +165,9 @@
   text-transform: uppercase;
 }
 
-
 .ceo-outreach-section-header button {
   padding: 5px 8px;
-  border: 1px solid
-    rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 8px;
   background: rgba(56, 189, 248, 0.08);
   color: #7dd3fc;
@@ -179,12 +177,10 @@
   cursor: pointer;
 }
 
-
 .ceo-outreach-section-header button:hover {
   border-color: var(--primary);
   background: rgba(56, 189, 248, 0.14);
 }
-
 
 .ceo-outreach-section p {
   margin: 10px 0 0;
@@ -195,19 +191,55 @@
   white-space: pre-wrap;
 }
 
+.ceo-outreach-lifecycle-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.ceo-outreach-mark-sent-button {
+  min-height: 38px;
+  padding: 8px 15px;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: var(--radius);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--accent);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.ceo-outreach-mark-sent-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.ceo-outreach-mark-sent-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
 
 @media (max-width: 700px) {
   .ceo-outreach-contact-grid {
     grid-template-columns: 1fr;
   }
 
-
   .ceo-outreach-package-summary {
     align-items: flex-start;
   }
 
-
   .ceo-outreach-package-controls {
     flex-direction: column;
+  }
+
+  .ceo-outreach-mark-sent-button {
+    width: 100%;
   }
 }

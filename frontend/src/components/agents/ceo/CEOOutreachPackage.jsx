@@ -5,6 +5,25 @@ import PropTypes from "prop-types";
 
 import "./CEOOutreachPackage.css";
 
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      dateStyle: "medium",
+      timeStyle: "short",
+    },
+  ).format(date);
+}
 
 function OutreachSection({
   label,
@@ -20,7 +39,7 @@ function OutreachSection({
   return (
     <section className="ceo-outreach-section">
       <div className="ceo-outreach-section-header">
-        <span>{label}</span>
+        <h4>{label}</h4>
 
         <button
           type="button"
@@ -39,7 +58,6 @@ function OutreachSection({
   );
 }
 
-
 OutreachSection.propTypes = {
   label: PropTypes.string.isRequired,
   value: PropTypes.string,
@@ -48,16 +66,16 @@ OutreachSection.propTypes = {
   field: PropTypes.string.isRequired,
 };
 
-
 export default function CEOOutreachPackage({
   outreach,
+  onMarkSent,
+  isUpdating = false,
 }) {
   const [isExpanded, setIsExpanded] =
     useState(false);
 
   const [copiedField, setCopiedField] =
     useState("");
-
 
   async function handleCopy(
     field,
@@ -81,19 +99,27 @@ export default function CEOOutreachPackage({
     }
   }
 
-
   const hasScore =
     outreach.score != null;
 
   const hasEstimatedValue =
     outreach.estimated_value != null;
 
+  const status =
+    outreach.status || "prepared";
+
+  const canMarkSent =
+    Boolean(
+      outreach.activity_uid &&
+      status === "prepared" &&
+      onMarkSent,
+    );
 
   return (
     <article
       className={`ceo-outreach-package ${
         isExpanded ? "expanded" : ""
-      }`}
+      } status-${status}`}
     >
       <button
         type="button"
@@ -121,9 +147,10 @@ export default function CEOOutreachPackage({
         </div>
 
         <div className="ceo-outreach-package-controls">
-          <span className="ceo-outreach-package-status">
-            {outreach.status ||
-              "prepared"}
+          <span
+            className={`ceo-outreach-package-status status-${status}`}
+          >
+            {status}
           </span>
 
           <span className="ceo-outreach-package-toggle">
@@ -137,6 +164,7 @@ export default function CEOOutreachPackage({
           <div className="ceo-outreach-contact-grid">
             <div>
               <span>Phone</span>
+
               <strong>
                 {outreach.phone ||
                   "Not available"}
@@ -178,6 +206,16 @@ export default function CEOOutreachPackage({
               </div>
             )}
           </div>
+
+          {status === "sent" &&
+            outreach.sent_at && (
+              <div className="ceo-outreach-sent-notice">
+                Marked as sent on{" "}
+                {formatDate(
+                  outreach.sent_at,
+                )}
+              </div>
+            )}
 
           <OutreachSection
             label="Email Subject"
@@ -224,12 +262,28 @@ export default function CEOOutreachPackage({
             onCopy={handleCopy}
             copiedField={copiedField}
           />
+
+          {canMarkSent && (
+            <div className="ceo-outreach-lifecycle-actions">
+              <button
+                type="button"
+                className="ceo-outreach-mark-sent-button"
+                disabled={isUpdating}
+                onClick={() =>
+                  onMarkSent(outreach)
+                }
+              >
+                {isUpdating
+                  ? "Updating..."
+                  : "Mark as Sent"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </article>
   );
 }
-
 
 CEOOutreachPackage.propTypes = {
   outreach: PropTypes.shape({
@@ -247,5 +301,8 @@ CEOOutreachPackage.propTypes = {
     whatsapp_message: PropTypes.string,
     cold_call_script: PropTypes.string,
     proposal_summary: PropTypes.string,
+    sent_at: PropTypes.string,
   }).isRequired,
+  onMarkSent: PropTypes.func,
+  isUpdating: PropTypes.bool,
 };

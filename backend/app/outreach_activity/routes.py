@@ -10,6 +10,7 @@ from app.outreach_activity.schemas import (
 from app.outreach_activity.service import (
     get_outreach_activity,
     list_outreach_activities,
+    mark_outreach_activity_sent,
 )
 
 
@@ -55,5 +56,28 @@ def get_activity(
     except LookupError as error:
         raise HTTPException(
             status_code=404,
+            detail=str(error),
+        ) from error
+
+
+@router.post(
+    "/{activity_uid}/mark-sent",
+    response_model=OutreachActivityResponse,
+)
+def mark_activity_sent(
+    activity_uid: str,
+):
+    try:
+        return mark_outreach_activity_sent(
+            activity_uid
+        )
+    except LookupError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+    except ValueError as error:
+        raise HTTPException(
+            status_code=409,
             detail=str(error),
         ) from error

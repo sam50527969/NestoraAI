@@ -23,6 +23,7 @@
   display: flex;
   flex: 0 0 auto;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -70,8 +71,7 @@
 .ceo-outreach-history-error {
   margin-top: 16px;
   padding: 12px 14px;
-  border: 1px solid
-    rgba(239, 68, 68, 0.28);
+  border: 1px solid rgba(239, 68, 68, 0.28);
   border-radius: var(--radius);
   background: rgba(239, 68, 68, 0.08);
   color: var(--danger);
@@ -85,6 +85,9 @@
 
   .ceo-outreach-history-actions {
     width: 100%;
-    justify-content: space-between;
+  }
+
+  .ceo-outreach-history-actions button {
+    flex: 1;
   }
 }
