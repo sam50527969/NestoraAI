@@ -4,6 +4,7 @@ export {
 
 
 export {
+  getDueFollowUps,
   getSavedLeads,
   saveLead,
   updateLead,
