@@ -6,6 +6,7 @@ import {
 
 import CEOApprovalQueue from "../components/agents/ceo/CEOApprovalQueue";
 import CEOChat from "../components/agents/ceo/CEOChat";
+import CEOOutreachHistory from "../components/agents/ceo/CEOOutreachHistory";
 import CEORecommendationActions from "../components/agents/ceo/CEORecommendationActions";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
@@ -32,7 +33,7 @@ function formatCurrency(value) {
 
 function formatDate(value) {
   if (!value) {
-    return "—";
+    return "-";
   }
 
   const date = new Date(value);
@@ -65,7 +66,7 @@ function truncateText(
 
   return `${text
     .slice(0, maxLength)
-    .trim()}…`;
+    .trim()}...`;
 }
 
 
@@ -293,6 +294,8 @@ export default function CEO() {
           <CEOApprovalQueue
             key={approvalQueueVersion}
           />
+
+          <CEOOutreachHistory />
 
           <section className="ceo-page-grid">
             <Card className="ceo-reports-card">

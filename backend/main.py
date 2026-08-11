@@ -6,7 +6,9 @@ from fastapi.middleware.cors import (
     CORSMiddleware,
 )
 
-from app.approvals import models as approval_models
+from app.approvals import (
+    models as approval_models,
+)
 from app.bootstrap import (
     create_application,
     register_routes,
@@ -25,17 +27,23 @@ from app.database.database import (
     Base,
     engine,
 )
+from app.outreach_activity import (
+    models as outreach_activity_models,
+)
 from app.tools.loader import load_tools
 
 
 logger = logging.getLogger(__name__)
 
-# Importing both model modules above registers
+
+# Importing these model modules registers
 # their SQLAlchemy tables before create_all runs.
 _ = (
     models,
     approval_models,
+    outreach_activity_models,
 )
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -79,10 +87,14 @@ async def lifespan(app: FastAPI):
     app.state.executive_registry = (
         executive_registry
     )
+
     app.state.executive_load_report = (
         report
     )
-    app.state.tool_registry = tool_registry
+
+    app.state.tool_registry = (
+        tool_registry
+    )
 
     yield
 
@@ -94,6 +106,7 @@ app = create_application(
     title=APP_NAME,
     lifespan=lifespan,
 )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -107,6 +120,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 register_routes(app)
 

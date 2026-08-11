@@ -62,6 +62,12 @@ export {
 
 
 export {
+  getOutreachActivities,
+  getOutreachActivity,
+} from "./outreachActivities";
+
+
+export {
   getConversation,
   getExecutiveInbox,
   getExecutiveOutbox,

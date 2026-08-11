@@ -14,6 +14,9 @@ from app.communication.routes import (
 from app.memory.routes import (
     router as memory_router,
 )
+from app.outreach_activity.routes import (
+    router as outreach_activity_router,
+)
 from app.realtime.router import (
     router as realtime_router,
 )
@@ -84,6 +87,9 @@ def register_routes(
     app.include_router(crm_router)
     app.include_router(dashboard_router)
     app.include_router(outreach_router)
+    app.include_router(
+        outreach_activity_router
+    )
     app.include_router(sales_ai_router)
     app.include_router(website_router)
     app.include_router(ai_agent_router)

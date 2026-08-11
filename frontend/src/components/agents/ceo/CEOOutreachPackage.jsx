@@ -20,7 +20,7 @@ function OutreachSection({
   return (
     <section className="ceo-outreach-section">
       <div className="ceo-outreach-section-header">
-        <h5>{label}</h5>
+        <span>{label}</span>
 
         <button
           type="button"
@@ -82,6 +82,13 @@ export default function CEOOutreachPackage({
   }
 
 
+  const hasScore =
+    outreach.score != null;
+
+  const hasEstimatedValue =
+    outreach.estimated_value != null;
+
+
   return (
     <article
       className={`ceo-outreach-package ${
@@ -104,20 +111,23 @@ export default function CEOOutreachPackage({
           </strong>
 
           <span>
-            {outreach.priority
-              || "Priority"}{" "}
-            · Score{" "}
-            {outreach.score ?? 0}
+            {outreach.priority ||
+              outreach.prepared_by ||
+              "CEO Agent"}
+
+            {hasScore &&
+              ` - Score ${outreach.score}`}
           </span>
         </div>
 
         <div className="ceo-outreach-package-controls">
           <span className="ceo-outreach-package-status">
-            Prepared
+            {outreach.status ||
+              "prepared"}
           </span>
 
           <span className="ceo-outreach-package-toggle">
-            {isExpanded ? "−" : "+"}
+            {isExpanded ? "-" : "+"}
           </span>
         </div>
       </button>
@@ -128,7 +138,8 @@ export default function CEOOutreachPackage({
             <div>
               <span>Phone</span>
               <strong>
-                {outreach.phone || "—"}
+                {outreach.phone ||
+                  "Not available"}
               </strong>
             </div>
 
@@ -144,20 +155,28 @@ export default function CEOOutreachPackage({
                   Open website
                 </a>
               ) : (
-                <strong>—</strong>
+                <strong>
+                  Not available
+                </strong>
               )}
             </div>
 
-            <div>
-              <span>Estimated Value</span>
-              <strong>
-                QAR{" "}
-                {Number(
-                  outreach.estimated_value
-                  || 0,
-                ).toLocaleString("en-US")}
-              </strong>
-            </div>
+            {hasEstimatedValue && (
+              <div>
+                <span>
+                  Estimated Value
+                </span>
+
+                <strong>
+                  QAR{" "}
+                  {Number(
+                    outreach.estimated_value,
+                  ).toLocaleString(
+                    "en-US",
+                  )}
+                </strong>
+              </div>
+            )}
           </div>
 
           <OutreachSection
@@ -214,10 +233,13 @@ export default function CEOOutreachPackage({
 
 CEOOutreachPackage.propTypes = {
   outreach: PropTypes.shape({
+    activity_uid: PropTypes.string,
     lead_name: PropTypes.string.isRequired,
     phone: PropTypes.string,
     website: PropTypes.string,
     priority: PropTypes.string,
+    prepared_by: PropTypes.string,
+    status: PropTypes.string,
     score: PropTypes.number,
     estimated_value: PropTypes.number,
     email_subject: PropTypes.string,

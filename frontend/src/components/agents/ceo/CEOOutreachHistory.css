@@ -1,0 +1,90 @@
+.ceo-outreach-history {
+  min-width: 0;
+}
+
+.ceo-outreach-history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.ceo-outreach-history-header h2 {
+  margin: 6px 0 8px;
+}
+
+.ceo-outreach-history-header p:last-child {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.ceo-outreach-history-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.ceo-outreach-history-actions button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ceo-outreach-history-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ceo-outreach-history-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ceo-outreach-history-list {
+  display: grid;
+  gap: 12px;
+  max-height: 720px;
+  margin-top: 22px;
+  padding-right: 6px;
+  overflow-y: auto;
+}
+
+.ceo-outreach-history-state {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.ceo-outreach-history-error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid
+    rgba(239, 68, 68, 0.28);
+  border-radius: var(--radius);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .ceo-outreach-history-header {
+    flex-direction: column;
+  }
+
+  .ceo-outreach-history-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

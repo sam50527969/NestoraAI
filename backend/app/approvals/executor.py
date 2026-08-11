@@ -10,6 +10,9 @@ from app.approvals.service import (
 )
 from app.database.database import SessionLocal
 from app.database.models import Lead
+from app.outreach_activity.service import (
+    save_prepared_outreach,
+)
 from app.schemas.outreach import (
     OutreachLead,
     OutreachRequest,
@@ -213,6 +216,7 @@ def get_unique_priority_leads(
 def build_crm_outreach_action(
     db,
     payload: dict[str, Any],
+    approval_uid: str,
 ) -> dict[str, Any]:
     requested_count = int(
         payload.get(
@@ -261,8 +265,18 @@ def build_crm_outreach_action(
             request
         )
 
+        activity = save_prepared_outreach(
+            db,
+            approval_uid=approval_uid,
+            lead=lead,
+            outreach=outreach,
+        )
+
         outreach_packages.append(
             {
+                "activity_uid": (
+                    activity.activity_uid
+                ),
                 "lead_id": lead.id,
                 "lead_name": lead_name,
                 "phone": lead.phone,
@@ -306,9 +320,9 @@ def build_crm_outreach_action(
             outreach_packages
         ),
         "message": (
-            "Prepared outreach assets for "
-            f"{prepared_count} unique "
-            "high-priority CRM "
+            "Prepared and saved outreach "
+            f"assets for {prepared_count} "
+            "unique high-priority CRM "
             f"{'lead' if prepared_count == 1 else 'leads'}."
         ),
     }
@@ -318,6 +332,7 @@ def execute_action(
     decision_type: str,
     db,
     payload: dict[str, Any],
+    approval_uid: str,
 ) -> dict[str, Any]:
     normalized_type = normalize_name(
         decision_type
@@ -343,6 +358,7 @@ def execute_action(
     return handler(
         db,
         payload,
+        approval_uid,
     )
 
 
@@ -383,6 +399,7 @@ def execute_approval(
             approval.decision_type,
             db,
             payload,
+            approval.approval_uid,
         )
 
         payload[
