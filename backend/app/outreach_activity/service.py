@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from app.database.database import SessionLocal
@@ -6,6 +6,14 @@ from app.database.models import Lead
 from app.outreach_activity.models import (
     OutreachActivity,
 )
+
+
+DEFAULT_FOLLOW_UP_DAYS = 2
+
+TERMINAL_LEAD_STATUSES = {
+    "won",
+    "lost",
+}
 
 
 def serialize_outreach_activity(
@@ -174,12 +182,31 @@ def synchronize_lead_contact(
         lead.status or "New"
     ).strip()
 
-    if current_status.lower() == "new":
+    normalized_status = (
+        current_status.lower()
+    )
+
+    if normalized_status == "new":
         lead.status = "Contacted"
 
     lead.last_contacted = (
         contacted_at.isoformat()
     )
+
+    if (
+        normalized_status
+        not in TERMINAL_LEAD_STATUSES
+    ):
+        follow_up_at = (
+            contacted_at
+            + timedelta(
+                days=DEFAULT_FOLLOW_UP_DAYS,
+            )
+        )
+
+        lead.next_follow_up = (
+            follow_up_at.isoformat()
+        )
 
 
 def mark_outreach_activity_sent(
