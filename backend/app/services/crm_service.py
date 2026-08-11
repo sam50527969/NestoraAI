@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -16,6 +16,12 @@ VALID_STATUSES = {
     "Qualified",
     "Won",
     "Lost",
+}
+
+ACTIVE_FOLLOW_UP_STATUSES = {
+    "New",
+    "Contacted",
+    "Qualified",
 }
 
 VALID_PRIORITIES = {
@@ -61,11 +67,48 @@ def has_useful_value(
     return True
 
 
+def parse_datetime(
+    value: Any,
+) -> datetime | None:
+    if not value:
+        return None
+
+    if isinstance(value, datetime):
+        parsed_value = value
+    else:
+        cleaned_value = (
+            str(value)
+            .strip()
+            .replace("Z", "+00:00")
+        )
+
+        if not cleaned_value:
+            return None
+
+        try:
+            parsed_value = datetime.fromisoformat(
+                cleaned_value
+            )
+        except ValueError:
+            return None
+
+    if parsed_value.tzinfo is not None:
+        parsed_value = (
+            parsed_value
+            .astimezone(timezone.utc)
+            .replace(tzinfo=None)
+        )
+
+    return parsed_value
+
+
 def find_lead_by_name(
     db: Session,
     name: str,
 ) -> Lead | None:
-    normalized_name = normalize_name(name)
+    normalized_name = normalize_name(
+        name
+    )
 
     if not normalized_name:
         return None
@@ -76,8 +119,9 @@ def find_lead_by_name(
         (
             lead
             for lead in leads
-            if normalize_name(lead.name)
-            == normalized_name
+            if normalize_name(
+                lead.name
+            ) == normalized_name
         ),
         None,
     )
@@ -101,7 +145,10 @@ def merge_lead_data(
     )
 
     for field in mergeable_fields:
-        incoming_value = values.get(field)
+        incoming_value = values.get(
+            field
+        )
+
         existing_value = getattr(
             lead,
             field,
@@ -121,6 +168,7 @@ def merge_lead_data(
                 field,
                 incoming_value,
             )
+
             changed = True
 
     return changed
@@ -131,6 +179,7 @@ def create_lead(
     lead_data: LeadCreate,
 ) -> Lead:
     values = lead_data.model_dump()
+
     name = str(
         values.get("name") or ""
     ).strip()
@@ -153,7 +202,9 @@ def create_lead(
 
         if changed:
             db.commit()
-            db.refresh(existing_lead)
+            db.refresh(
+                existing_lead
+            )
 
         return existing_lead
 
@@ -192,6 +243,60 @@ def get_lead(
         )
         .first()
     )
+
+
+def get_due_follow_ups(
+    db: Session,
+    limit: int = 100,
+) -> list[Lead]:
+    now = datetime.utcnow()
+
+    candidates = (
+        db.query(Lead)
+        .filter(
+            Lead.status.in_(
+                ACTIVE_FOLLOW_UP_STATUSES
+            ),
+            Lead.next_follow_up.is_not(
+                None
+            ),
+            Lead.next_follow_up != "",
+        )
+        .all()
+    )
+
+    due_leads = []
+
+    for lead in candidates:
+        follow_up_at = parse_datetime(
+            lead.next_follow_up
+        )
+
+        if (
+            follow_up_at is not None
+            and follow_up_at <= now
+        ):
+            due_leads.append(
+                (
+                    follow_up_at,
+                    lead,
+                )
+            )
+
+    due_leads.sort(
+        key=lambda item: (
+            item[0],
+            -(item[1].ai_score or 0),
+            item[1].id,
+        )
+    )
+
+    return [
+        lead
+        for _, lead in due_leads[
+            :limit
+        ]
+    ]
 
 
 def update_lead(
