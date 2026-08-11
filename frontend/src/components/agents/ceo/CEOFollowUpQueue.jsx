@@ -3,6 +3,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import PropTypes from "prop-types";
 
 import {
   getDueFollowUps,
@@ -36,7 +37,9 @@ function formatDate(value) {
 }
 
 
-export default function CEOFollowUpQueue() {
+export default function CEOFollowUpQueue({
+  onOutcomeRecorded = () => {},
+}) {
   const [followUps, setFollowUps] =
     useState([]);
 
@@ -104,6 +107,8 @@ export default function CEOFollowUpQueue() {
     );
 
     setActiveLeadId(null);
+
+    onOutcomeRecorded(activity);
   }
 
 
@@ -187,6 +192,7 @@ export default function CEOFollowUpQueue() {
                 <div className="ceo-follow-up-details">
                   <div>
                     <span>Status</span>
+
                     <strong>
                       {lead.status}
                     </strong>
@@ -194,6 +200,7 @@ export default function CEOFollowUpQueue() {
 
                   <div>
                     <span>Due</span>
+
                     <strong>
                       {formatDate(
                         lead.next_follow_up,
@@ -254,3 +261,8 @@ export default function CEOFollowUpQueue() {
     </Card>
   );
 }
+
+
+CEOFollowUpQueue.propTypes = {
+  onOutcomeRecorded: PropTypes.func,
+};
