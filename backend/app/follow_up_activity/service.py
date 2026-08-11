@@ -180,3 +180,99 @@ def list_follow_up_activities(
 
     finally:
         db.close()
+
+def get_follow_up_metrics() -> dict[str, Any]:
+    db = SessionLocal()
+
+    try:
+        activities = (
+            db.query(FollowUpActivity)
+            .order_by(
+                FollowUpActivity.created_at.desc()
+            )
+            .all()
+        )
+
+        outcome_counts = {
+            "contacted": 0,
+            "qualified": 0,
+            "won": 0,
+            "lost": 0,
+            "no_response": 0,
+            "rescheduled": 0,
+        }
+
+        unique_lead_ids = set()
+
+        for activity in activities:
+            outcome = str(
+                activity.outcome or ""
+            ).strip().lower()
+
+            if outcome in outcome_counts:
+                outcome_counts[outcome] += 1
+
+            unique_lead_ids.add(
+                activity.lead_id
+            )
+
+        actionable_count = sum(
+            outcome_counts[outcome]
+            for outcome in (
+                "contacted",
+                "qualified",
+                "won",
+                "lost",
+                "no_response",
+            )
+        )
+
+        response_count = sum(
+            outcome_counts[outcome]
+            for outcome in (
+                "contacted",
+                "qualified",
+                "won",
+                "lost",
+            )
+        )
+
+        response_rate = (
+            round(
+                response_count
+                / actionable_count
+                * 100
+            )
+            if actionable_count
+            else 0
+        )
+
+        win_rate = (
+            round(
+                outcome_counts["won"]
+                / actionable_count
+                * 100
+            )
+            if actionable_count
+            else 0
+        )
+
+        return {
+            "total_activities": len(
+                activities
+            ),
+            "unique_leads": len(
+                unique_lead_ids
+            ),
+            "response_count": (
+                response_count
+            ),
+            "response_rate": (
+                response_rate
+            ),
+            "win_rate": win_rate,
+            "outcomes": outcome_counts,
+        }
+
+    finally:
+        db.close()

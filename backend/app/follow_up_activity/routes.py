@@ -9,6 +9,7 @@ from app.follow_up_activity.schemas import (
     FollowUpOutcomeCreate,
 )
 from app.follow_up_activity.service import (
+    get_follow_up_metrics,
     list_follow_up_activities,
     record_follow_up_outcome,
 )
@@ -18,6 +19,11 @@ router = APIRouter(
     prefix="/follow-up-activities",
     tags=["CRM Follow-up Activities"],
 )
+
+
+@router.get("/metrics")
+def read_follow_up_metrics():
+    return get_follow_up_metrics()
 
 
 @router.get(
