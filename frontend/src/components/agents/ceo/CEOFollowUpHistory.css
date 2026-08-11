@@ -22,8 +22,50 @@
 .ceo-follow-up-history-actions {
   display: flex;
   flex: 0 0 auto;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
+}
+
+.ceo-follow-up-history-actions label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ceo-follow-up-history-actions label > span {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ceo-follow-up-history-actions select {
+  min-height: 36px;
+  padding: 7px 32px 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ceo-follow-up-history-actions select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.ceo-follow-up-history-actions select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ceo-follow-up-history-actions select option {
+  background: #0f172a;
+  color: var(--text-primary);
 }
 
 .ceo-follow-up-history-actions button {
@@ -182,10 +224,24 @@
 
   .ceo-follow-up-history-actions {
     width: 100%;
-    justify-content: space-between;
+    align-items: stretch;
+  }
+
+  .ceo-follow-up-history-actions label {
+    flex: 1;
+  }
+
+  .ceo-follow-up-history-actions select {
+    width: 100%;
   }
 
   .ceo-follow-up-history-meta {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ceo-follow-up-history-actions {
+    flex-direction: column;
   }
 }

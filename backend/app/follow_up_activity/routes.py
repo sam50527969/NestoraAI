@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import (
     APIRouter,
     HTTPException,
@@ -22,8 +24,14 @@ router = APIRouter(
 
 
 @router.get("/metrics")
-def read_follow_up_metrics():
-    return get_follow_up_metrics()
+def read_follow_up_metrics(
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+):
+    return get_follow_up_metrics(
+        start_date=start_date,
+        end_date=end_date,
+    )
 
 
 @router.get(
@@ -34,6 +42,8 @@ def read_follow_up_metrics():
 )
 def list_activity_history(
     lead_id: int | None = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     limit: int = Query(
         default=100,
         ge=1,
@@ -42,6 +52,8 @@ def list_activity_history(
 ):
     return list_follow_up_activities(
         lead_id=lead_id,
+        start_date=start_date,
+        end_date=end_date,
         limit=limit,
     )
 

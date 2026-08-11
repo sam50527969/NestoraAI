@@ -35,11 +35,55 @@ function formatDate(value) {
 }
 
 
+function formatDatePart(date) {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function getDateFilters(period) {
+  if (period === "all") {
+    return {};
+  }
+
+  const endDate = new Date();
+  const startDate = new Date();
+
+  if (period === "7_days") {
+    startDate.setDate(
+      startDate.getDate() - 6,
+    );
+  } else if (period === "30_days") {
+    startDate.setDate(
+      startDate.getDate() - 29,
+    );
+  }
+
+  return {
+    startDate:
+      `${formatDatePart(startDate)}T00:00:00`,
+    endDate:
+      `${formatDatePart(endDate)}T23:59:59`,
+  };
+}
+
+
 function formatOutcome(value) {
   return String(value || "")
     .replaceAll("_", " ")
-    .replace(/\b\w/g, (character) =>
-      character.toUpperCase(),
+    .replace(
+      /\b\w/g,
+      (character) =>
+        character.toUpperCase(),
     );
 }
 
@@ -64,6 +108,9 @@ export default function CEOFollowUpHistory() {
   const [activities, setActivities] =
     useState([]);
 
+  const [period, setPeriod] =
+    useState("all");
+
   const [isLoading, setIsLoading] =
     useState(true);
 
@@ -81,6 +128,7 @@ export default function CEOFollowUpHistory() {
       try {
         const response =
           await getFollowUpActivities({
+            ...getDateFilters(period),
             limit: 100,
           });
 
@@ -103,7 +151,7 @@ export default function CEOFollowUpHistory() {
         setIsLoading(false);
       }
     },
-    [],
+    [period],
   );
 
 
@@ -130,6 +178,36 @@ export default function CEOFollowUpHistory() {
         </div>
 
         <div className="ceo-follow-up-history-actions">
+          <label>
+            <span>Period</span>
+
+            <select
+              value={period}
+              onChange={(event) =>
+                setPeriod(
+                  event.target.value,
+                )
+              }
+              disabled={isLoading}
+            >
+              <option value="all">
+                All Time
+              </option>
+
+              <option value="today">
+                Today
+              </option>
+
+              <option value="7_days">
+                Last 7 Days
+              </option>
+
+              <option value="30_days">
+                Last 30 Days
+              </option>
+            </select>
+          </label>
+
           <Badge variant="primary">
             {activities.length}
           </Badge>
@@ -189,7 +267,10 @@ export default function CEOFollowUpHistory() {
 
               <div className="ceo-follow-up-history-meta">
                 <div>
-                  <span>Previous Stage</span>
+                  <span>
+                    Previous Stage
+                  </span>
+
                   <strong>
                     {activity.previous_status ||
                       "Not available"}
@@ -198,6 +279,7 @@ export default function CEOFollowUpHistory() {
 
                 <div>
                   <span>New Stage</span>
+
                   <strong>
                     {activity.new_status ||
                       "Not available"}
@@ -205,7 +287,10 @@ export default function CEOFollowUpHistory() {
                 </div>
 
                 <div>
-                  <span>Next Follow-up</span>
+                  <span>
+                    Next Follow-up
+                  </span>
+
                   <strong>
                     {formatDate(
                       activity.next_follow_up,
@@ -217,7 +302,10 @@ export default function CEOFollowUpHistory() {
               {activity.notes && (
                 <div className="ceo-follow-up-history-notes">
                   <span>Notes</span>
-                  <p>{activity.notes}</p>
+
+                  <p>
+                    {activity.notes}
+                  </p>
                 </div>
               )}
 
@@ -231,8 +319,8 @@ export default function CEOFollowUpHistory() {
         </div>
       ) : (
         <div className="ceo-follow-up-history-state success">
-          No follow-up outcomes have been
-          recorded yet.
+          No follow-up outcomes were
+          recorded during this period.
         </div>
       )}
     </Card>

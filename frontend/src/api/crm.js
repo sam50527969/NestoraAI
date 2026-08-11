@@ -1,6 +1,29 @@
 import { request } from "./client";
 
 
+function addDateFilters(
+  searchParams,
+  {
+    startDate,
+    endDate,
+  } = {},
+) {
+  if (startDate) {
+    searchParams.set(
+      "start_date",
+      startDate,
+    );
+  }
+
+  if (endDate) {
+    searchParams.set(
+      "end_date",
+      endDate,
+    );
+  }
+}
+
+
 export function saveLead(lead) {
   return request("/crm/leads", {
     method: "POST",
@@ -49,6 +72,8 @@ export function updateLead(
 
 export function getFollowUpActivities({
   leadId,
+  startDate,
+  endDate,
   limit = 100,
 } = {}) {
   const searchParams =
@@ -60,6 +85,14 @@ export function getFollowUpActivities({
       String(leadId),
     );
   }
+
+  addDateFilters(
+    searchParams,
+    {
+      startDate,
+      endDate,
+    },
+  );
 
   searchParams.set(
     "limit",
@@ -86,8 +119,27 @@ export function recordFollowUpOutcome(
 }
 
 
-export function getFollowUpMetrics() {
+export function getFollowUpMetrics({
+  startDate,
+  endDate,
+} = {}) {
+  const searchParams =
+    new URLSearchParams();
+
+  addDateFilters(
+    searchParams,
+    {
+      startDate,
+      endDate,
+    },
+  );
+
+  const query =
+    searchParams.toString();
+
   return request(
-    "/follow-up-activities/metrics",
+    query
+      ? `/follow-up-activities/metrics?${query}`
+      : "/follow-up-activities/metrics",
   );
 }

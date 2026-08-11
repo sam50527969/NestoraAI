@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Any
 
-from app.database.database import SessionLocal
+from app.database.database import (
+    SessionLocal,
+)
 from app.database.models import Lead
 from app.follow_up_activity.models import (
     FollowUpActivity,
@@ -24,7 +26,9 @@ def serialize_follow_up_activity(
     activity: FollowUpActivity,
 ) -> dict[str, Any]:
     return {
-        "activity_uid": activity.activity_uid,
+        "activity_uid": (
+            activity.activity_uid
+        ),
         "lead_id": activity.lead_id,
         "lead_name": activity.lead_name,
         "outcome": activity.outcome,
@@ -32,7 +36,9 @@ def serialize_follow_up_activity(
         "previous_status": (
             activity.previous_status
         ),
-        "new_status": activity.new_status,
+        "new_status": (
+            activity.new_status
+        ),
         "previous_follow_up": (
             activity.previous_follow_up
         ),
@@ -42,8 +48,31 @@ def serialize_follow_up_activity(
         "completed_by": (
             activity.completed_by
         ),
-        "created_at": activity.created_at,
+        "created_at": (
+            activity.created_at
+        ),
     }
+
+
+def apply_activity_date_filters(
+    query,
+    *,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+):
+    if start_date is not None:
+        query = query.filter(
+            FollowUpActivity.created_at
+            >= start_date
+        )
+
+    if end_date is not None:
+        query = query.filter(
+            FollowUpActivity.created_at
+            <= end_date
+        )
+
+    return query
 
 
 def record_follow_up_outcome(
@@ -55,7 +84,9 @@ def record_follow_up_outcome(
     try:
         lead = (
             db.query(Lead)
-            .filter(Lead.id == lead_id)
+            .filter(
+                Lead.id == lead_id
+            )
             .first()
         )
 
@@ -64,31 +95,39 @@ def record_follow_up_outcome(
                 "CRM lead was not found."
             )
 
-        outcome = data.outcome.strip().lower()
+        outcome = (
+            data.outcome
+            .strip()
+            .lower()
+        )
 
         if (
             outcome == "rescheduled"
             and not data.next_follow_up
         ):
             raise ValueError(
-                "A new follow-up date is required "
-                "when rescheduling."
+                "A new follow-up date is "
+                "required when rescheduling."
             )
 
         previous_status = lead.status
+
         previous_follow_up = (
             lead.next_follow_up
         )
 
-        new_status = OUTCOME_STATUS_MAP.get(
-            outcome,
-            lead.status,
+        new_status = (
+            OUTCOME_STATUS_MAP.get(
+                outcome,
+                lead.status,
+            )
         )
 
         now = datetime.utcnow()
 
         if outcome != "rescheduled":
             lead.status = new_status
+
             lead.last_contacted = (
                 now.isoformat()
             )
@@ -107,14 +146,18 @@ def record_follow_up_outcome(
 
         activity = FollowUpActivity(
             lead_id=lead.id,
-            lead_name=str(lead.name).strip(),
+            lead_name=str(
+                lead.name
+            ).strip(),
             outcome=outcome,
             notes=(
                 data.notes.strip()
                 if data.notes
                 else None
             ),
-            previous_status=previous_status,
+            previous_status=(
+                previous_status
+            ),
             new_status=lead.status,
             previous_follow_up=(
                 previous_follow_up
@@ -132,8 +175,10 @@ def record_follow_up_outcome(
         db.commit()
         db.refresh(activity)
 
-        return serialize_follow_up_activity(
-            activity
+        return (
+            serialize_follow_up_activity(
+                activity
+            )
         )
 
     except Exception:
@@ -147,6 +192,8 @@ def record_follow_up_outcome(
 def list_follow_up_activities(
     *,
     lead_id: int | None = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
     db = SessionLocal()
@@ -161,6 +208,12 @@ def list_follow_up_activities(
                 FollowUpActivity.lead_id
                 == lead_id
             )
+
+        query = apply_activity_date_filters(
+            query,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
         activities = (
             query.order_by(
@@ -181,14 +234,29 @@ def list_follow_up_activities(
     finally:
         db.close()
 
-def get_follow_up_metrics() -> dict[str, Any]:
+
+def get_follow_up_metrics(
+    *,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
+        query = db.query(
+            FollowUpActivity
+        )
+
+        query = apply_activity_date_filters(
+            query,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
         activities = (
-            db.query(FollowUpActivity)
-            .order_by(
-                FollowUpActivity.created_at.desc()
+            query.order_by(
+                FollowUpActivity
+                .created_at.desc()
             )
             .all()
         )
@@ -210,7 +278,9 @@ def get_follow_up_metrics() -> dict[str, Any]:
             ).strip().lower()
 
             if outcome in outcome_counts:
-                outcome_counts[outcome] += 1
+                outcome_counts[
+                    outcome
+                ] += 1
 
             unique_lead_ids.add(
                 activity.lead_id

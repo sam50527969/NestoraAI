@@ -19,7 +19,56 @@
   line-height: 1.6;
 }
 
-.ceo-follow-up-metrics-header button {
+.ceo-follow-up-metrics-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.ceo-follow-up-metrics-actions label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ceo-follow-up-metrics-actions label > span {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ceo-follow-up-metrics-actions select {
+  min-height: 36px;
+  padding: 7px 32px 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ceo-follow-up-metrics-actions select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.ceo-follow-up-metrics-actions select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ceo-follow-up-metrics-actions select option {
+  background: #0f172a;
+  color: var(--text-primary);
+}
+
+.ceo-follow-up-metrics-actions button {
   min-height: 36px;
   padding: 7px 12px;
   border: 1px solid var(--border);
@@ -32,12 +81,12 @@
   cursor: pointer;
 }
 
-.ceo-follow-up-metrics-header button:hover {
+.ceo-follow-up-metrics-actions button:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.ceo-follow-up-metrics-header button:disabled {
+.ceo-follow-up-metrics-actions button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -120,12 +169,31 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .ceo-follow-up-metrics-header {
     flex-direction: column;
   }
 
+  .ceo-follow-up-metrics-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .ceo-follow-up-metrics-actions label {
+    flex: 1;
+  }
+
+  .ceo-follow-up-metrics-actions select {
+    width: 100%;
+  }
+
   .ceo-follow-up-metrics-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .ceo-follow-up-metrics-actions {
+    flex-direction: column;
   }
 }
