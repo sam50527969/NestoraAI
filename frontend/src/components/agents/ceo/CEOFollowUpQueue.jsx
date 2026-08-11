@@ -6,11 +6,11 @@ import {
 
 import {
   getDueFollowUps,
-  updateLead,
 } from "../../../api";
 
 import Badge from "../../ui/Badge";
 import Card from "../../ui/Card";
+import CEOFollowUpOutcomeForm from "./CEOFollowUpOutcomeForm";
 
 import "./CEOFollowUpQueue.css";
 
@@ -36,31 +36,6 @@ function formatDate(value) {
 }
 
 
-function getDefaultRescheduleValue() {
-  const date = new Date();
-
-  date.setDate(
-    date.getDate() + 1,
-  );
-
-  date.setHours(
-    9,
-    0,
-    0,
-    0,
-  );
-
-  const offset =
-    date.getTimezoneOffset() * 60000;
-
-  return new Date(
-    date.getTime() - offset,
-  )
-    .toISOString()
-    .slice(0, 16);
-}
-
-
 export default function CEOFollowUpQueue() {
   const [followUps, setFollowUps] =
     useState([]);
@@ -72,11 +47,6 @@ export default function CEOFollowUpQueue() {
     activeLeadId,
     setActiveLeadId,
   ] = useState(null);
-
-  const [
-    rescheduleValues,
-    setRescheduleValues,
-  ] = useState({});
 
   const [
     errorMessage,
@@ -123,108 +93,17 @@ export default function CEOFollowUpQueue() {
   }, [loadFollowUps]);
 
 
-  function removeLead(
-    leadId,
+  function handleOutcomeRecorded(
+    activity,
   ) {
     setFollowUps((current) =>
       current.filter(
         (lead) =>
-          lead.id !== leadId,
+          lead.id !== activity.lead_id,
       ),
     );
-  }
 
-
-  async function handleComplete(
-    lead,
-  ) {
-    setActiveLeadId(lead.id);
-    setErrorMessage("");
-
-    try {
-      await updateLead(
-        lead.id,
-        {
-          next_follow_up: null,
-        },
-      );
-
-      removeLead(lead.id);
-    } catch (error) {
-      console.error(
-        "Unable to complete follow-up:",
-        error,
-      );
-
-      setErrorMessage(
-        error?.message ||
-          "Unable to complete the follow-up.",
-      );
-    } finally {
-      setActiveLeadId(null);
-    }
-  }
-
-
-  async function handleReschedule(
-    lead,
-  ) {
-    const selectedValue =
-      rescheduleValues[lead.id] ||
-      getDefaultRescheduleValue();
-
-    const selectedDate =
-      new Date(selectedValue);
-
-    if (
-      Number.isNaN(
-        selectedDate.getTime(),
-      )
-    ) {
-      setErrorMessage(
-        "Choose a valid follow-up date.",
-      );
-
-      return;
-    }
-
-    if (
-      selectedDate.getTime() <=
-      Date.now()
-    ) {
-      setErrorMessage(
-        "The new follow-up date must be in the future.",
-      );
-
-      return;
-    }
-
-    setActiveLeadId(lead.id);
-    setErrorMessage("");
-
-    try {
-      await updateLead(
-        lead.id,
-        {
-          next_follow_up:
-            selectedDate.toISOString(),
-        },
-      );
-
-      removeLead(lead.id);
-    } catch (error) {
-      console.error(
-        "Unable to reschedule follow-up:",
-        error,
-      );
-
-      setErrorMessage(
-        error?.message ||
-          "Unable to reschedule the follow-up.",
-      );
-    } finally {
-      setActiveLeadId(null);
-    }
+    setActiveLeadId(null);
   }
 
 
@@ -239,9 +118,9 @@ export default function CEOFollowUpQueue() {
           <h2>Due Follow-up Queue</h2>
 
           <p>
-            Complete overdue CRM tasks or
-            reschedule them for a future
-            date.
+            Record each follow-up result,
+            update the CRM stage, or
+            schedule the next action.
           </p>
         </div>
 
@@ -282,12 +161,8 @@ export default function CEOFollowUpQueue() {
       ) : followUps.length ? (
         <div className="ceo-follow-up-list">
           {followUps.map((lead) => {
-            const isUpdating =
+            const isOutcomeOpen =
               activeLeadId === lead.id;
-
-            const rescheduleValue =
-              rescheduleValues[lead.id] ||
-              getDefaultRescheduleValue();
 
             return (
               <article
@@ -327,7 +202,10 @@ export default function CEOFollowUpQueue() {
                   </div>
 
                   <div>
-                    <span>Last Contacted</span>
+                    <span>
+                      Last Contacted
+                    </span>
+
                     <strong>
                       {formatDate(
                         lead.last_contacted,
@@ -336,51 +214,33 @@ export default function CEOFollowUpQueue() {
                   </div>
                 </div>
 
-                <div className="ceo-follow-up-actions">
-                  <button
-                    type="button"
-                    className="ceo-follow-up-complete"
-                    disabled={isUpdating}
-                    onClick={() =>
-                      handleComplete(lead)
-                    }
-                  >
-                    {isUpdating
-                      ? "Updating..."
-                      : "Complete"}
-                  </button>
-
-                  <div className="ceo-follow-up-reschedule">
-                    <input
-                      type="datetime-local"
-                      value={
-                        rescheduleValue
-                      }
-                      disabled={isUpdating}
-                      onChange={(event) =>
-                        setRescheduleValues(
-                          (current) => ({
-                            ...current,
-                            [lead.id]:
-                              event.target.value,
-                          }),
-                        )
-                      }
-                    />
-
+                {!isOutcomeOpen && (
+                  <div className="ceo-follow-up-actions">
                     <button
                       type="button"
-                      disabled={isUpdating}
+                      className="ceo-follow-up-complete"
                       onClick={() =>
-                        handleReschedule(
-                          lead,
+                        setActiveLeadId(
+                          lead.id,
                         )
                       }
                     >
-                      Reschedule
+                      Record Outcome
                     </button>
                   </div>
-                </div>
+                )}
+
+                {isOutcomeOpen && (
+                  <CEOFollowUpOutcomeForm
+                    lead={lead}
+                    onRecorded={
+                      handleOutcomeRecorded
+                    }
+                    onCancel={() =>
+                      setActiveLeadId(null)
+                    }
+                  />
+                )}
               </article>
             );
           })}

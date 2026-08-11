@@ -5,7 +5,9 @@ export {
 
 export {
   getDueFollowUps,
+  getFollowUpActivities,
   getSavedLeads,
+  recordFollowUpOutcome,
   saveLead,
   updateLead,
 } from "./crm";

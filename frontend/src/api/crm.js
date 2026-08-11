@@ -45,3 +45,42 @@ export function updateLead(
     },
   );
 }
+
+
+export function getFollowUpActivities({
+  leadId,
+  limit = 100,
+} = {}) {
+  const searchParams =
+    new URLSearchParams();
+
+  if (leadId != null) {
+    searchParams.set(
+      "lead_id",
+      String(leadId),
+    );
+  }
+
+  searchParams.set(
+    "limit",
+    String(limit),
+  );
+
+  return request(
+    `/follow-up-activities?${searchParams.toString()}`,
+  );
+}
+
+
+export function recordFollowUpOutcome(
+  leadId,
+  data,
+) {
+  return request(
+    `/follow-up-activities/leads/${leadId}/outcome`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    },
+  );
+}
