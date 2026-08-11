@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 
 from app.database.database import SessionLocal
+from app.database.models import Lead
 from app.outreach_activity.models import (
     OutreachActivity,
 )
@@ -152,6 +153,35 @@ def get_outreach_activity(
         db.close()
 
 
+def synchronize_lead_contact(
+    db,
+    *,
+    activity: OutreachActivity,
+    contacted_at: datetime,
+) -> None:
+    lead = (
+        db.query(Lead)
+        .filter(
+            Lead.id == activity.lead_id
+        )
+        .first()
+    )
+
+    if lead is None:
+        return
+
+    current_status = str(
+        lead.status or "New"
+    ).strip()
+
+    if current_status.lower() == "new":
+        lead.status = "Contacted"
+
+    lead.last_contacted = (
+        contacted_at.isoformat()
+    )
+
+
 def mark_outreach_activity_sent(
     activity_uid: str,
 ) -> dict[str, Any]:
@@ -183,8 +213,16 @@ def mark_outreach_activity_sent(
                 "marked as sent."
             )
 
+        sent_at = datetime.utcnow()
+
         activity.status = "sent"
-        activity.sent_at = datetime.utcnow()
+        activity.sent_at = sent_at
+
+        synchronize_lead_contact(
+            db,
+            activity=activity,
+            contacted_at=sent_at,
+        )
 
         db.commit()
         db.refresh(activity)
