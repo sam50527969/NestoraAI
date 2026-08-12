@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import {
+  downloadFollowUpHistory,
   getFollowUpActivities,
 } from "../../../api";
 
@@ -211,6 +212,17 @@ export default function CEOFollowUpHistory() {
           <Badge variant="primary">
             {activities.length}
           </Badge>
+
+          <button
+            type="button"
+            onClick={() =>
+              downloadFollowUpHistory(
+                getDateFilters(period),
+              )
+            }
+          >
+            Export CSV
+          </button>
 
           <button
             type="button"

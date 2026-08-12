@@ -2,8 +2,8 @@ export {
   getDashboardSummary,
 } from "./dashboard";
 
-
 export {
+  downloadFollowUpHistory,
   getDueFollowUps,
   getFollowUpActivities,
   getFollowUpMetrics,
@@ -13,48 +13,39 @@ export {
   updateLead,
 } from "./crm";
 
-
 export {
   getSampleLeads,
 } from "./leads";
-
 
 export {
   searchBusinesses,
 } from "./search";
 
-
 export {
   generateOutreach,
 } from "./outreach";
-
 
 export {
   analyzeLead,
 } from "./salesAi";
 
-
 export {
   analyzeWebsite,
 } from "./website";
-
 
 export {
   startMission,
   getMissionStatus,
 } from "./mission";
 
-
 export {
   askCEO,
   createObjectiveMission,
 } from "./ceo";
 
-
 export {
   getCEOBrief,
 } from "./ceoAdvisor";
-
 
 export {
   approveCEOApproval,
@@ -64,12 +55,10 @@ export {
   rejectCEOApproval,
 } from "./ceoApprovals";
 
-
 export {
   getOutreachActivities,
   getOutreachActivity,
 } from "./outreachActivities";
-
 
 export {
   getConversation,

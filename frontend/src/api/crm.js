@@ -1,4 +1,7 @@
-import { request } from "./client";
+import {
+  API_BASE_URL,
+  request,
+} from "./client";
 
 
 function addDateFilters(
@@ -86,13 +89,10 @@ export function getFollowUpActivities({
     );
   }
 
-  addDateFilters(
-    searchParams,
-    {
-      startDate,
-      endDate,
-    },
-  );
+  addDateFilters(searchParams, {
+    startDate,
+    endDate,
+  });
 
   searchParams.set(
     "limit",
@@ -126,13 +126,10 @@ export function getFollowUpMetrics({
   const searchParams =
     new URLSearchParams();
 
-  addDateFilters(
-    searchParams,
-    {
-      startDate,
-      endDate,
-    },
-  );
+  addDateFilters(searchParams, {
+    startDate,
+    endDate,
+  });
 
   const query =
     searchParams.toString();
@@ -142,4 +139,37 @@ export function getFollowUpMetrics({
       ? `/follow-up-activities/metrics?${query}`
       : "/follow-up-activities/metrics",
   );
+}
+
+
+export function downloadFollowUpHistory({
+  startDate,
+  endDate,
+} = {}) {
+  const searchParams =
+    new URLSearchParams();
+
+  addDateFilters(searchParams, {
+    startDate,
+    endDate,
+  });
+
+  searchParams.set(
+    "limit",
+    "500",
+  );
+
+  const url =
+    `${API_BASE_URL}/follow-up-activities/export?${searchParams.toString()}`;
+
+  const link =
+    document.createElement("a");
+
+  link.href = url;
+  link.download =
+    "nestora-follow-up-history.csv";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
