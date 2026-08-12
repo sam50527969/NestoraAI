@@ -18,8 +18,10 @@ from app.services.crm_service import (
     get_due_follow_ups,
     get_lead,
     get_leads,
+    get_pipeline_summary,
     update_lead,
 )
+
 
 router = APIRouter(
     prefix="/crm",
@@ -74,6 +76,13 @@ def list_due_follow_ups(
         db,
         limit=limit,
     )
+
+
+@router.get("/pipeline/summary")
+def read_pipeline_summary(
+    db: Session = Depends(get_db),
+):
+    return get_pipeline_summary(db)
 
 
 @router.get(

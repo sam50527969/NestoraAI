@@ -10,6 +10,7 @@ from app.schemas.crm import (
     LeadUpdate,
 )
 
+
 VALID_STATUSES = {
     "New",
     "Contacted",
@@ -86,8 +87,10 @@ def parse_datetime(
             return None
 
         try:
-            parsed_value = datetime.fromisoformat(
-                cleaned_value
+            parsed_value = (
+                datetime.fromisoformat(
+                    cleaned_value
+                )
             )
         except ValueError:
             return None
@@ -297,6 +300,105 @@ def get_due_follow_ups(
             :limit
         ]
     ]
+
+
+def get_pipeline_summary(
+    db: Session,
+) -> dict[str, Any]:
+    leads = db.query(Lead).all()
+
+    status_counts = {
+        status_name: 0
+        for status_name in VALID_STATUSES
+    }
+
+    total_estimated_value = 0
+    active_pipeline_value = 0
+    weighted_pipeline_value = 0
+    won_value = 0
+    lost_value = 0
+
+    active_statuses = {
+        "New",
+        "Contacted",
+        "Qualified",
+    }
+
+    for lead in leads:
+        status_name = str(
+            lead.status or "New"
+        ).strip().title()
+
+        if status_name not in status_counts:
+            status_name = "New"
+
+        status_counts[status_name] += 1
+
+        estimated_value = max(
+            int(
+                lead.estimated_value
+                or 0
+            ),
+            0,
+        )
+
+        closing_probability = max(
+            0,
+            min(
+                int(
+                    lead.closing_probability
+                    or 0
+                ),
+                100,
+            ),
+        )
+
+        total_estimated_value += (
+            estimated_value
+        )
+
+        if status_name in active_statuses:
+            active_pipeline_value += (
+                estimated_value
+            )
+
+            weighted_pipeline_value += round(
+                estimated_value
+                * closing_probability
+                / 100
+            )
+
+        if status_name == "Won":
+            won_value += estimated_value
+
+        if status_name == "Lost":
+            lost_value += estimated_value
+
+    return {
+        "total_leads": len(leads),
+        "stages": {
+            "new": status_counts["New"],
+            "contacted": (
+                status_counts["Contacted"]
+            ),
+            "qualified": (
+                status_counts["Qualified"]
+            ),
+            "won": status_counts["Won"],
+            "lost": status_counts["Lost"],
+        },
+        "total_estimated_value": (
+            total_estimated_value
+        ),
+        "active_pipeline_value": (
+            active_pipeline_value
+        ),
+        "weighted_pipeline_value": (
+            weighted_pipeline_value
+        ),
+        "won_value": won_value,
+        "lost_value": lost_value,
+    }
 
 
 def update_lead(
