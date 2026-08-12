@@ -13,13 +13,44 @@ import Card from "../../ui/Card";
 
 import "./CEOFollowUpMetrics.css";
 
+const OUTCOME_ITEMS = [
+  {
+    key: "contacted",
+    label: "Contacted",
+    variant: "primary",
+  },
+  {
+    key: "qualified",
+    label: "Qualified",
+    variant: "success",
+  },
+  {
+    key: "won",
+    label: "Won",
+    variant: "success",
+  },
+  {
+    key: "lost",
+    label: "Lost",
+    variant: "danger",
+  },
+  {
+    key: "no_response",
+    label: "No Response",
+    variant: "primary",
+  },
+  {
+    key: "rescheduled",
+    label: "Rescheduled",
+    variant: "primary",
+  },
+];
 
 function formatNumber(value) {
   return new Intl.NumberFormat(
     "en-US",
   ).format(Number(value) || 0);
 }
-
 
 function formatDatePart(date) {
   const year = date.getFullYear();
@@ -34,7 +65,6 @@ function formatDatePart(date) {
 
   return `${year}-${month}-${day}`;
 }
-
 
 function getDateFilters(period) {
   if (period === "all") {
@@ -62,7 +92,6 @@ function getDateFilters(period) {
   };
 }
 
-
 export default function CEOFollowUpMetrics() {
   const [metrics, setMetrics] =
     useState(null);
@@ -77,7 +106,6 @@ export default function CEOFollowUpMetrics() {
     errorMessage,
     setErrorMessage,
   ] = useState("");
-
 
   const loadMetrics = useCallback(
     async () => {
@@ -108,15 +136,20 @@ export default function CEOFollowUpMetrics() {
     [period],
   );
 
-
   useEffect(() => {
     loadMetrics();
   }, [loadMetrics]);
 
-
   const outcomes =
     metrics?.outcomes || {};
 
+  const highestOutcomeCount = Math.max(
+    1,
+    ...OUTCOME_ITEMS.map(
+      ({ key }) =>
+        Number(outcomes[key]) || 0,
+    ),
+  );
 
   return (
     <Card className="ceo-follow-up-metrics">
@@ -254,47 +287,101 @@ export default function CEOFollowUpMetrics() {
           </div>
 
           <div className="ceo-follow-up-outcome-summary">
-            <Badge variant="primary">
-              {formatNumber(
-                outcomes.contacted,
-              )}{" "}
-              Contacted
-            </Badge>
+            {OUTCOME_ITEMS.map(
+              ({
+                key,
+                label,
+                variant,
+              }) => (
+                <Badge
+                  variant={variant}
+                  key={key}
+                >
+                  {formatNumber(
+                    outcomes[key],
+                  )}{" "}
+                  {label}
+                </Badge>
+              ),
+            )}
+          </div>
 
-            <Badge variant="success">
-              {formatNumber(
-                outcomes.qualified,
-              )}{" "}
-              Qualified
-            </Badge>
+          <div className="ceo-follow-up-outcome-chart">
+            <div className="ceo-follow-up-outcome-chart-header">
+              <div>
+                <h3>
+                  Outcome Distribution
+                </h3>
 
-            <Badge variant="success">
-              {formatNumber(
-                outcomes.won,
-              )}{" "}
-              Won
-            </Badge>
+                <p>
+                  Recorded results for the
+                  selected period.
+                </p>
+              </div>
 
-            <Badge variant="danger">
-              {formatNumber(
-                outcomes.lost,
-              )}{" "}
-              Lost
-            </Badge>
+              <span>
+                {formatNumber(
+                  metrics.total_activities,
+                )}{" "}
+                total
+              </span>
+            </div>
 
-            <Badge variant="primary">
-              {formatNumber(
-                outcomes.no_response,
-              )}{" "}
-              No Response
-            </Badge>
+            <div className="ceo-follow-up-outcome-bars">
+              {OUTCOME_ITEMS.map(
+                ({ key, label }) => {
+                  const count =
+                    Number(
+                      outcomes[key],
+                    ) || 0;
 
-            <Badge variant="primary">
-              {formatNumber(
-                outcomes.rescheduled,
-              )}{" "}
-              Rescheduled
-            </Badge>
+                  const width =
+                    count > 0
+                      ? Math.max(
+                          5,
+                          (
+                            count /
+                            highestOutcomeCount
+                          ) * 100,
+                        )
+                      : 0;
+
+                  return (
+                    <div
+                      className={`ceo-follow-up-outcome-row outcome-${key}`}
+                      key={key}
+                    >
+                      <div className="ceo-follow-up-outcome-label">
+                        <span>{label}</span>
+
+                        <strong>
+                          {formatNumber(
+                            count,
+                          )}
+                        </strong>
+                      </div>
+
+                      <div
+                        className="ceo-follow-up-outcome-track"
+                        role="progressbar"
+                        aria-label={label}
+                        aria-valuenow={count}
+                        aria-valuemin="0"
+                        aria-valuemax={
+                          highestOutcomeCount
+                        }
+                      >
+                        <span
+                          style={{
+                            width: `${width}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                },
+              )}
+            </div>
           </div>
         </>
       ) : (

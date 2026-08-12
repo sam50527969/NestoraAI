@@ -197,3 +197,113 @@
     flex-direction: column;
   }
 }
+.ceo-follow-up-outcome-chart {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(2, 6, 23, 0.22);
+}
+
+.ceo-follow-up-outcome-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ceo-follow-up-outcome-chart-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.ceo-follow-up-outcome-chart-header p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.ceo-follow-up-outcome-chart-header > span {
+  color: #7dd3fc;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ceo-follow-up-outcome-bars {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px 22px;
+  margin-top: 20px;
+}
+
+.ceo-follow-up-outcome-row {
+  min-width: 0;
+}
+
+.ceo-follow-up-outcome-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.ceo-follow-up-outcome-label span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ceo-follow-up-outcome-label strong {
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.ceo-follow-up-outcome-track {
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  overflow: hidden;
+}
+
+.ceo-follow-up-outcome-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #38bdf8;
+  transition: width 280ms ease;
+}
+
+.outcome-qualified
+.ceo-follow-up-outcome-track > span,
+.outcome-won
+.ceo-follow-up-outcome-track > span {
+  background: #22c55e;
+}
+
+.outcome-lost
+.ceo-follow-up-outcome-track > span {
+  background: #ef4444;
+}
+
+.outcome-no_response
+.ceo-follow-up-outcome-track > span {
+  background: #f59e0b;
+}
+
+.outcome-rescheduled
+.ceo-follow-up-outcome-track > span {
+  background: #818cf8;
+}
+
+@media (max-width: 700px) {
+  .ceo-follow-up-outcome-bars {
+    grid-template-columns: 1fr;
+  }
+
+  .ceo-follow-up-outcome-chart-header {
+    flex-direction: column;
+  }
+}
