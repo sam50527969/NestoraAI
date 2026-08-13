@@ -17,6 +17,7 @@ import CRMTable from "../components/CRMTable";
 import CRMBoard from "../components/crm/CRMBoard";
 import CRMHeader from "../components/crm/CRMHeader";
 import CRMSidePanel from "../components/crm/CRMSidePanel";
+import CRMPipelineFilter from "../components/crm/CRMPipelineFilter";
 
 
 
@@ -25,6 +26,8 @@ export default function CRM() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [stageFilter, setStageFilter] =
+  useState("All");
   const [viewMode, setViewMode] = useState("board");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -112,13 +115,39 @@ export default function CRM() {
   }, [leads]);
 
   const filteredLeads = useMemo(() => {
-    return leads
-      .filter((lead) => matchesLeadSearch(lead, searchTerm))
-      .filter((lead) => {
-        if (categoryFilter === "All") return true;
-        return getLeadCategory(lead) === categoryFilter;
-      });
-  }, [leads, searchTerm, categoryFilter]);
+  return leads
+    .filter((lead) =>
+      matchesLeadSearch(
+        lead,
+        searchTerm,
+      ),
+    )
+    .filter((lead) => {
+      if (categoryFilter === "All") {
+        return true;
+      }
+
+      return (
+        getLeadCategory(lead) ===
+        categoryFilter
+      );
+    })
+    .filter((lead) => {
+      if (stageFilter === "All") {
+        return true;
+      }
+
+      return (
+        (lead.status || "New") ===
+        stageFilter
+      );
+    });
+}, [
+  leads,
+  searchTerm,
+  categoryFilter,
+  stageFilter,
+]);
 
   const handleSaveLeadDetails = async (leadId, payload) => {
     setIsSavingDetails(true);
@@ -204,6 +233,11 @@ export default function CRM() {
   leads={filteredLeads}
   selectedLead={selectedLead}
   onSelectLead={setSelectedLead}
+/>
+<CRMPipelineFilter
+  leads={leads}
+  selectedStage={stageFilter}
+  onStageChange={setStageFilter}
 />
 
       <CRMToolbar

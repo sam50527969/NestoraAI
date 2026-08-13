@@ -1,15 +1,28 @@
 import CRMColumn from "./CRMColumn";
 
-const STAGES = ["New", "Contacted", "Qualified", "Proposal", "Won", "Lost"];
+const STAGES = [
+  "New",
+  "Contacted",
+  "Qualified",
+  "Won",
+  "Lost",
+];
 
-function CRMBoard({ leads, onSelectLead }) {
+function CRMBoard({
+  leads,
+  onSelectLead,
+}) {
   return (
     <div className="crm-board">
       {STAGES.map((stage) => (
         <CRMColumn
           key={stage}
           title={stage}
-          leads={leads.filter((lead) => lead.status === stage)}
+          leads={leads.filter(
+            (lead) =>
+              (lead.status || "New") ===
+              stage,
+          )}
           onSelectLead={onSelectLead}
         />
       ))}

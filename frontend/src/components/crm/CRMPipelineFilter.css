@@ -1,0 +1,106 @@
+.crm-pipeline-filter {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.crm-pipeline-filter-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.crm-pipeline-filter-heading p {
+  margin: 0;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crm-pipeline-filter-heading h2 {
+  margin: 6px 0 0;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.crm-pipeline-filter-heading > span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.crm-pipeline-filter-list {
+  display: grid;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.crm-pipeline-filter-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(2, 6, 23, 0.25);
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.crm-pipeline-filter-list button:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.crm-pipeline-filter-list button.active {
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.1);
+  color: #7dd3fc;
+}
+
+.crm-pipeline-filter-list button span {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-pipeline-filter-list button strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+@media (max-width: 1000px) {
+  .crm-pipeline-filter-list {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .crm-pipeline-filter-heading {
+    flex-direction: column;
+  }
+
+  .crm-pipeline-filter-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
