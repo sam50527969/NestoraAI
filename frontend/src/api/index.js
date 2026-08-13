@@ -7,6 +7,7 @@ export {
   getDueFollowUps,
   getFollowUpActivities,
   getFollowUpMetrics,
+  getPipelineSummary,
   getSavedLeads,
   recordFollowUpOutcome,
   saveLead,

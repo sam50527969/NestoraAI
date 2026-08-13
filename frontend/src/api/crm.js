@@ -173,3 +173,8 @@ export function downloadFollowUpHistory({
   link.click();
   link.remove();
 }
+export function getPipelineSummary() {
+  return request(
+    "/crm/pipeline/summary",
+  );
+}
