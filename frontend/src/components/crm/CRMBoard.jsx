@@ -11,6 +11,8 @@ const STAGES = [
 function CRMBoard({
   leads,
   onSelectLead,
+  onStageChange,
+  updatingLeadId,
 }) {
   return (
     <div className="crm-board">
@@ -24,6 +26,10 @@ function CRMBoard({
               stage,
           )}
           onSelectLead={onSelectLead}
+          onStageChange={onStageChange}
+          updatingLeadId={
+            updatingLeadId
+          }
         />
       ))}
     </div>

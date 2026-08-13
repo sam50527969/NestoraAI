@@ -1,0 +1,140 @@
+.crm-card {
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--background);
+  color: inherit;
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.crm-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.crm-card-content {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.crm-card-content:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.crm-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crm-card-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.crm-category {
+  margin: 10px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.crm-details {
+  display: grid;
+  gap: 8px;
+}
+
+.crm-details p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.crm-details p > span {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.crm-details p > strong {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.crm-card-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.crm-card-stage label {
+  display: grid;
+  flex: 1;
+  gap: 5px;
+  min-width: 0;
+}
+
+.crm-card-stage label > span {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.crm-card-stage select {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-light);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.crm-card-stage select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.crm-card-stage select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.crm-card-updating {
+  color: #7dd3fc;
+  font-size: 10px;
+  font-weight: 700;
+}
+.crm-column-empty {
+  padding: 24px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}

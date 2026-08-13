@@ -32,6 +32,8 @@ export default function CRM() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [updatingLeadId, setUpdatingLeadId] = useState(null);
+
   const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingWebsite, setIsAnalyzingWebsite] = useState(false);
@@ -149,6 +151,65 @@ export default function CRM() {
   stageFilter,
 ]);
 
+const handleStageChange = async (
+  lead,
+  newStatus,
+) => {
+  if (
+    !lead ||
+    newStatus === lead.status
+  ) {
+    return;
+  }
+
+  setUpdatingLeadId(lead.id);
+  setErrorMessage("");
+  setSuccessMessage("");
+
+  try {
+    const updatedLead =
+      await updateLead(
+        lead.id,
+        {
+          status: newStatus,
+        },
+      );
+
+    setLeads((currentLeads) =>
+      currentLeads.map(
+        (currentLead) =>
+          currentLead.id ===
+          updatedLead.id
+            ? updatedLead
+            : currentLead,
+      ),
+    );
+
+    setSelectedLead(
+      (currentLead) =>
+        currentLead?.id ===
+        updatedLead.id
+          ? updatedLead
+          : currentLead,
+    );
+
+    setSuccessMessage(
+      `${updatedLead.name} moved to ${updatedLead.status}.`,
+    );
+  } catch (error) {
+    console.error(
+      "Failed to update pipeline stage",
+      error,
+    );
+
+    setErrorMessage(
+      "Unable to update the pipeline stage.",
+    );
+  } finally {
+    setUpdatingLeadId(null);
+  }
+};
+
   const handleSaveLeadDetails = async (leadId, payload) => {
     setIsSavingDetails(true);
     setErrorMessage("");
@@ -255,7 +316,12 @@ export default function CRM() {
 
       <div className="crm-workspace">
         {viewMode === "board" ? (
-          <CRMBoard leads={filteredLeads} onSelectLead={setSelectedLead} />
+          <CRMBoard
+            leads={filteredLeads}
+            onSelectLead={setSelectedLead}
+            onStageChange={handleStageChange}
+            updatingLeadId={updatingLeadId}
+          />
         ) : (
           <CRMTable
             leads={filteredLeads}
