@@ -9,6 +9,9 @@ from app.schemas.crm import (
     LeadCreate,
     LeadUpdate,
 )
+from app.pipeline_activity.service import (
+    record_pipeline_activity,
+)
 
 
 VALID_STATUSES = {
@@ -438,6 +441,11 @@ def update_lead(
             "Invalid lead priority"
         )
 
+    previous_status = lead.status
+    requested_status = update_values.get(
+        "status"
+    )
+
     for field, value in (
         update_values.items()
     ):
@@ -446,7 +454,18 @@ def update_lead(
             field,
             value,
         )
-
+    if (
+        requested_status is not None
+        and requested_status
+        != previous_status
+    ):
+        record_pipeline_activity(
+            db,
+            lead_id=lead.id,
+            lead_name=lead.name,
+            previous_status=previous_status,
+            new_status=requested_status,
+        )
     db.commit()
     db.refresh(lead)
 

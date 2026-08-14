@@ -11,11 +11,17 @@ from app.collaboration.routes import (
 from app.communication.routes import (
     router as communication_router,
 )
+from app.follow_up_activity.routes import (
+    router as follow_up_activities_router,
+)
 from app.memory.routes import (
     router as memory_router,
 )
 from app.outreach_activity.routes import (
     router as outreach_activity_router,
+)
+from app.pipeline_activity.routes import (
+    router as pipeline_activity_router,
 )
 from app.realtime.router import (
     router as realtime_router,
@@ -72,17 +78,14 @@ from app.routes.search import (
 from app.routes.website import (
     router as website_router,
 )
-from app.follow_up_activity.routes import (
-    router as follow_up_activities_router,
-)
 
 
 def register_routes(
     app: FastAPI,
 ) -> None:
     """
-    Register all API routes for the Nestora
-    backend.
+    Register all API routes for the
+    Nestora backend.
     """
 
     app.include_router(leads_router)
@@ -90,43 +93,62 @@ def register_routes(
     app.include_router(crm_router)
     app.include_router(dashboard_router)
     app.include_router(outreach_router)
+
     app.include_router(
         outreach_activity_router
     )
+
     app.include_router(sales_ai_router)
     app.include_router(website_router)
     app.include_router(ai_agent_router)
     app.include_router(mission_router)
+
     app.include_router(
         mission_events_router
     )
+
     app.include_router(
         agent_tasks_router
     )
+
     app.include_router(ceo_router)
+
     app.include_router(
         ceo_advisor_router
     )
+
     app.include_router(
         ceo_approvals_router
     )
+
     app.include_router(business_router)
     app.include_router(objective_router)
+
     app.include_router(
         mission_scheduler.router
     )
+
     app.include_router(marketing_router)
+
     app.include_router(
         business_analysis_router
     )
+
     app.include_router(realtime_router)
     app.include_router(memory_router)
+
     app.include_router(
         communication_router
     )
+
     app.include_router(
         collaboration_router
     )
+
     app.include_router(
-    follow_up_activities_router
-)
+        follow_up_activities_router
+    )
+
+    app.include_router(
+        pipeline_activity_router
+    )

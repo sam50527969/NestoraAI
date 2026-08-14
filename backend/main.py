@@ -33,6 +33,9 @@ from app.follow_up_activity import (
 from app.outreach_activity import (
     models as outreach_activity_models,
 )
+from app.pipeline_activity import (
+    models as pipeline_activity_models,
+)
 from app.tools.loader import load_tools
 
 
@@ -46,6 +49,7 @@ _ = (
     approval_models,
     outreach_activity_models,
     follow_up_activity_models,
+    pipeline_activity_models,
 )
 
 
