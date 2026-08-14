@@ -73,6 +73,38 @@ export function updateLead(
 }
 
 
+export function getPipelineSummary() {
+  return request(
+    "/crm/pipeline/summary",
+  );
+}
+
+
+export function getPipelineActivities({
+  leadId,
+  limit = 100,
+} = {}) {
+  const searchParams =
+    new URLSearchParams();
+
+  if (leadId != null) {
+    searchParams.set(
+      "lead_id",
+      String(leadId),
+    );
+  }
+
+  searchParams.set(
+    "limit",
+    String(limit),
+  );
+
+  return request(
+    `/pipeline-activities?${searchParams.toString()}`,
+  );
+}
+
+
 export function getFollowUpActivities({
   leadId,
   startDate,
@@ -89,10 +121,13 @@ export function getFollowUpActivities({
     );
   }
 
-  addDateFilters(searchParams, {
-    startDate,
-    endDate,
-  });
+  addDateFilters(
+    searchParams,
+    {
+      startDate,
+      endDate,
+    },
+  );
 
   searchParams.set(
     "limit",
@@ -126,10 +161,13 @@ export function getFollowUpMetrics({
   const searchParams =
     new URLSearchParams();
 
-  addDateFilters(searchParams, {
-    startDate,
-    endDate,
-  });
+  addDateFilters(
+    searchParams,
+    {
+      startDate,
+      endDate,
+    },
+  );
 
   const query =
     searchParams.toString();
@@ -149,10 +187,13 @@ export function downloadFollowUpHistory({
   const searchParams =
     new URLSearchParams();
 
-  addDateFilters(searchParams, {
-    startDate,
-    endDate,
-  });
+  addDateFilters(
+    searchParams,
+    {
+      startDate,
+      endDate,
+    },
+  );
 
   searchParams.set(
     "limit",
@@ -172,9 +213,4 @@ export function downloadFollowUpHistory({
   document.body.appendChild(link);
   link.click();
   link.remove();
-}
-export function getPipelineSummary() {
-  return request(
-    "/crm/pipeline/summary",
-  );
 }

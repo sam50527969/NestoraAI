@@ -1,84 +1,173 @@
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  analyzeLead,
+  analyzeWebsite,
+  generateOutreach,
+  getSavedLeads,
+  updateLead,
+} from "../api";
+
+import CRMToolbar from "../components/CRMToolbar";
+import CRMTable from "../components/CRMTable";
+import CRMBoard from "../components/crm/CRMBoard";
+import CRMHeader from "../components/crm/CRMHeader";
+import CRMPipelineFilter from "../components/crm/CRMPipelineFilter";
+import CRMPipelineHistory from "../components/crm/CRMPipelineHistory";
+import CRMSidePanel from "../components/crm/CRMSidePanel";
 import CRMWorkspace from "../components/crm/workspace/CRMWorkspace";
+
 import {
   getLeadCategory,
   matchesLeadSearch,
   normalizeLeadsResponse,
 } from "../utils/crm";
-import { useEffect, useMemo, useState } from "react";
-import {
-  getSavedLeads,
-  updateLead,
-  generateOutreach,
-  analyzeLead,
-  analyzeWebsite,
-} from "../api";
-import CRMToolbar from "../components/CRMToolbar";
-import CRMTable from "../components/CRMTable";
-import CRMBoard from "../components/crm/CRMBoard";
-import CRMHeader from "../components/crm/CRMHeader";
-import CRMSidePanel from "../components/crm/CRMSidePanel";
-import CRMPipelineFilter from "../components/crm/CRMPipelineFilter";
-
 
 
 export default function CRM() {
-  const [leads, setLeads] = useState([]);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [stageFilter, setStageFilter] =
-  useState("All");
-  const [viewMode, setViewMode] = useState("board");
+  const [leads, setLeads] =
+    useState([]);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSavingDetails, setIsSavingDetails] = useState(false);
-  const [updatingLeadId, setUpdatingLeadId] = useState(null);
+  const [
+    selectedLead,
+    setSelectedLead,
+  ] = useState(null);
 
-  const [isGeneratingOutreach, setIsGeneratingOutreach] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isAnalyzingWebsite, setIsAnalyzingWebsite] = useState(false);
+  const [
+    searchTerm,
+    setSearchTerm,
+  ] = useState("");
 
-  const [outreach, setOutreach] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
-  const [websiteAnalysis, setWebsiteAnalysis] = useState(null);
+  const [
+    categoryFilter,
+    setCategoryFilter,
+  ] = useState("All");
 
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [
+    stageFilter,
+    setStageFilter,
+  ] = useState("All");
+
+  const [viewMode, setViewMode] =
+    useState("board");
+
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [
+    isSavingDetails,
+    setIsSavingDetails,
+  ] = useState(false);
+
+  const [
+    updatingLeadId,
+    setUpdatingLeadId,
+  ] = useState(null);
+
+  const [
+    isGeneratingOutreach,
+    setIsGeneratingOutreach,
+  ] = useState(false);
+
+  const [
+    isAnalyzing,
+    setIsAnalyzing,
+  ] = useState(false);
+
+  const [
+    isAnalyzingWebsite,
+    setIsAnalyzingWebsite,
+  ] = useState(false);
+
+  const [outreach, setOutreach] =
+    useState(null);
+
+  const [analysis, setAnalysis] =
+    useState(null);
+
+  const [
+    websiteAnalysis,
+    setWebsiteAnalysis,
+  ] = useState(null);
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState("");
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
+
+  const [
+    pipelineHistoryVersion,
+    setPipelineHistoryVersion,
+  ] = useState(0);
+
 
   const loadSavedLeads = async () => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await getSavedLeads();
-      const loadedLeads = normalizeLeadsResponse(response);
+      const response =
+        await getSavedLeads();
+
+      const loadedLeads =
+        normalizeLeadsResponse(
+          response,
+        );
+
       setLeads(loadedLeads);
 
       if (selectedLead) {
-        const refreshedSelectedLead = loadedLeads.find(
-          (lead) => lead.id === selectedLead.id
+        const refreshedSelectedLead =
+          loadedLeads.find(
+            (lead) =>
+              lead.id ===
+              selectedLead.id,
+          );
+
+        setSelectedLead(
+          refreshedSelectedLead ||
+            null,
         );
-        setSelectedLead(refreshedSelectedLead || null);
       }
     } catch (error) {
-      console.error("Failed to load saved leads", error);
+      console.error(
+        "Failed to load saved leads",
+        error,
+      );
+
       setErrorMessage(
-        "Unable to load saved leads. Please make sure the backend is running."
+        "Unable to load saved leads. " +
+          "Please make sure the backend " +
+          "is running.",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
+
   useEffect(() => {
     loadSavedLeads();
+
+    // The initial request should run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   useEffect(() => {
     setOutreach(null);
     setWebsiteAnalysis(null);
   }, [selectedLead?.id]);
+
 
   useEffect(() => {
     if (!selectedLead) {
@@ -90,18 +179,26 @@ export default function CRM() {
       setIsAnalyzing(true);
 
       try {
-        const result = await analyzeLead({
-          name: selectedLead.name,
-          category: selectedLead.category,
-          phone: selectedLead.phone,
-          website: selectedLead.website,
-          priority: selectedLead.priority,
-          notes: selectedLead.notes,
-        });
+        const result =
+          await analyzeLead({
+            name: selectedLead.name,
+            category:
+              selectedLead.category,
+            phone: selectedLead.phone,
+            website:
+              selectedLead.website,
+            priority:
+              selectedLead.priority,
+            notes: selectedLead.notes,
+          });
 
         setAnalysis(result);
       } catch (error) {
-        console.error("Failed to analyze lead", error);
+        console.error(
+          "Failed to analyze lead",
+          error,
+        );
+
         setAnalysis(null);
       } finally {
         setIsAnalyzing(false);
@@ -111,241 +208,399 @@ export default function CRM() {
     runAnalysis();
   }, [selectedLead]);
 
-  const categories = useMemo(() => {
-    const uniqueCategories = new Set(leads.map(getLeadCategory).filter(Boolean));
-    return ["All", ...Array.from(uniqueCategories).sort()];
-  }, [leads]);
 
-  const filteredLeads = useMemo(() => {
-  return leads
-    .filter((lead) =>
-      matchesLeadSearch(
-        lead,
-        searchTerm,
-      ),
-    )
-    .filter((lead) => {
-      if (categoryFilter === "All") {
-        return true;
-      }
+  const categories = useMemo(
+    () => {
+      const uniqueCategories =
+        new Set(
+          leads
+            .map(getLeadCategory)
+            .filter(Boolean),
+        );
 
-      return (
-        getLeadCategory(lead) ===
-        categoryFilter
-      );
-    })
-    .filter((lead) => {
-      if (stageFilter === "All") {
-        return true;
-      }
+      return [
+        "All",
+        ...Array.from(
+          uniqueCategories,
+        ).sort(),
+      ];
+    },
+    [leads],
+  );
 
-      return (
-        (lead.status || "New") ===
-        stageFilter
-      );
-    });
-}, [
-  leads,
-  searchTerm,
-  categoryFilter,
-  stageFilter,
-]);
 
-const handleStageChange = async (
-  lead,
-  newStatus,
-) => {
-  if (
-    !lead ||
-    newStatus === lead.status
-  ) {
-    return;
-  }
+  const filteredLeads = useMemo(
+    () =>
+      leads
+        .filter((lead) =>
+          matchesLeadSearch(
+            lead,
+            searchTerm,
+          ),
+        )
+        .filter((lead) => {
+          if (
+            categoryFilter === "All"
+          ) {
+            return true;
+          }
 
-  setUpdatingLeadId(lead.id);
-  setErrorMessage("");
-  setSuccessMessage("");
+          return (
+            getLeadCategory(lead) ===
+            categoryFilter
+          );
+        })
+        .filter((lead) => {
+          if (stageFilter === "All") {
+            return true;
+          }
 
-  try {
-    const updatedLead =
-      await updateLead(
-        lead.id,
-        {
-          status: newStatus,
-        },
-      );
+          return (
+            (lead.status || "New") ===
+            stageFilter
+          );
+        }),
+    [
+      leads,
+      searchTerm,
+      categoryFilter,
+      stageFilter,
+    ],
+  );
 
-    setLeads((currentLeads) =>
-      currentLeads.map(
-        (currentLead) =>
-          currentLead.id ===
-          updatedLead.id
-            ? updatedLead
-            : currentLead,
-      ),
-    );
 
-    setSelectedLead(
-      (currentLead) =>
-        currentLead?.id ===
-        updatedLead.id
-          ? updatedLead
-          : currentLead,
-    );
+  const handleStageChange = async (
+    lead,
+    newStatus,
+  ) => {
+    if (
+      !lead ||
+      newStatus === lead.status
+    ) {
+      return;
+    }
 
-    setSuccessMessage(
-      `${updatedLead.name} moved to ${updatedLead.status}.`,
-    );
-  } catch (error) {
-    console.error(
-      "Failed to update pipeline stage",
-      error,
-    );
-
-    setErrorMessage(
-      "Unable to update the pipeline stage.",
-    );
-  } finally {
-    setUpdatingLeadId(null);
-  }
-};
-
-  const handleSaveLeadDetails = async (leadId, payload) => {
-    setIsSavingDetails(true);
+    setUpdatingLeadId(lead.id);
     setErrorMessage("");
     setSuccessMessage("");
 
     try {
-      const updatedLead = await updateLead(leadId, payload);
+      const updatedLead =
+        await updateLead(
+          lead.id,
+          {
+            status: newStatus,
+          },
+        );
 
       setLeads((currentLeads) =>
-        currentLeads.map((lead) =>
-          lead.id === updatedLead.id ? updatedLead : lead
-        )
+        currentLeads.map(
+          (currentLead) =>
+            currentLead.id ===
+            updatedLead.id
+              ? updatedLead
+              : currentLead,
+        ),
       );
 
-      setSelectedLead(updatedLead);
-      setSuccessMessage("Lead details saved successfully.");
+      setSelectedLead(
+        (currentLead) =>
+          currentLead?.id ===
+          updatedLead.id
+            ? updatedLead
+            : currentLead,
+      );
+
+      setPipelineHistoryVersion(
+        (current) => current + 1,
+      );
+
+      setSuccessMessage(
+        `${updatedLead.name} moved to ` +
+          `${updatedLead.status}.`,
+      );
     } catch (error) {
-      console.error("Failed to update lead", error);
+      console.error(
+        "Failed to update pipeline stage",
+        error,
+      );
+
       setErrorMessage(
-        "Unable to save lead details. Please check the backend and try again."
+        "Unable to update the pipeline " +
+          "stage. Please try again.",
       );
     } finally {
-      setIsSavingDetails(false);
+      setUpdatingLeadId(null);
     }
   };
 
-  const handleGenerateOutreach = async () => {
-    if (!selectedLead) return;
 
-    setIsGeneratingOutreach(true);
-    setErrorMessage("");
+  const handleSaveLeadDetails =
+    async (
+      leadId,
+      payload,
+    ) => {
+      setIsSavingDetails(true);
+      setErrorMessage("");
+      setSuccessMessage("");
 
-    try {
-      const response = await generateOutreach({
-        name: selectedLead.name,
-        category: selectedLead.category,
-        phone: selectedLead.phone,
-        website: selectedLead.website,
-        priority: selectedLead.priority,
-        notes: selectedLead.notes,
-      });
+      const previousLead =
+        leads.find(
+          (lead) =>
+            lead.id === leadId,
+        );
 
-      setOutreach(response);
-      setSuccessMessage("Nestora Copilot generated outreach successfully.");
-    } catch (error) {
-      console.error("Failed to generate outreach", error);
-      setErrorMessage("Unable to generate outreach. Please try again.");
-    } finally {
-      setIsGeneratingOutreach(false);
-    }
-  };
+      try {
+        const updatedLead =
+          await updateLead(
+            leadId,
+            payload,
+          );
 
-  const handleAnalyzeWebsite = async () => {
-    if (!selectedLead?.website || selectedLead.website === "Not found") {
-      alert("This lead doesn't have a website.");
-      return;
-    }
+        setLeads((currentLeads) =>
+          currentLeads.map((lead) =>
+            lead.id === updatedLead.id
+              ? updatedLead
+              : lead,
+          ),
+        );
 
-    setIsAnalyzingWebsite(true);
-    setErrorMessage("");
+        setSelectedLead(updatedLead);
 
-    try {
-      const result = await analyzeWebsite(selectedLead.website);
-      setWebsiteAnalysis(result);
-      setSuccessMessage("Website analysis completed.");
-    } catch (error) {
-      console.error("Website analysis failed", error);
-      setErrorMessage("Website analysis failed. Please try again.");
-    } finally {
-      setIsAnalyzingWebsite(false);
-    }
-  };
+        if (
+          previousLead &&
+          previousLead.status !==
+            updatedLead.status
+        ) {
+          setPipelineHistoryVersion(
+            (current) =>
+              current + 1,
+          );
+        }
+
+        setSuccessMessage(
+          "Lead details saved " +
+            "successfully.",
+        );
+      } catch (error) {
+        console.error(
+          "Failed to update lead",
+          error,
+        );
+
+        setErrorMessage(
+          "Unable to save lead details. " +
+            "Please check the backend " +
+            "and try again.",
+        );
+      } finally {
+        setIsSavingDetails(false);
+      }
+    };
+
+
+  const handleGenerateOutreach =
+    async () => {
+      if (!selectedLead) {
+        return;
+      }
+
+      setIsGeneratingOutreach(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      try {
+        const response =
+          await generateOutreach({
+            name: selectedLead.name,
+            category:
+              selectedLead.category,
+            phone: selectedLead.phone,
+            website:
+              selectedLead.website,
+            priority:
+              selectedLead.priority,
+            notes: selectedLead.notes,
+          });
+
+        setOutreach(response);
+
+        setSuccessMessage(
+          "Nestora Copilot generated " +
+            "outreach successfully.",
+        );
+      } catch (error) {
+        console.error(
+          "Failed to generate outreach",
+          error,
+        );
+
+        setErrorMessage(
+          "Unable to generate outreach. " +
+            "Please try again.",
+        );
+      } finally {
+        setIsGeneratingOutreach(false);
+      }
+    };
+
+
+  const handleAnalyzeWebsite =
+    async () => {
+      if (
+        !selectedLead?.website ||
+        selectedLead.website ===
+          "Not found"
+      ) {
+        window.alert(
+          "This lead doesn't have a " +
+            "website.",
+        );
+
+        return;
+      }
+
+      setIsAnalyzingWebsite(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      try {
+        const result =
+          await analyzeWebsite(
+            selectedLead.website,
+          );
+
+        setWebsiteAnalysis(result);
+
+        setSuccessMessage(
+          "Website analysis completed.",
+        );
+      } catch (error) {
+        console.error(
+          "Website analysis failed",
+          error,
+        );
+
+        setErrorMessage(
+          "Website analysis failed. " +
+            "Please try again.",
+        );
+      } finally {
+        setIsAnalyzingWebsite(false);
+      }
+    };
+
 
   return (
-    <main className="crm-page">
+    <main className="page crm-page">
       <CRMHeader
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onRefresh={loadSavedLeads}
       />
+
       <CRMWorkspace
-  leads={filteredLeads}
-  selectedLead={selectedLead}
-  onSelectLead={setSelectedLead}
-/>
-<CRMPipelineFilter
-  leads={leads}
-  selectedStage={stageFilter}
-  onStageChange={setStageFilter}
-/>
+        leads={filteredLeads}
+        selectedLead={selectedLead}
+        onSelectLead={setSelectedLead}
+      />
+
+      <CRMPipelineFilter
+        leads={leads}
+        selectedStage={stageFilter}
+        onStageChange={setStageFilter}
+      />
 
       <CRMToolbar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         categoryFilter={categoryFilter}
-        onCategoryChange={setCategoryFilter}
+        onCategoryChange={
+          setCategoryFilter
+        }
         categories={categories}
         totalLeads={leads.length}
-        visibleLeads={filteredLeads.length}
+        visibleLeads={
+          filteredLeads.length
+        }
       />
 
-      {errorMessage && <div className="crm-alert error">{errorMessage}</div>}
-      {successMessage && <div className="crm-alert success">{successMessage}</div>}
+      {errorMessage && (
+        <div className="crm-alert error">
+          {errorMessage}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="crm-alert success">
+          {successMessage}
+        </div>
+      )}
 
       <div className="crm-workspace">
         {viewMode === "board" ? (
           <CRMBoard
             leads={filteredLeads}
-            onSelectLead={setSelectedLead}
-            onStageChange={handleStageChange}
-            updatingLeadId={updatingLeadId}
+            onSelectLead={
+              setSelectedLead
+            }
+            onStageChange={
+              handleStageChange
+            }
+            updatingLeadId={
+              updatingLeadId
+            }
           />
         ) : (
           <CRMTable
             leads={filteredLeads}
             isLoading={isLoading}
-            selectedLeadId={selectedLead?.id}
-            onSelectLead={setSelectedLead}
+            selectedLeadId={
+              selectedLead?.id
+            }
+            onSelectLead={
+              setSelectedLead
+            }
           />
         )}
 
         <CRMSidePanel
           selectedLead={selectedLead}
-          onGenerateOutreach={handleGenerateOutreach}
-          onAnalyzeWebsite={handleAnalyzeWebsite}
-          isGeneratingOutreach={isGeneratingOutreach}
-          isAnalyzingWebsite={isAnalyzingWebsite}
-          onSaveLeadDetails={handleSaveLeadDetails}
-          onCloseLead={() => setSelectedLead(null)}
-          isSavingDetails={isSavingDetails}
+          onGenerateOutreach={
+            handleGenerateOutreach
+          }
+          onAnalyzeWebsite={
+            handleAnalyzeWebsite
+          }
+          isGeneratingOutreach={
+            isGeneratingOutreach
+          }
+          isAnalyzingWebsite={
+            isAnalyzingWebsite
+          }
+          onSaveLeadDetails={
+            handleSaveLeadDetails
+          }
+          onCloseLead={() =>
+            setSelectedLead(null)
+          }
+          isSavingDetails={
+            isSavingDetails
+          }
           isAnalyzing={isAnalyzing}
           analysis={analysis}
-          websiteAnalysis={websiteAnalysis}
+          websiteAnalysis={
+            websiteAnalysis
+          }
           outreach={outreach}
         />
       </div>
+
+      <CRMPipelineHistory
+        refreshKey={
+          pipelineHistoryVersion
+        }
+      />
     </main>
   );
 }
