@@ -43,4 +43,5 @@ jobs:
             test_pipeline_workflows.py \
             test_crm_api.py \
             test_follow_up_api.py \
+            test_outreach_api.py \
             -v
