@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   pipeline-tests:
-    name: Pipeline synchronization tests
+    name: Pipeline and CRM API tests
     runs-on: ubuntu-latest
 
     defaults:
@@ -36,9 +36,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run pipeline tests
+      - name: Run CRM tests
         run: |
           python -m pytest \
             test_pipeline_synchronization.py \
             test_pipeline_workflows.py \
+            test_crm_api.py \
             -v
