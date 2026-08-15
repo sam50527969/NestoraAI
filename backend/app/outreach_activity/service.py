@@ -1,10 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta,
+)
 from typing import Any
 
-from app.database.database import SessionLocal
+from app.database.database import (
+    SessionLocal,
+)
 from app.database.models import Lead
 from app.outreach_activity.models import (
     OutreachActivity,
+)
+from app.pipeline_activity.service import (
+    record_pipeline_activity,
 )
 
 
@@ -20,16 +28,26 @@ def serialize_outreach_activity(
     activity: OutreachActivity,
 ) -> dict[str, Any]:
     return {
-        "activity_uid": activity.activity_uid,
-        "approval_uid": activity.approval_uid,
+        "activity_uid": (
+            activity.activity_uid
+        ),
+        "approval_uid": (
+            activity.approval_uid
+        ),
         "lead_id": activity.lead_id,
         "lead_name": activity.lead_name,
         "status": activity.status,
-        "prepared_by": activity.prepared_by,
+        "prepared_by": (
+            activity.prepared_by
+        ),
         "phone": activity.phone,
         "website": activity.website,
-        "email_subject": activity.email_subject,
-        "email_body": activity.email_body,
+        "email_subject": (
+            activity.email_subject
+        ),
+        "email_body": (
+            activity.email_body
+        ),
         "whatsapp_message": (
             activity.whatsapp_message
         ),
@@ -39,8 +57,12 @@ def serialize_outreach_activity(
         "proposal_summary": (
             activity.proposal_summary
         ),
-        "created_at": activity.created_at,
-        "updated_at": activity.updated_at,
+        "created_at": (
+            activity.created_at
+        ),
+        "updated_at": (
+            activity.updated_at
+        ),
         "sent_at": activity.sent_at,
     }
 
@@ -69,13 +91,19 @@ def save_prepared_outreach(
     activity = OutreachActivity(
         approval_uid=approval_uid,
         lead_id=lead.id,
-        lead_name=str(lead.name).strip(),
+        lead_name=str(
+            lead.name
+        ).strip(),
         status="prepared",
         prepared_by="CEO Agent",
         phone=lead.phone,
         website=lead.website,
-        email_subject=outreach.email_subject,
-        email_body=outreach.email_body,
+        email_subject=(
+            outreach.email_subject
+        ),
+        email_body=(
+            outreach.email_body
+        ),
         whatsapp_message=(
             outreach.whatsapp_message
         ),
@@ -102,7 +130,9 @@ def list_outreach_activities(
     db = SessionLocal()
 
     try:
-        query = db.query(OutreachActivity)
+        query = db.query(
+            OutreachActivity
+        )
 
         if status:
             query = query.filter(
@@ -118,14 +148,17 @@ def list_outreach_activities(
 
         activities = (
             query.order_by(
-                OutreachActivity.created_at.desc()
+                OutreachActivity
+                .created_at.desc()
             )
             .limit(limit)
             .all()
         )
 
         return [
-            serialize_outreach_activity(activity)
+            serialize_outreach_activity(
+                activity
+            )
             for activity in activities
         ]
 
@@ -150,11 +183,14 @@ def get_outreach_activity(
 
         if activity is None:
             raise LookupError(
-                "Outreach activity was not found."
+                "Outreach activity was "
+                "not found."
             )
 
-        return serialize_outreach_activity(
-            activity
+        return (
+            serialize_outreach_activity(
+                activity
+            )
         )
 
     finally:
@@ -170,7 +206,8 @@ def synchronize_lead_contact(
     lead = (
         db.query(Lead)
         .filter(
-            Lead.id == activity.lead_id
+            Lead.id
+            == activity.lead_id
         )
         .first()
     )
@@ -178,12 +215,12 @@ def synchronize_lead_contact(
     if lead is None:
         return
 
-    current_status = str(
+    previous_status = str(
         lead.status or "New"
     ).strip()
 
     normalized_status = (
-        current_status.lower()
+        previous_status.lower()
     )
 
     if normalized_status == "new":
@@ -200,12 +237,35 @@ def synchronize_lead_contact(
         follow_up_at = (
             contacted_at
             + timedelta(
-                days=DEFAULT_FOLLOW_UP_DAYS,
+                days=(
+                    DEFAULT_FOLLOW_UP_DAYS
+                ),
             )
         )
 
         lead.next_follow_up = (
             follow_up_at.isoformat()
+        )
+
+    if lead.status != previous_status:
+        record_pipeline_activity(
+            db,
+            lead_id=lead.id,
+            lead_name=lead.name,
+            previous_status=(
+                previous_status
+            ),
+            new_status=lead.status,
+            changed_by=(
+                activity.prepared_by
+                or "CEO Agent"
+            ),
+            source="Sent Outreach",
+            notes=(
+                "Outreach package "
+                f"{activity.activity_uid} "
+                "marked as sent."
+            ),
         )
 
 
@@ -226,18 +286,21 @@ def mark_outreach_activity_sent(
 
         if activity is None:
             raise LookupError(
-                "Outreach activity was not found."
+                "Outreach activity was "
+                "not found."
             )
 
         if activity.status == "sent":
-            return serialize_outreach_activity(
-                activity
+            return (
+                serialize_outreach_activity(
+                    activity
+                )
             )
 
         if activity.status != "prepared":
             raise ValueError(
-                "Only prepared outreach can be "
-                "marked as sent."
+                "Only prepared outreach "
+                "can be marked as sent."
             )
 
         sent_at = datetime.utcnow()
@@ -254,8 +317,10 @@ def mark_outreach_activity_sent(
         db.commit()
         db.refresh(activity)
 
-        return serialize_outreach_activity(
-            activity
+        return (
+            serialize_outreach_activity(
+                activity
+            )
         )
 
     except Exception:
