@@ -11,6 +11,9 @@ from app.follow_up_activity.models import (
 from app.follow_up_activity.schemas import (
     FollowUpOutcomeCreate,
 )
+from app.pipeline_activity.service import (
+    record_pipeline_activity,
+)
 
 
 OUTCOME_STATUS_MAP = {
@@ -123,6 +126,20 @@ def record_follow_up_outcome(
             )
         )
 
+        completed_by = (
+            str(
+                data.completed_by
+                or "CEO"
+            ).strip()
+            or "CEO"
+        )
+
+        notes = (
+            data.notes.strip()
+            if data.notes
+            else None
+        )
+
         now = datetime.utcnow()
 
         if outcome != "rescheduled":
@@ -137,10 +154,12 @@ def record_follow_up_outcome(
             "lost",
         }:
             lead.next_follow_up = None
+
         elif data.next_follow_up:
             lead.next_follow_up = (
                 data.next_follow_up.strip()
             )
+
         else:
             lead.next_follow_up = None
 
@@ -150,11 +169,7 @@ def record_follow_up_outcome(
                 lead.name
             ).strip(),
             outcome=outcome,
-            notes=(
-                data.notes.strip()
-                if data.notes
-                else None
-            ),
+            notes=notes,
             previous_status=(
                 previous_status
             ),
@@ -165,13 +180,28 @@ def record_follow_up_outcome(
             next_follow_up=(
                 lead.next_follow_up
             ),
-            completed_by=(
-                data.completed_by.strip()
-                or "CEO"
-            ),
+            completed_by=completed_by,
         )
 
         db.add(activity)
+
+        if (
+            lead.status
+            != previous_status
+        ):
+            record_pipeline_activity(
+                db,
+                lead_id=lead.id,
+                lead_name=lead.name,
+                previous_status=(
+                    previous_status
+                ),
+                new_status=lead.status,
+                changed_by=completed_by,
+                source="CRM Follow-up",
+                notes=notes,
+            )
+
         db.commit()
         db.refresh(activity)
 
@@ -274,7 +304,8 @@ def get_follow_up_metrics(
 
         for activity in activities:
             outcome = str(
-                activity.outcome or ""
+                activity.outcome
+                or ""
             ).strip().lower()
 
             if outcome in outcome_counts:
