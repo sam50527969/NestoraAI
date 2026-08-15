@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class LeadBase(BaseModel):
@@ -40,8 +40,11 @@ class LeadUpdate(BaseModel):
 
 
 class LeadResponse(LeadBase):
-    id: int
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
+    id: int
     status: str = "New"
     priority: str = "Medium"
 
@@ -51,7 +54,6 @@ class LeadResponse(LeadBase):
     last_contacted: Optional[str] = None
     next_follow_up: Optional[str] = None
 
-    # AI Memory
     ai_score: Optional[int] = None
     ai_recommendation: Optional[str] = None
     ai_opportunity: Optional[str] = None
@@ -61,6 +63,3 @@ class LeadResponse(LeadBase):
 
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
