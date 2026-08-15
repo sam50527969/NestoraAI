@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     Column,
@@ -9,7 +8,10 @@ from sqlalchemy import (
     Text,
 )
 
-from app.database.database import Base
+from app.database.database import (
+    Base,
+    utc_now,
+)
 
 
 def generate_follow_up_uid() -> str:
@@ -84,7 +86,7 @@ class FollowUpActivity(Base):
 
     created_at = Column(
         DateTime,
-        default=datetime.utcnow,
+        default=utc_now,
         nullable=False,
         index=True,
     )

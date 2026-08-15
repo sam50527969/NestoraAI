@@ -3,6 +3,7 @@ from typing import Any
 
 from app.database.database import (
     SessionLocal,
+    utc_now,
 )
 from app.database.models import Lead
 from app.follow_up_activity.models import (
@@ -140,7 +141,7 @@ def record_follow_up_outcome(
             else None
         )
 
-        now = datetime.utcnow()
+        now = utc_now()
 
         if outcome != "rescheduled":
             lead.status = new_status

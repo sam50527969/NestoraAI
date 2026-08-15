@@ -6,6 +6,7 @@ from typing import Any
 
 from app.database.database import (
     SessionLocal,
+    utc_now,
 )
 from app.database.models import Lead
 from app.outreach_activity.models import (
@@ -303,7 +304,7 @@ def mark_outreach_activity_sent(
                 "can be marked as sent."
             )
 
-        sent_at = datetime.utcnow()
+        sent_at = utc_now()
 
         activity.status = "sent"
         activity.sent_at = sent_at

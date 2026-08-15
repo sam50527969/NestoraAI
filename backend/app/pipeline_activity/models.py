@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     Column,
@@ -9,11 +8,16 @@ from sqlalchemy import (
     Text,
 )
 
-from app.database.database import Base
+from app.database.database import (
+    Base,
+    utc_now,
+)
 
 
 def generate_pipeline_activity_uid() -> str:
-    return f"pipe_{uuid.uuid4().hex[:12]}"
+    return (
+        f"pipe_{uuid.uuid4().hex[:12]}"
+    )
 
 
 class PipelineActivity(Base):
@@ -48,7 +52,6 @@ class PipelineActivity(Base):
     previous_status = Column(
         String,
         nullable=False,
-        index=True,
     )
 
     new_status = Column(
@@ -76,7 +79,7 @@ class PipelineActivity(Base):
 
     created_at = Column(
         DateTime,
+        default=utc_now,
         nullable=False,
         index=True,
-        default=datetime.utcnow,
     )

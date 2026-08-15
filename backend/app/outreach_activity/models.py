@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     Column,
@@ -9,7 +8,10 @@ from sqlalchemy import (
     Text,
 )
 
-from app.database.database import Base
+from app.database.database import (
+    Base,
+    utc_now,
+)
 
 
 def generate_activity_uid() -> str:
@@ -103,14 +105,14 @@ class OutreachActivity(Base):
 
     created_at = Column(
         DateTime,
-        default=datetime.utcnow,
+        default=utc_now,
         nullable=False,
     )
 
     updated_at = Column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
