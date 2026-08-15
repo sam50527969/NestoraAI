@@ -4,4 +4,5 @@ python-dotenv
 httpx
 sqlalchemy
 alembic
-google-genaipytest
+google-genai
+pytest
