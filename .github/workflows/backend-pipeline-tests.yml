@@ -1,4 +1,4 @@
-name: Backend Pipeline Tests
+name: Backend CRM Tests
 
 on:
   push:
@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  pipeline-tests:
-    name: Pipeline and CRM API tests
+  crm-tests:
+    name: CRM backend tests
     runs-on: ubuntu-latest
 
     defaults:
@@ -42,4 +42,5 @@ jobs:
             test_pipeline_synchronization.py \
             test_pipeline_workflows.py \
             test_crm_api.py \
+            test_follow_up_api.py \
             -v
