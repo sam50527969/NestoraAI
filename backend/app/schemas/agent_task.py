@@ -1,7 +1,11 @@
-from datetime import datetime
-from typing import Optional
+from __future__ import annotations
 
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+)
 
 
 class AgentTaskCreate(BaseModel):
@@ -9,40 +13,45 @@ class AgentTaskCreate(BaseModel):
     agent_name: str
     task_type: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     priority: str = "medium"
     sequence_number: int = 0
-    depends_on_task_uid: Optional[str] = None
+    depends_on_task_uid: (
+        str | None
+    ) = None
 
 
 class AgentTaskUpdate(BaseModel):
-    status: Optional[str] = None
-    progress: Optional[int] = None
-    output_data: Optional[str] = None
-    error_message: Optional[str] = None
+    status: str | None = None
+    progress: int | None = None
+    output_data: str | None = None
+    error_message: str | None = None
 
 
 class AgentTaskResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
     id: int
     task_uid: str
     mission_id: str
     agent_name: str
     task_type: str
     title: str
-    description: Optional[str]
+    description: str | None
     status: str
     priority: str
     progress: int
     sequence_number: int
-    depends_on_task_uid: Optional[str]
+    depends_on_task_uid: (
+        str | None
+    )
 
     retry_count: int
 
     created_at: datetime
     updated_at: datetime
 
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
-
-    class Config:
-        from_attributes = True
+    started_at: datetime | None
+    completed_at: datetime | None
