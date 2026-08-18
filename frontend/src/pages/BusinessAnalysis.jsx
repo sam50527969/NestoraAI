@@ -64,7 +64,10 @@ function BusinessAnalysis() {
   const [createdMission, setCreatedMission] = useState(null);
   const [missionExecutionResult, setMissionExecutionResult] = useState(null);
 
-  const marketSummary = report?.market_summary || {};
+  const marketSummary = useMemo(
+  () => report?.market_summary || {},
+  [report],
+  );
   const strategy = report?.growth_strategy || {};
   const roi = strategy?.roi_forecast || {};
   const competitors = report?.competitors || [];
