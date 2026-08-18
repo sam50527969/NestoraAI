@@ -48,4 +48,5 @@ jobs:
             test_search_api.py \
             test_outreach_generation_api.py \
             test_sales_ai_api.py \
+            test_website_api.py \
             -v

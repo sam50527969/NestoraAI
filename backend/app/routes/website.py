@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import (
@@ -19,6 +20,9 @@ from app.services.website_intelligence import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 router = APIRouter(
     prefix="/website",
     tags=["Website Intelligence"],
@@ -32,12 +36,12 @@ router = APIRouter(
 def analyze(
     request: WebsiteRequest,
 ) -> WebsiteResponse:
-    """
-    Run the existing lightweight website analysis.
-    """
-
-    return analyze_website(
+    result = analyze_website(
         request.url
+    )
+
+    return WebsiteResponse(
+        **result
     )
 
 
@@ -48,28 +52,23 @@ def analyze(
 async def analyze_website_intelligence(
     request: WebsiteRequest,
 ) -> dict[str, Any]:
-    """
-    Run the new Website Intelligence Engine.
-
-    This endpoint crawls the website and extracts
-    contact details, social profiles, SEO metadata,
-    response time, HTTPS status, and business content.
-    """
-
     service = WebsiteIntelligenceService()
 
     try:
         profile = await service.analyze(
             website=request.url,
         )
-
-        return profile.to_dict()
-
     except Exception as exc:
+        logger.exception(
+            "Website intelligence analysis failed."
+        )
+
         raise HTTPException(
-            status_code=500,
+            status_code=502,
             detail=(
-                "Website Intelligence analysis failed: "
-                f"{exc}"
+                "Website intelligence analysis "
+                "could not be completed."
             ),
         ) from exc
+
+    return profile.to_dict()

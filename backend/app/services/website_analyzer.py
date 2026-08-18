@@ -1,27 +1,42 @@
+from __future__ import annotations
+
 from urllib.parse import urlparse
 
 
-def analyze_website(url: str):
+def analyze_website(
+    url: str,
+) -> dict[str, object]:
     parsed = urlparse(url)
 
     score = 50
+    strengths: list[str] = []
+    issues: list[str] = []
 
-    strengths = []
-    issues = []
-
-    if parsed.scheme == "https":
+    if parsed.scheme.lower() == "https":
         score += 15
-        strengths.append("Secure HTTPS connection")
+        strengths.append(
+            "Secure HTTPS connection"
+        )
     else:
-        issues.append("Website is not using HTTPS")
+        issues.append(
+            "Website is not using HTTPS"
+        )
 
-    if parsed.netloc.startswith("www."):
+    hostname = (
+        parsed.hostname or ""
+    ).lower()
+
+    if hostname.startswith("www."):
         score += 5
-        strengths.append("Standard domain format")
+        strengths.append(
+            "Standard domain format"
+        )
 
     if len(url) < 40:
         score += 5
-        strengths.append("Clean URL structure")
+        strengths.append(
+            "Clean URL structure"
+        )
 
     issues.extend(
         [
@@ -32,10 +47,14 @@ def analyze_website(url: str):
     )
 
     return {
-        "score": min(score, 100),
+        "score": min(
+            max(score, 0),
+            100,
+        ),
         "strengths": strengths,
         "issues": issues,
         "recommendation": (
-            "Recommend a full website audit and optimization proposal."
+            "Recommend a full website audit "
+            "and optimization proposal."
         ),
     }
