@@ -45,4 +45,5 @@ jobs:
             test_follow_up_api.py \
             test_outreach_api.py \
             test_ceo_approvals_api.py \
+            test_search_api.py \
             -v
