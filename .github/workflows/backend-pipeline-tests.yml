@@ -50,4 +50,5 @@ jobs:
             test_sales_ai_api.py \
             test_website_api.py \
             test_mission_api.py \
+            test_mission_events_api.py \
             -v
