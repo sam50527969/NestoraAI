@@ -47,4 +47,5 @@ jobs:
             test_ceo_approvals_api.py \
             test_search_api.py \
             test_outreach_generation_api.py \
+            test_sales_ai_api.py \
             -v
