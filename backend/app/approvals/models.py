@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     Column,
@@ -8,7 +7,10 @@ from sqlalchemy import (
     Text,
 )
 
-from app.database.database import Base
+from app.database.database import (
+    Base,
+    utc_now,
+)
 
 
 class CEOApproval(Base):
@@ -91,15 +93,15 @@ class CEOApproval(Base):
     created_at = Column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=utc_now,
         index=True,
     )
 
     updated_at = Column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=utc_now,
+        onupdate=utc_now,
     )
 
     reviewed_at = Column(

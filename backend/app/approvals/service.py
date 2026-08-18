@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 from typing import Any
 
 from app.approvals.models import CEOApproval
@@ -7,7 +6,10 @@ from app.approvals.schemas import (
     ApprovalCreate,
     ApprovalDecision,
 )
-from app.database.database import SessionLocal
+from app.database.database import (
+    SessionLocal,
+    utc_now,
+)
 
 
 VALID_DECISIONS = {
@@ -129,7 +131,9 @@ def find_active_duplicate(
         else None
     )
 
-    query = db.query(CEOApproval).filter(
+    query = db.query(
+        CEOApproval
+    ).filter(
         CEOApproval.status.in_(
             ACTIVE_APPROVAL_STATUSES
         ),
@@ -253,7 +257,9 @@ def list_approvals(
     db = SessionLocal()
 
     try:
-        query = db.query(CEOApproval)
+        query = db.query(
+            CEOApproval
+        )
 
         if status:
             query = query.filter(
@@ -363,9 +369,7 @@ def decide_approval(
             else None
         )
 
-        approval.reviewed_at = (
-            datetime.utcnow()
-        )
+        approval.reviewed_at = utc_now()
 
         db.commit()
         db.refresh(approval)

@@ -1,6 +1,5 @@
 import json
 import unicodedata
-from datetime import datetime
 from typing import Any
 
 from app.approvals.models import CEOApproval
@@ -8,7 +7,10 @@ from app.approvals.service import (
     parse_payload,
     serialize_approval,
 )
-from app.database.database import SessionLocal
+from app.database.database import (
+    SessionLocal,
+    utc_now,
+)
 from app.database.models import Lead
 from app.outreach_activity.service import (
     save_prepared_outreach,
@@ -31,15 +33,17 @@ INVALID_LEAD_NAMES = {
 }
 
 MOJIBAKE_MARKERS = (
-    "Ã",
-    "Â",
-    "Ø",
-    "Ù",
-    "�",
+    "Ãƒ",
+    "Ã‚",
+    "Ã˜",
+    "Ã™",
+    "ï¿½",
 )
 
 
-def normalize_name(value: Any) -> str:
+def normalize_name(
+    value: Any,
+) -> str:
     return " ".join(
         str(value or "")
         .strip()
@@ -56,6 +60,7 @@ def contains_invalid_characters(
             continue
 
         code_point = ord(character)
+
         category = unicodedata.category(
             character
         )
@@ -63,7 +68,11 @@ def contains_invalid_characters(
         if category.startswith("C"):
             return True
 
-        if 0x0080 <= code_point <= 0x00FF:
+        if (
+            0x0080
+            <= code_point
+            <= 0x00FF
+        ):
             return True
 
     return False
@@ -72,8 +81,13 @@ def contains_invalid_characters(
 def is_usable_lead_name(
     value: Any,
 ) -> bool:
-    name = str(value or "").strip()
-    normalized_name = normalize_name(name)
+    name = str(
+        value or ""
+    ).strip()
+
+    normalized_name = (
+        normalize_name(name)
+    )
 
     if (
         not name
@@ -88,7 +102,9 @@ def is_usable_lead_name(
     ):
         return False
 
-    if contains_invalid_characters(name):
+    if contains_invalid_characters(
+        name
+    ):
         return False
 
     return True
@@ -104,8 +120,8 @@ def get_priority_rank(
         "low": 1,
     }
 
-    normalized_priority = normalize_name(
-        priority
+    normalized_priority = (
+        normalize_name(priority)
     )
 
     return ranks.get(
@@ -147,11 +163,13 @@ def should_replace_lead(
         )
 
     existing_value = (
-        existing_lead.estimated_value or 0
+        existing_lead.estimated_value
+        or 0
     )
 
     current_value = (
-        current_lead.estimated_value or 0
+        current_lead.estimated_value
+        or 0
     )
 
     return (
@@ -163,7 +181,10 @@ def should_replace_lead(
 def get_unique_priority_leads(
     leads: list[Lead],
 ) -> list[Lead]:
-    unique_leads: dict[str, Lead] = {}
+    unique_leads: dict[
+        str,
+        Lead,
+    ] = {}
 
     for lead in leads:
         if not is_usable_lead_name(
@@ -171,17 +192,24 @@ def get_unique_priority_leads(
         ):
             continue
 
-        if get_priority_rank(
-            lead.priority
-        ) < 3:
+        if (
+            get_priority_rank(
+                lead.priority
+            )
+            < 3
+        ):
             continue
 
-        normalized_name = normalize_name(
-            lead.name
+        normalized_name = (
+            normalize_name(
+                lead.name
+            )
         )
 
-        existing_lead = unique_leads.get(
-            normalized_name
+        existing_lead = (
+            unique_leads.get(
+                normalized_name
+            )
         )
 
         if (
@@ -228,10 +256,15 @@ def build_crm_outreach_action(
 
     target_count = max(
         1,
-        min(requested_count, 25),
+        min(
+            requested_count,
+            25,
+        ),
     )
 
-    all_leads = db.query(Lead).all()
+    all_leads = (
+        db.query(Lead).all()
+    )
 
     selected_leads = (
         get_unique_priority_leads(
@@ -257,7 +290,10 @@ def build_crm_outreach_action(
             ),
             offer=(
                 payload.get("offer")
-                or "starter business package"
+                or (
+                    "starter business "
+                    "package"
+                )
             ),
         )
 
@@ -265,11 +301,15 @@ def build_crm_outreach_action(
             request
         )
 
-        activity = save_prepared_outreach(
-            db,
-            approval_uid=approval_uid,
-            lead=lead,
-            outreach=outreach,
+        activity = (
+            save_prepared_outreach(
+                db,
+                approval_uid=(
+                    approval_uid
+                ),
+                lead=lead,
+                outreach=outreach,
+            )
         )
 
         outreach_packages.append(
@@ -296,13 +336,16 @@ def build_crm_outreach_action(
                     outreach.email_body
                 ),
                 "whatsapp_message": (
-                    outreach.whatsapp_message
+                    outreach
+                    .whatsapp_message
                 ),
                 "cold_call_script": (
-                    outreach.cold_call_script
+                    outreach
+                    .cold_call_script
                 ),
                 "proposal_summary": (
-                    outreach.proposal_summary
+                    outreach
+                    .proposal_summary
                 ),
             }
         )
@@ -334,9 +377,14 @@ def execute_action(
     payload: dict[str, Any],
     approval_uid: str,
 ) -> dict[str, Any]:
-    normalized_type = normalize_name(
-        decision_type
-    ).replace(" ", "_")
+    normalized_type = (
+        normalize_name(
+            decision_type
+        ).replace(
+            " ",
+            "_",
+        )
+    )
 
     handlers = {
         "crm_outreach": (
@@ -395,27 +443,29 @@ def execute_approval(
             or {}
         )
 
-        execution_result = execute_action(
-            approval.decision_type,
-            db,
-            payload,
-            approval.approval_uid,
+        execution_result = (
+            execute_action(
+                approval.decision_type,
+                db,
+                payload,
+                approval.approval_uid,
+            )
         )
 
         payload[
             "execution_result"
         ] = execution_result
 
-        approval.payload_json = json.dumps(
-            payload,
-            ensure_ascii=False,
-            default=str,
+        approval.payload_json = (
+            json.dumps(
+                payload,
+                ensure_ascii=False,
+                default=str,
+            )
         )
 
         approval.status = "executed"
-        approval.executed_at = (
-            datetime.utcnow()
-        )
+        approval.executed_at = utc_now()
 
         db.commit()
         db.refresh(approval)
