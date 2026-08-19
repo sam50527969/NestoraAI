@@ -71,3 +71,8 @@ export {
   replyToExecutiveMessage,
   sendExecutiveMessage,
 } from "./communication";
+export {
+  getCurrentAccount,
+  loginAccount,
+  registerAccount,
+} from "./auth";

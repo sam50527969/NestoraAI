@@ -1,8 +1,12 @@
 import {
   BrowserRouter,
+  Navigate,
+  Outlet,
   Route,
   Routes,
 } from "react-router-dom";
+
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
@@ -14,39 +18,62 @@ import AIMissionCreator from "./pages/AIMissionCreator";
 import BusinessAnalysis from "./pages/BusinessAnalysis";
 import CEO from "./pages/CEO";
 import CRM from "./pages/CRM";
+import Login from "./pages/Login";
 import MarketingDirector from "./pages/MarketingDirector";
 import MissionDashboard from "./pages/MissionDashboard";
 import WorkforceDashboard from "./pages/WorkforceDashboard";
 
 import "./App.css";
 
-function PlaceholderPage({ title }) {
+function PlaceholderPage({
+  title,
+}) {
   return (
-    <section className="panel">
-      <p className="eyebrow">
+    <section className="placeholder-page">
+      <span className="eyebrow">
         Coming Soon
-      </p>
+      </span>
 
       <h2>{title}</h2>
 
       <p>
-        This module will be added in the next
-        sprints.
+        This module will be added in the
+        next sprints.
       </p>
     </section>
+  );
+}
+
+function ApplicationShell() {
+  return (
+    <div className="app">
+      <Sidebar />
+
+      <main className="main">
+        <TopBar activePage="Nestora AI" />
+        <Outlet />
+      </main>
+    </div>
   );
 }
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="app">
-        <Sidebar />
+      <Routes>
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        <main className="main">
-          <TopBar activePage="Nestora AI" />
-
-          <Routes>
+        <Route
+          element={<ProtectedRoute />}
+        >
+          <Route
+            element={
+              <ApplicationShell />
+            }
+          >
             <Route
               path="/"
               element={<DashboardV2 />}
@@ -64,22 +91,30 @@ function App() {
 
             <Route
               path="/missions"
-              element={<MissionDashboard />}
+              element={
+                <MissionDashboard />
+              }
             />
 
             <Route
               path="/ai-missions"
-              element={<AIMissionCreator />}
+              element={
+                <AIMissionCreator />
+              }
             />
 
             <Route
               path="/workforce"
-              element={<WorkforceDashboard />}
+              element={
+                <WorkforceDashboard />
+              }
             />
 
             <Route
               path="/admin-explorer"
-              element={<AdminExplorer />}
+              element={
+                <AdminExplorer />
+              }
             />
 
             <Route
@@ -89,19 +124,25 @@ function App() {
 
             <Route
               path="/marketing"
-              element={<MarketingDirector />}
+              element={
+                <MarketingDirector />
+              }
             />
 
             <Route
               path="/business-analysis"
-              element={<BusinessAnalysis />}
+              element={
+                <BusinessAnalysis />
+              }
             />
 
             <Route
               path="/proposal"
               element={
                 <PlaceholderPage
-                  title="Proposal Generator"
+                  title={
+                    "Proposal Generator"
+                  }
                 />
               }
             />
@@ -110,7 +151,9 @@ function App() {
               path="/website-intelligence"
               element={
                 <PlaceholderPage
-                  title="Website Intelligence"
+                  title={
+                    "Website Intelligence"
+                  }
                 />
               }
             />
@@ -132,9 +175,19 @@ function App() {
                 />
               }
             />
-          </Routes>
-        </main>
-      </div>
+          </Route>
+        </Route>
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -7,10 +7,16 @@ import {
 } from "vitest";
 
 import {
+  clearAccessToken,
+  setAccessToken,
+} from "../../auth/session";
+
+import {
   request,
 } from "../client";
 
 afterEach(() => {
+  clearAccessToken();
   vi.unstubAllGlobals();
 });
 
@@ -24,7 +30,8 @@ describe("request", () => {
     const fetchMock = vi.fn(
       async () => ({
         ok: true,
-        json: async () => payload,
+        json: async () =>
+          payload,
       }),
     );
 
@@ -37,9 +44,13 @@ describe("request", () => {
       "/crm/leads/12",
     );
 
-    expect(result).toEqual(payload);
+    expect(result).toEqual(
+      payload,
+    );
 
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(
+      fetchMock,
+    ).toHaveBeenCalledWith(
       expect.stringContaining(
         "/crm/leads/12",
       ),
@@ -52,7 +63,49 @@ describe("request", () => {
     );
   });
 
-  it("merges custom request headers", async () => {
+  it("adds the stored authentication token", async () => {
+    setAccessToken(
+      "stored-token",
+    );
+
+    const fetchMock = vi.fn(
+      async () => ({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      fetchMock,
+    );
+
+    await request("/auth/me");
+
+    expect(
+      fetchMock,
+    ).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "/auth/me",
+      ),
+      expect.objectContaining({
+        headers: {
+          "Content-Type":
+            "application/json",
+          Authorization:
+            "Bearer stored-token",
+        },
+      }),
+    );
+  });
+
+  it("allows custom headers to override defaults", async () => {
+    setAccessToken(
+      "stored-token",
+    );
+
     const fetchMock = vi.fn(
       async () => ({
         ok: true,
@@ -72,8 +125,12 @@ describe("request", () => {
       {
         method: "POST",
         headers: {
+          "Content-Type":
+            "application/custom+json",
           Authorization:
-            "Bearer test-token",
+            "Bearer custom-token",
+          "X-Request-ID":
+            "request-123",
         },
         body: JSON.stringify({
           value: 1,
@@ -81,7 +138,9 @@ describe("request", () => {
       },
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(
+      fetchMock,
+    ).toHaveBeenCalledWith(
       expect.stringContaining(
         "/test",
       ),
@@ -89,11 +148,40 @@ describe("request", () => {
         method: "POST",
         headers: {
           "Content-Type":
-            "application/json",
+            "application/custom+json",
           Authorization:
-            "Bearer test-token",
+            "Bearer custom-token",
+          "X-Request-ID":
+            "request-123",
         },
       }),
+    );
+  });
+
+  it("does not add authorization without a token", async () => {
+    const fetchMock = vi.fn(
+      async () => ({
+        ok: true,
+        json: async () => ({
+          success: true,
+        }),
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      fetchMock,
+    );
+
+    await request("/test");
+
+    const requestOptions =
+      fetchMock.mock.calls[0][1];
+
+    expect(
+      requestOptions.headers,
+    ).not.toHaveProperty(
+      "Authorization",
     );
   });
 
@@ -110,7 +198,9 @@ describe("request", () => {
     );
 
     await expect(
-      request("/crm/leads/999999"),
+      request(
+        "/crm/leads/999999",
+      ),
     ).rejects.toThrow(
       "Lead was not found.",
     );
