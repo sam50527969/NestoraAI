@@ -7,53 +7,87 @@ from fastapi import WebSocket
 
 class ConnectionManager:
     """
-    Manages active WebSocket connections for Nestora's real-time updates.
+    Manage authenticated realtime
+    WebSocket connections.
     """
 
     def __init__(self) -> None:
-        self.active_connections: list[WebSocket] = []
+        self.active_connections: list[
+            WebSocket
+        ] = []
 
-    async def connect(self, websocket: WebSocket) -> None:
+    async def accept(
+        self,
+        websocket: WebSocket,
+    ) -> None:
         await websocket.accept()
-        self.active_connections.append(websocket)
 
-    def disconnect(self, websocket: WebSocket) -> None:
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
+    def register(
+        self,
+        websocket: WebSocket,
+    ) -> None:
+        if (
+            websocket
+            not in self.active_connections
+        ):
+            self.active_connections.append(
+                websocket
+            )
+
+    async def connect(
+        self,
+        websocket: WebSocket,
+    ) -> None:
+        await self.accept(websocket)
+        self.register(websocket)
+
+    def disconnect(
+        self,
+        websocket: WebSocket,
+    ) -> None:
+        if (
+            websocket
+            in self.active_connections
+        ):
+            self.active_connections.remove(
+                websocket
+            )
 
     async def send_personal_message(
         self,
         message: dict[str, Any],
         websocket: WebSocket,
     ) -> None:
-        await websocket.send_json(message)
+        await websocket.send_json(
+            message
+        )
 
     async def broadcast(
         self,
         message: dict[str, Any],
     ) -> None:
-        print(
-            "BROADCAST CALLED | connections:",
-            len(self.active_connections),
-        )
-        print("BROADCAST MESSAGE:", message)
+        disconnected_connections: list[
+            WebSocket
+        ] = []
 
-        disconnected_connections: list[WebSocket] = []
-
-        for connection in self.active_connections:
+        for connection in (
+            self.active_connections
+        ):
             try:
-                await connection.send_json(message)
-                print("BROADCAST SENT SUCCESSFULLY")
-            except Exception as exc:
-                print(
-                    "BROADCAST FAILED:",
-                    type(exc).__name__,
-                    str(exc),
+                await connection.send_json(
+                    message
                 )
-                disconnected_connections.append(connection)
+            except Exception:
+                disconnected_connections.append(
+                    connection
+                )
 
-        for connection in disconnected_connections:
+        for connection in (
+            disconnected_connections
+        ):
             self.disconnect(connection)
 
 
-connection_manager = ConnectionManager()
+connection_manager = (
+    ConnectionManager()
+)

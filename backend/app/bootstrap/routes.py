@@ -1,12 +1,22 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import (
+    APIRouter,
+    Depends,
+    FastAPI,
+)
 
+from app.approvals.routes import (
+    router as ceo_approvals_router,
+)
+from app.auth.dependencies import (
+    get_current_user,
+)
 from app.auth.routes import (
     router as auth_router,
 )
-from app.approvals.routes import (
-    router as ceo_approvals_router,
+from app.clinic.routes import (
+    router as clinic_router,
 )
 from app.collaboration.routes import (
     router as collaboration_router,
@@ -83,77 +93,80 @@ from app.routes.website import (
 )
 
 
+def include_protected_router(
+    app: FastAPI,
+    router: APIRouter,
+) -> None:
+    app.include_router(
+        router,
+        dependencies=[
+            Depends(
+                get_current_user,
+            ),
+        ],
+    )
+
+
 def register_routes(
     app: FastAPI,
 ) -> None:
     """
-    Register all API routes for the
-    Nestora backend.
+    Register Nestora API routes.
+
+    Authentication endpoints remain public.
+    Standard business APIs require a valid
+    Bearer access token.
+
+    Realtime routes are registered separately
+    because their router contains a WebSocket,
+    which uses a different authentication
+    mechanism.
     """
 
-    app.include_router(leads_router)
-    app.include_router(search_router)
-    app.include_router(crm_router)
-    app.include_router(dashboard_router)
-    app.include_router(outreach_router)
-
     app.include_router(
-        outreach_activity_router
+        auth_router
     )
 
-    app.include_router(auth_router)
-    app.include_router(leads_router)
-    app.include_router(sales_ai_router)
-    app.include_router(website_router)
-    app.include_router(ai_agent_router)
-    app.include_router(mission_router)
+    protected_routers = [
+        clinic_router,
+        leads_router,
+        search_router,
+        crm_router,
+        dashboard_router,
+        outreach_router,
+        outreach_activity_router,
+        sales_ai_router,
+        website_router,
+        ai_agent_router,
+        mission_router,
+        mission_events_router,
+        agent_tasks_router,
+        ceo_router,
+        ceo_advisor_router,
+        ceo_approvals_router,
+        business_router,
+        objective_router,
+        mission_scheduler.router,
+        marketing_router,
+        business_analysis_router,
+        memory_router,
+        communication_router,
+        collaboration_router,
+        follow_up_activities_router,
+        pipeline_activity_router,
+    ]
 
+    for router in (
+        protected_routers
+    ):
+        include_protected_router(
+            app,
+            router,
+        )
+
+    # The realtime router contains both
+    # HTTP and WebSocket routes. Its HTTP
+    # handlers apply authentication directly.
     app.include_router(
-        mission_events_router
-    )
-
-    app.include_router(
-        agent_tasks_router
-    )
-
-    app.include_router(ceo_router)
-
-    app.include_router(
-        ceo_advisor_router
-    )
-
-    app.include_router(
-        ceo_approvals_router
-    )
-
-    app.include_router(business_router)
-    app.include_router(objective_router)
-
-    app.include_router(
-        mission_scheduler.router
-    )
-
-    app.include_router(marketing_router)
-
-    app.include_router(
-        business_analysis_router
-    )
-
-    app.include_router(realtime_router)
-    app.include_router(memory_router)
-
-    app.include_router(
-        communication_router
-    )
-
-    app.include_router(
-        collaboration_router
-    )
-
-    app.include_router(
-        follow_up_activities_router
-    )
-
-    app.include_router(
-        pipeline_activity_router
+        realtime_router
     )

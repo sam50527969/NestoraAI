@@ -1,4 +1,4 @@
-name: Backend CRM Tests
+name: Backend Tests
 
 on:
   push:
@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  crm-tests:
-    name: CRM backend tests
+  backend-tests:
+    name: Backend API and authentication tests
     runs-on: ubuntu-latest
 
     env:
@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Run CRM tests
+      - name: Run backend tests
         run: |
           python -m pytest \
             test_pipeline_synchronization.py \
@@ -57,4 +57,6 @@ jobs:
             test_mission_events_api.py \
             test_dashboard_api.py \
             test_auth_api.py \
+            test_route_protection.py \
+            test_realtime_auth.py \
             -v

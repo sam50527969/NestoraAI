@@ -1,15 +1,21 @@
 import asyncio
 
-from app.executives.marketing import MarketingDirector
-from app.core.executives import ExecutiveContext
+from app.core.executives import (
+    ExecutiveContext,
+)
+from app.executives.marketing import (
+    MarketingDirector,
+)
 
 
-async def main():
+async def main() -> None:
     director = MarketingDirector()
 
     result = await director.run(
         ExecutiveContext(
-            mission="Increase restaurant sales",
+            mission=(
+                "Increase restaurant sales"
+            ),
         )
     )
 
@@ -30,8 +36,14 @@ async def main():
     print("RECOMMENDATIONS")
     print("=" * 60)
 
-    for recommendation in result.recommendations:
-        print("-", recommendation)
+    for recommendation in (
+        result.recommendations
+    ):
+        print(
+            "-",
+            recommendation,
+        )
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

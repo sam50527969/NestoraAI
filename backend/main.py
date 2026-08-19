@@ -1,4 +1,6 @@
-from contextlib import asynccontextmanager
+from contextlib import (
+    asynccontextmanager,
+)
 import logging
 
 from fastapi import FastAPI
@@ -9,19 +11,21 @@ from fastapi.middleware.cors import (
 from app.approvals import (
     models as approval_models,
 )
+from app.auth import (
+    models as auth_models,
+)
 from app.bootstrap import (
     create_application,
     register_routes,
-)
-from app.clinic.routes import (
-    router as clinic_router,
 )
 from app.config import APP_NAME
 from app.core.registry import (
     executive_registry,
     load_executives,
 )
-from app.core.tools import tool_registry
+from app.core.tools import (
+    tool_registry,
+)
 from app.database import models
 from app.database.database import (
     Base,
@@ -36,17 +40,19 @@ from app.outreach_activity import (
 from app.pipeline_activity import (
     models as pipeline_activity_models,
 )
-from app.auth import (
-    models as auth_models,
+from app.tools.loader import (
+    load_tools,
 )
-from app.tools.loader import load_tools
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(
+    __name__
+)
 
 
-# Importing these model modules registers their
-# SQLAlchemy tables before create_all runs.
+# Importing these model modules registers
+# their SQLAlchemy tables before create_all
+# runs.
 _ = (
     models,
     auth_models,
@@ -83,8 +89,8 @@ async def lifespan(
 
     if report.error_count:
         logger.warning(
-            "Nestora started with executive "
-            "loading errors: %s",
+            "Nestora started with "
+            "executive loading errors: %s",
             report.to_dict(),
         )
     else:
@@ -140,15 +146,12 @@ app.add_middleware(
 
 register_routes(app)
 
-app.include_router(
-    clinic_router
-)
-
 
 @app.get("/")
 def home():
     return {
         "message": (
-            "Nestora AI backend is running"
+            "Nestora AI backend "
+            "is running"
         ),
     }

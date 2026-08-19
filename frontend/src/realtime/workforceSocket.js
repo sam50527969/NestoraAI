@@ -1,127 +1,239 @@
-const WS_URL = "ws://127.0.0.1:8000/realtime/workforce";
+import {
+  API_BASE_URL,
+} from "../api/client";
+
+import {
+  getAccessToken,
+} from "../auth/session";
+
+const WS_URL = (
+  API_BASE_URL
+    .replace(
+      /^http/,
+      "ws",
+    )
+    .replace(
+      /\/+$/,
+      "",
+    )
+  + "/realtime/workforce"
+);
 
 class WorkforceSocket {
-    constructor() {
-        this.socket = null;
-        this.listeners = new Set();
-        this.connected = false;
-        this.reconnectTimer = null;
-        this.heartbeat = null;
+  constructor() {
+    this.socket = null;
+    this.listeners = new Set();
+    this.connected = false;
+    this.reconnectTimer = null;
+    this.heartbeat = null;
+    this.manuallyClosed = false;
+  }
+
+  connect() {
+    const token = getAccessToken();
+
+    if (!token) {
+      this.notify({
+        event:
+          "socket.authentication_required",
+      });
+
+      return;
     }
 
-    connect() {
+    if (
+      this.socket &&
+      (
+        this.socket.readyState
+          === WebSocket.OPEN ||
+        this.socket.readyState
+          === WebSocket.CONNECTING
+      )
+    ) {
+      return;
+    }
+
+    this.manuallyClosed = false;
+
+    this.socket = new WebSocket(
+      WS_URL
+    );
+
+    this.socket.onopen = () => {
+      const currentToken =
+        getAccessToken();
+
+      if (!currentToken) {
+        this.socket.close(
+          4401,
+          "Authentication required",
+        );
+
+        return;
+      }
+
+      this.socket.send(
+        JSON.stringify({
+          event:
+            "socket.authenticate",
+          token: currentToken,
+        }),
+      );
+    };
+
+    this.socket.onmessage = (
+      event,
+    ) => {
+      try {
+        const message = JSON.parse(
+          event.data
+        );
+
         if (
-            this.socket &&
-            (
-                this.socket.readyState === WebSocket.OPEN ||
-                this.socket.readyState === WebSocket.CONNECTING
-            )
+          message.event
+          === "socket.authenticated"
         ) {
-            return;
+          this.connected = true;
+
+          this.notify({
+            event:
+              "socket.connected",
+          });
+
+          this.startHeartbeat();
+
+          return;
         }
 
-        this.socket = new WebSocket(WS_URL);
+        this.notify(message);
+      } catch (error) {
+        console.error(
+          "Realtime message error",
+          error,
+        );
+      }
+    };
 
-        this.socket.onopen = () => {
-            console.log("✅ Workforce WebSocket connected");
+    this.socket.onerror = (
+      error,
+    ) => {
+      console.error(
+        "Workforce WebSocket error",
+        error,
+      );
+    };
 
-            this.connected = true;
+    this.socket.onclose = (
+      event,
+    ) => {
+      this.connected = false;
+      this.socket = null;
 
-            this.notify({
-                event: "socket.connected",
-            });
+      this.stopHeartbeat();
 
-            this.startHeartbeat();
-        };
-
-        this.socket.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-
-                this.notify(message);
-
-            } catch (err) {
-                console.error(
-                    "Realtime message error",
-                    err,
-                );
-            }
-        };
-
-        this.socket.onerror = (err) => {
-            console.error(err);
-        };
-
-        this.socket.onclose = () => {
-            console.log(
-                "❌ Workforce WebSocket disconnected",
-            );
-
-            this.connected = false;
-
-            this.notify({
-                event: "socket.disconnected",
-            });
-
-            this.stopHeartbeat();
-
-            this.scheduleReconnect();
-        };
-    }
-
-    notify(message) {
-        this.listeners.forEach((listener) => {
-            listener(message);
+      if (event.code === 4401) {
+        this.notify({
+          event:
+            "socket.unauthorized",
         });
+
+        return;
+      }
+
+      this.notify({
+        event:
+          "socket.disconnected",
+      });
+
+      if (!this.manuallyClosed) {
+        this.scheduleReconnect();
+      }
+    };
+  }
+
+  notify(message) {
+    this.listeners.forEach(
+      (listener) => {
+        listener(message);
+      },
+    );
+  }
+
+  scheduleReconnect() {
+    if (
+      this.reconnectTimer ||
+      !getAccessToken()
+    ) {
+      return;
     }
 
-    scheduleReconnect() {
-        if (this.reconnectTimer) return;
+    this.reconnectTimer =
+      setTimeout(() => {
+        this.reconnectTimer = null;
+        this.connect();
+      }, 3000);
+  }
 
-        this.reconnectTimer = setTimeout(() => {
-            this.reconnectTimer = null;
-            this.connect();
-        }, 3000);
-    }
+  startHeartbeat() {
+    this.stopHeartbeat();
 
-    startHeartbeat() {
-        this.stopHeartbeat();
-
-        this.heartbeat = setInterval(() => {
-            if (
-                this.socket &&
-                this.socket.readyState === WebSocket.OPEN
-            ) {
-                this.socket.send("ping");
-            }
-        }, 30000);
-    }
-
-    stopHeartbeat() {
-        if (this.heartbeat) {
-            clearInterval(this.heartbeat);
-            this.heartbeat = null;
+    this.heartbeat =
+      setInterval(() => {
+        if (
+          this.socket &&
+          this.socket.readyState
+            === WebSocket.OPEN &&
+          this.connected
+        ) {
+          this.socket.send(
+            "ping"
+          );
         }
+      }, 30000);
+  }
+
+  stopHeartbeat() {
+    if (this.heartbeat) {
+      clearInterval(
+        this.heartbeat
+      );
+
+      this.heartbeat = null;
+    }
+  }
+
+  subscribe(listener) {
+    this.listeners.add(
+      listener
+    );
+
+    return () => {
+      this.listeners.delete(
+        listener
+      );
+    };
+  }
+
+  disconnect() {
+    this.manuallyClosed = true;
+
+    if (this.reconnectTimer) {
+      clearTimeout(
+        this.reconnectTimer
+      );
+
+      this.reconnectTimer = null;
     }
 
-    subscribe(listener) {
-        this.listeners.add(listener);
+    this.stopHeartbeat();
 
-        return () => {
-            this.listeners.delete(listener);
-        };
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
     }
 
-    disconnect() {
-        this.stopHeartbeat();
-
-        if (this.socket) {
-            this.socket.close();
-            this.socket = null;
-        }
-
-        this.connected = false;
-    }
+    this.connected = false;
+  }
 }
 
 export default new WorkforceSocket();

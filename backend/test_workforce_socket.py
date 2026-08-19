@@ -1,26 +1,78 @@
 import asyncio
 import json
+import os
 
 import websockets
 
 
-async def main():
-    uri = "ws://127.0.0.1:8000/realtime/workforce"
+async def main() -> None:
+    token = os.getenv(
+        "NESTORA_ACCESS_TOKEN",
+        "",
+    ).strip()
 
-    async with websockets.connect(uri) as ws:
-        print("✅ Connected")
+    if not token:
+        raise RuntimeError(
+            "Set NESTORA_ACCESS_TOKEN "
+            "before running this script."
+        )
 
-        data = await ws.recv()
+    uri = (
+        "ws://127.0.0.1:8000"
+        "/realtime/workforce"
+    )
 
-        print("\nSnapshot:")
-        print(json.dumps(json.loads(data), indent=2))
+    async with websockets.connect(
+        uri
+    ) as websocket:
+        await websocket.send(
+            json.dumps(
+                {
+                    "event":
+                        "socket.authenticate",
+                    "token": token,
+                }
+            )
+        )
 
-        await ws.send("ping")
+        authenticated = (
+            await websocket.recv()
+        )
 
-        response = await ws.recv()
+        print()
+        print("Authentication:")
+        print(
+            json.dumps(
+                json.loads(
+                    authenticated
+                ),
+                indent=2,
+            )
+        )
 
-        print("\nPing:")
+        snapshot = (
+            await websocket.recv()
+        )
+
+        print()
+        print("Snapshot:")
+        print(
+            json.dumps(
+                json.loads(snapshot),
+                indent=2,
+            )
+        )
+
+        await websocket.send("ping")
+
+        response = (
+            await websocket.recv()
+        )
+
+        print()
+        print("Ping:")
         print(response)
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
