@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from app.auth.routes import (
+    router as auth_router,
+)
 from app.approvals.routes import (
     router as ceo_approvals_router,
 )
@@ -98,6 +101,8 @@ def register_routes(
         outreach_activity_router
     )
 
+    app.include_router(auth_router)
+    app.include_router(leads_router)
     app.include_router(sales_ai_router)
     app.include_router(website_router)
     app.include_router(ai_agent_router)

@@ -36,6 +36,9 @@ from app.outreach_activity import (
 from app.pipeline_activity import (
     models as pipeline_activity_models,
 )
+from app.auth import (
+    models as auth_models,
+)
 from app.tools.loader import load_tools
 
 
@@ -46,6 +49,7 @@ logger = logging.getLogger(__name__)
 # SQLAlchemy tables before create_all runs.
 _ = (
     models,
+    auth_models,
     approval_models,
     outreach_activity_models,
     follow_up_activity_models,
