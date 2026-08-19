@@ -6,5 +6,6 @@ sqlalchemy
 alembic
 google-genai
 beautifulsoup4
-pytestPyJWT
+pytest
+PyJWT
 pwdlib[argon2]
