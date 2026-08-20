@@ -8,12 +8,6 @@ from fastapi.middleware.cors import (
     CORSMiddleware,
 )
 
-from app.approvals import (
-    models as approval_models,
-)
-from app.auth import (
-    models as auth_models,
-)
 from app.bootstrap import (
     create_application,
     register_routes,
@@ -26,20 +20,10 @@ from app.core.registry import (
 from app.core.tools import (
     tool_registry,
 )
-from app.database import models
 from app.database.database import (
-    Base,
     engine,
 )
-from app.follow_up_activity import (
-    models as follow_up_activity_models,
-)
-from app.outreach_activity import (
-    models as outreach_activity_models,
-)
-from app.pipeline_activity import (
-    models as pipeline_activity_models,
-)
+from app.database.metadata import metadata
 from app.tools.loader import (
     load_tools,
 )
@@ -50,20 +34,7 @@ logger = logging.getLogger(
 )
 
 
-# Importing these model modules registers
-# their SQLAlchemy tables before create_all
-# runs.
-_ = (
-    models,
-    auth_models,
-    approval_models,
-    outreach_activity_models,
-    follow_up_activity_models,
-    pipeline_activity_models,
-)
-
-
-Base.metadata.create_all(
+metadata.create_all(
     bind=engine,
 )
 

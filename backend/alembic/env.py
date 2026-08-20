@@ -11,15 +11,18 @@ from alembic import context
 BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(BASE_DIR))
 
-from app.database.database import Base
-from app.database import models  # noqa: F401
+from app.config import DATABASE_URL
+from app.database.configuration import configure_alembic_database_url
+from app.database.metadata import metadata
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+configure_alembic_database_url(config, DATABASE_URL)
+
+target_metadata = metadata
 
 
 def run_migrations_offline() -> None:
