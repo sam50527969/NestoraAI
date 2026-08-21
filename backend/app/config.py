@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./nestora.db",
+)
+
 
 APP_NAME = os.getenv(
     "APP_NAME",

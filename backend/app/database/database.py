@@ -1,20 +1,14 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import (
     declarative_base,
     sessionmaker,
 )
 
+from app.config import DATABASE_URL
+from app.database.configuration import create_database_engine
 
-DATABASE_URL = "sqlite:///./nestora.db"
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={
-        "check_same_thread": False,
-    },
-)
+engine = create_database_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
     autocommit=False,
