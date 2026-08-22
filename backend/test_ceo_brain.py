@@ -5,8 +5,7 @@ from app.executives.ceo import (
 )
 
 
-def main():
-    # Simulated company state
+def build_company_state() -> CompanyState:
     state = CompanyState()
 
     state.crm = DepartmentState(
@@ -14,12 +13,8 @@ def main():
         status="warning",
         health_score=35,
         summary="Lead pipeline is shrinking.",
-        risks=[
-            "Only 12 active leads remain."
-        ],
-        opportunities=[
-            "Import 250 new restaurant leads."
-        ],
+        risks=["Only 12 active leads remain."],
+        opportunities=["Import 250 new restaurant leads."],
     )
 
     state.marketing = DepartmentState(
@@ -27,9 +22,7 @@ def main():
         status="healthy",
         health_score=82,
         summary="Campaign performance improving.",
-        opportunities=[
-            "Launch new restaurant campaign."
-        ],
+        opportunities=["Launch new restaurant campaign."],
     )
 
     state.critical_risks.append(
@@ -40,10 +33,22 @@ def main():
         "Expand into dental clinic market."
     )
 
-    # Calculate overall company health
+    return state
+
+
+def test_company_state_calculates_overall_health():
+    state = build_company_state()
+
+    score = state.calculate_overall_health()
+
+    assert score == 58.5
+    assert state.overall_health_score == 58.5
+
+
+def test_ceo_brain_creates_ranked_executive_plan():
+    state = build_company_state()
     state.calculate_overall_health()
 
-    # Run CEO Brain
     ceo = CEOBrain()
 
     plan = ceo.evaluate(
@@ -51,34 +56,59 @@ def main():
         objective="Increase monthly revenue",
     )
 
-    print("=" * 60)
-    print("NESTORA CEO BRAIN")
-    print("=" * 60)
+    assert plan.objective == "Increase monthly revenue"
+    assert plan.actions
+    assert plan.recommendations
 
-    print(f"\nOverall Health: {state.overall_health_score}")
+    scores = [
+        recommendation.calculate_final_score()
+        for recommendation in plan.recommendations
+    ]
 
-    print("\nExecutive Summary")
-    print("-----------------")
-    print(plan.summary)
+    assert scores == sorted(scores, reverse=True)
 
-    print("\nTop Recommendations")
-    print("-------------------")
-
-    for recommendation in plan.recommendations:
-        print(
-            f"[{recommendation.calculate_final_score():5.2f}] "
-            f"{recommendation.department} | "
-            f"{recommendation.title}"
-        )
-
-    print("\nExecutive Actions")
-    print("-----------------")
-
-    for action in plan.actions:
-        print(
-            f"→ {action.department}: {action.title}"
-        )
+    assert plan.recommendations[0].action_type == "critical_risk"
+    assert plan.recommendations[0].department == "CEO"
 
 
-if __name__ == "__main__":
-    main()
+def test_ceo_brain_limits_plan_to_five_actions():
+    state = build_company_state()
+
+    state.crm.risks.extend(
+        [
+            "CRM risk two.",
+            "CRM risk three.",
+            "CRM risk four.",
+        ]
+    )
+
+    ceo = CEOBrain()
+    plan = ceo.evaluate(state)
+
+    assert plan.metadata["total_recommendations_received"] == 9
+    assert plan.metadata["actions_created"] == 5
+    assert len(plan.recommendations) == 5
+    assert len(plan.actions) == 5
+
+
+def test_ceo_actions_require_approval():
+    state = build_company_state()
+
+    ceo = CEOBrain()
+    plan = ceo.evaluate(state)
+
+    assert plan.actions
+    assert all(action.requires_approval for action in plan.actions)
+
+
+def test_ceo_brain_handles_empty_company_state():
+    state = CompanyState()
+
+    assert state.calculate_overall_health() == 0.0
+
+    ceo = CEOBrain()
+    plan = ceo.evaluate(state)
+
+    assert plan.actions == []
+    assert plan.recommendations == []
+    assert "No immediate executive actions" in plan.summary
