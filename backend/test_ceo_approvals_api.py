@@ -106,7 +106,9 @@ def approval_api(
     )
 
     app = FastAPI()
-    app.include_router(approval_router)
+    app.include_router(
+        approval_router
+    )
 
     with TestClient(app) as client:
         yield client, session_factory
@@ -266,7 +268,10 @@ def test_create_list_and_get_approval(
         },
     )
 
-    assert list_response.status_code == 200
+    assert (
+        list_response.status_code
+        == 200
+    )
 
     approvals = list_response.json()
 
@@ -320,7 +325,10 @@ def test_approve_and_prevent_second_decision(
         approval_uid,
     )
 
-    assert approved["status"] == "approved"
+    assert (
+        approved["status"]
+        == "approved"
+    )
     assert (
         approved["reviewed_by"]
         == "CEO"
@@ -385,7 +393,10 @@ def test_rejected_approval_cannot_execute(
         },
     )
 
-    assert reject_response.status_code == 200
+    assert (
+        reject_response.status_code
+        == 200
+    )
     assert (
         reject_response.json()["status"]
         == "rejected"
@@ -398,7 +409,10 @@ def test_rejected_approval_cannot_execute(
         )
     )
 
-    assert execute_response.status_code == 409
+    assert (
+        execute_response.status_code
+        == 409
+    )
 
     assert execute_response.json() == {
         "detail": (
@@ -445,12 +459,23 @@ def test_execute_approved_crm_outreach(
         )
     )
 
-    assert execute_response.status_code == 200
+    assert (
+        execute_response.status_code
+        == 200
+    )
 
-    executed = execute_response.json()
+    executed = (
+        execute_response.json()
+    )
 
-    assert executed["status"] == "executed"
-    assert executed["executed_at"] is not None
+    assert (
+        executed["status"]
+        == "executed"
+    )
+    assert (
+        executed["executed_at"]
+        is not None
+    )
 
     execution_result = (
         executed["payload"][
@@ -485,7 +510,10 @@ def test_execute_approved_crm_outreach(
         ]
     )
 
-    assert len(outreach_packages) == 1
+    assert (
+        len(outreach_packages)
+        == 1
+    )
     assert (
         outreach_packages[0][
             "lead_id"
@@ -503,7 +531,9 @@ def test_execute_approved_crm_outreach(
 
     try:
         activity = (
-            db.query(OutreachActivity)
+            db.query(
+                OutreachActivity
+            )
             .filter(
                 OutreachActivity.approval_uid
                 == approval_uid
@@ -511,7 +541,10 @@ def test_execute_approved_crm_outreach(
             .one()
         )
 
-        assert activity.lead_id == lead_id
+        assert (
+            activity.lead_id
+            == lead_id
+        )
         assert (
             activity.lead_name
             == "Gulf Neon Advertising"
@@ -555,12 +588,14 @@ def test_unsupported_action_cannot_execute(
     created = create_approval(
         client,
         title="Unsupported executive action",
-        decision_type="executive_action",
+        decision_type="unknown_action",
         source_uid=(
             "report_test_unsupported"
         ),
         payload={
-            "message": "No executor exists.",
+            "message": (
+                "No executor exists."
+            ),
         },
     )
 
@@ -580,13 +615,16 @@ def test_unsupported_action_cannot_execute(
         )
     )
 
-    assert execute_response.status_code == 409
+    assert (
+        execute_response.status_code
+        == 409
+    )
 
     assert execute_response.json() == {
         "detail": (
             "No approved-action executor "
             "is registered for "
-            "'executive_action'."
+            "'unknown_action'."
         )
     }
 
@@ -600,7 +638,10 @@ def test_missing_approval_returns_404(
 
     responses = [
         client.get(
-            f"/ceo-approvals/{missing_uid}"
+            (
+                f"/ceo-approvals/"
+                f"{missing_uid}"
+            )
         ),
         client.post(
             (
@@ -629,7 +670,10 @@ def test_missing_approval_returns_404(
     ]
 
     for response in responses:
-        assert response.status_code == 404
+        assert (
+            response.status_code
+            == 404
+        )
 
         assert response.json() == {
             "detail": (

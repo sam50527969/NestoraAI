@@ -7,11 +7,17 @@ from app.approvals.service import (
     parse_payload,
     serialize_approval,
 )
+from app.core.execution.execution_service import (
+    execution_service,
+)
 from app.database.database import (
     SessionLocal,
     utc_now,
 )
 from app.database.models import Lead
+from app.executives.ceo.serialization import (
+    deserialize_executive_plan,
+)
 from app.outreach_activity.service import (
     save_prepared_outreach,
 )
@@ -33,11 +39,11 @@ INVALID_LEAD_NAMES = {
 }
 
 MOJIBAKE_MARKERS = (
-    "Ãƒ",
-    "Ã‚",
-    "Ã˜",
-    "Ã™",
-    "ï¿½",
+    "ÃƒÆ’",
+    "Ãƒâ€š",
+    "ÃƒËœ",
+    "Ãƒâ„¢",
+    "Ã¯Â¿Â½",
 )
 
 
@@ -371,7 +377,62 @@ def build_crm_outreach_action(
     }
 
 
-def execute_action(
+async def execute_executive_action(
+    db,
+    payload: dict[str, Any],
+    approval_uid: str,
+) -> dict[str, Any]:
+    plan_payload = payload.get(
+        "executive_plan"
+    )
+
+    if not isinstance(
+        plan_payload,
+        dict,
+    ):
+        raise ValueError(
+            "Executive action payload must "
+            "contain an executive_plan."
+        )
+
+    plan = deserialize_executive_plan(
+        plan_payload
+    )
+
+    result = await (
+        execution_service.execute_plan(
+            plan
+        )
+    )
+
+    return {
+        "action_type": "executive_action",
+        "status": (
+            "completed"
+            if result.success
+            else "failed"
+        ),
+        "success": result.success,
+        "mission_id": (
+            result.mission.id
+        ),
+        "mission_title": (
+            result.mission.title
+        ),
+        "workflow_id": (
+            result.workflow.id
+        ),
+        "completed_task_count": (
+            result.completed_task_count
+        ),
+        "failed_task_count": (
+            result.failed_task_count
+        ),
+        "error": result.error,
+    }
+
+
+async def execute_action(
     decision_type: str,
     db,
     payload: dict[str, Any],
@@ -385,6 +446,18 @@ def execute_action(
             "_",
         )
     )
+
+    if (
+        normalized_type
+        == "executive_action"
+    ):
+        return (
+            await execute_executive_action(
+                db,
+                payload,
+                approval_uid,
+            )
+        )
 
     handlers = {
         "crm_outreach": (
@@ -410,7 +483,7 @@ def execute_action(
     )
 
 
-def execute_approval(
+async def execute_approval(
     approval_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
@@ -444,7 +517,7 @@ def execute_approval(
         )
 
         execution_result = (
-            execute_action(
+            await execute_action(
                 approval.decision_type,
                 db,
                 payload,
@@ -465,7 +538,9 @@ def execute_approval(
         )
 
         approval.status = "executed"
-        approval.executed_at = utc_now()
+        approval.executed_at = (
+            utc_now()
+        )
 
         db.commit()
         db.refresh(approval)
