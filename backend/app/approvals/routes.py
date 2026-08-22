@@ -133,11 +133,11 @@ def reject_request(
     "/{approval_uid}/execute",
     response_model=ApprovalResponse,
 )
-def execute_approved_request(
+async def execute_approved_request(
     approval_uid: str,
 ):
     try:
-        return execute_approval(
+        return await execute_approval(
             approval_uid
         )
     except LookupError as error:
