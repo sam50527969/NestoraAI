@@ -1,16 +1,28 @@
+from __future__ import annotations
+
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.executives.ceo import CEOBrain
-from app.executives.ceo.state_builder import CEOCompanyStateBuilder
+from app.executives.ceo.models import (
+    ExecutivePlan,
+)
+from app.executives.ceo.orchestrator import (
+    CEOExecutionOrchestrator,
+)
+from app.executives.ceo.state_builder import (
+    CEOCompanyStateBuilder,
+)
 
 
-def ask_ceo(
+def build_ceo_plan(
     db: Session,
-    question: str,
-) -> dict[str, str]:
+    objective: str,
+) -> ExecutivePlan:
     """
-    Answer a CEO question using live Nestora business data
-    and the modern executive CEO Brain.
+    Build an executive plan from live Nestora
+    company data.
     """
 
     company_state = CEOCompanyStateBuilder(
@@ -19,9 +31,24 @@ def ask_ceo(
 
     brain = CEOBrain()
 
-    plan = brain.evaluate(
+    return brain.evaluate(
         company_state=company_state,
-        objective=question,
+        objective=objective,
+    )
+
+
+def ask_ceo(
+    db: Session,
+    question: str,
+) -> dict[str, str]:
+    """
+    Answer a CEO question using live Nestora
+    business data.
+    """
+
+    plan = build_ceo_plan(
+        db,
+        question,
     )
 
     return {
@@ -31,8 +58,76 @@ def ask_ceo(
     }
 
 
+def prepare_ceo_plan(
+    db: Session,
+    objective: str,
+    *,
+    source_uid: str | None = None,
+) -> dict[str, Any]:
+    """
+    Build a CEO plan and prepare its actions for
+    Nestora's approval and execution lifecycle.
+    """
+
+    plan = build_ceo_plan(
+        db,
+        objective,
+    )
+
+    result = CEOExecutionOrchestrator().prepare_plan(
+        plan,
+        source_uid=source_uid,
+    )
+
+    return {
+        "objective": plan.objective,
+        "summary": plan.summary,
+        "action_count": len(
+            plan.actions
+        ),
+        "recommendation_count": len(
+            plan.recommendations
+        ),
+        "approval_count": (
+            result.approval_count
+        ),
+        "executable_count": (
+            result.executable_count
+        ),
+        "requires_approval": (
+            result.requires_approval
+        ),
+        "approvals": [
+            {
+                "approval_uid": approval[
+                    "approval_uid"
+                ],
+                "title": approval["title"],
+                "status": approval["status"],
+            }
+            for approval in result.approvals
+        ],
+        "executable_actions": [
+            {
+                "title": action.title,
+                "department": (
+                    action.department
+                ),
+                "instruction": (
+                    action.instruction
+                ),
+                "recommendation_score": (
+                    action.recommendation_score
+                ),
+            }
+            for action
+            in result.executable_actions
+        ],
+    }
+
+
 def _format_executive_answer(
-    plan,
+    plan: ExecutivePlan,
 ) -> str:
     parts = [
         plan.summary,
