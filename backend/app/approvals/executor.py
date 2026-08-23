@@ -18,6 +18,9 @@ from app.database.models import Lead
 from app.executives.ceo.serialization import (
     deserialize_executive_plan,
 )
+from app.execution_history.service import (
+    save_execution_record,
+)
 from app.outreach_activity.service import (
     save_prepared_outreach,
 )
@@ -405,7 +408,7 @@ async def execute_executive_action(
         )
     )
 
-    return {
+    execution_result = {
         "action_type": "executive_action",
         "status": (
             "completed"
@@ -431,6 +434,22 @@ async def execute_executive_action(
         "error": result.error,
     }
 
+    execution_record = (
+        save_execution_record(
+            db,
+            approval_uid=approval_uid,
+            objective=plan.objective,
+            execution_result=(
+                execution_result
+            ),
+        )
+    )
+
+    execution_result[
+        "execution_uid"
+    ] = execution_record.execution_uid
+
+    return execution_result
 
 async def execute_action(
     decision_type: str,

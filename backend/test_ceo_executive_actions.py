@@ -1,4 +1,13 @@
 import asyncio
+from collections.abc import Generator
+from pathlib import Path
+
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import (
+    Session,
+    sessionmaker,
+)
 
 from app.approvals.executor import (
     execute_action,
@@ -8,6 +17,10 @@ from app.core.execution.execution_service import (
 )
 from app.core.execution.executive_registry import (
     executive_registry,
+)
+from app.database.database import Base
+from app.execution_history.models import (
+    CEOExecutionRecord,
 )
 from app.executives.ceo.models import (
     ExecutiveAction,
@@ -44,6 +57,46 @@ class MarketingExecutive:
                 "instruction"
             ],
         }
+
+
+@pytest.fixture
+def db_session(
+    tmp_path: Path,
+) -> Generator[Session, None, None]:
+    database_path = (
+        tmp_path
+        / "ceo-execution-test.db"
+    )
+
+    engine = create_engine(
+        f"sqlite:///{database_path}",
+        connect_args={
+            "check_same_thread": False,
+        },
+    )
+
+    Base.metadata.create_all(
+        bind=engine
+    )
+
+    session_factory = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
+    )
+
+    db = session_factory()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+        Base.metadata.drop_all(
+            bind=engine
+        )
+
+        engine.dispose()
 
 
 def build_test_plan() -> ExecutivePlan:
@@ -112,27 +165,39 @@ def teardown_executives() -> None:
     executive_registry.clear()
 
 
-def test_executive_action_executes_plan():
+def execute_test_plan(
+    db: Session,
+    approval_uid: str,
+):
+    plan = build_test_plan()
+
+    payload = {
+        "executive_plan": (
+            serialize_executive_plan(
+                plan
+            )
+        )
+    }
+
+    return asyncio.run(
+        execute_action(
+            "executive_action",
+            db,
+            payload,
+            approval_uid,
+        )
+    )
+
+
+def test_executive_action_executes_plan(
+    db_session,
+):
     setup_executives()
 
     try:
-        plan = build_test_plan()
-
-        payload = {
-            "executive_plan": (
-                serialize_executive_plan(
-                    plan
-                )
-            )
-        }
-
-        result = asyncio.run(
-            execute_action(
-                "executive_action",
-                None,
-                payload,
-                "apr_test_execution",
-            )
+        result = execute_test_plan(
+            db_session,
+            "apr_test_execution",
         )
 
         assert (
@@ -159,32 +224,21 @@ def test_executive_action_executes_plan():
 
         assert result["mission_id"]
         assert result["workflow_id"]
+        assert result["execution_uid"]
 
     finally:
         teardown_executives()
 
 
-def test_executive_action_builds_real_mission():
+def test_executive_action_builds_real_mission(
+    db_session,
+):
     setup_executives()
 
     try:
-        plan = build_test_plan()
-
-        payload = {
-            "executive_plan": (
-                serialize_executive_plan(
-                    plan
-                )
-            )
-        }
-
-        result = asyncio.run(
-            execute_action(
-                "executive_action",
-                None,
-                payload,
-                "apr_test_mission",
-            )
+        result = execute_test_plan(
+            db_session,
+            "apr_test_mission",
         )
 
         mission = (
@@ -212,27 +266,15 @@ def test_executive_action_builds_real_mission():
         teardown_executives()
 
 
-def test_executive_action_executes_departments():
+def test_executive_action_executes_departments(
+    db_session,
+):
     setup_executives()
 
     try:
-        plan = build_test_plan()
-
-        payload = {
-            "executive_plan": (
-                serialize_executive_plan(
-                    plan
-                )
-            )
-        }
-
-        result = asyncio.run(
-            execute_action(
-                "executive_action",
-                None,
-                payload,
-                "apr_test_departments",
-            )
+        result = execute_test_plan(
+            db_session,
+            "apr_test_departments",
         )
 
         workflow = (
@@ -261,35 +303,134 @@ def test_executive_action_executes_departments():
         teardown_executives()
 
 
-def test_missing_executive_plan_is_rejected():
+def test_execution_result_is_persisted(
+    db_session,
+):
     setup_executives()
 
     try:
-        try:
+        result = execute_test_plan(
+            db_session,
+            "apr_test_persistence",
+        )
+
+        record = (
+            db_session.query(
+                CEOExecutionRecord
+            )
+            .filter(
+                CEOExecutionRecord.approval_uid
+                == "apr_test_persistence"
+            )
+            .one()
+        )
+
+        assert (
+            record.execution_uid
+            == result["execution_uid"]
+        )
+
+        assert (
+            record.objective
+            == "Recover inactive customers"
+        )
+
+        assert (
+            record.mission_id
+            == result["mission_id"]
+        )
+
+        assert (
+            record.workflow_id
+            == result["workflow_id"]
+        )
+
+        assert record.status == "completed"
+        assert record.success is True
+
+        assert (
+            record.completed_task_count
+            == 2
+        )
+
+        assert (
+            record.failed_task_count
+            == 0
+        )
+
+        assert record.result_json
+
+    finally:
+        teardown_executives()
+
+
+def test_duplicate_execution_record_is_not_created(
+    db_session,
+):
+    setup_executives()
+
+    try:
+        first = execute_test_plan(
+            db_session,
+            "apr_test_duplicate",
+        )
+
+        second = execute_test_plan(
+            db_session,
+            "apr_test_duplicate",
+        )
+
+        records = (
+            db_session.query(
+                CEOExecutionRecord
+            )
+            .filter(
+                CEOExecutionRecord.approval_uid
+                == "apr_test_duplicate"
+            )
+            .all()
+        )
+
+        assert len(records) == 1
+
+        assert (
+            first["execution_uid"]
+            == second["execution_uid"]
+        )
+
+    finally:
+        teardown_executives()
+
+
+def test_missing_executive_plan_is_rejected(
+    db_session,
+):
+    setup_executives()
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Executive action payload must "
+                "contain an executive_plan."
+            ),
+        ):
             asyncio.run(
                 execute_action(
                     "executive_action",
-                    None,
+                    db_session,
                     {},
                     "apr_test_missing",
                 )
-            )
-        except ValueError as error:
-            assert str(error) == (
-                "Executive action payload "
-                "must contain an "
-                "executive_plan."
-            )
-        else:
-            raise AssertionError(
-                "Expected ValueError."
             )
 
     finally:
         teardown_executives()
 
 
-def test_unregistered_department_fails_execution():
+def test_unregistered_department_fails_execution(
+    db_session,
+):
     execution_service.clear()
     executive_registry.clear()
 
@@ -304,9 +445,7 @@ def test_unregistered_department_fails_execution():
             ),
             actions=[
                 ExecutiveAction(
-                    title=(
-                        "Run finance action"
-                    ),
+                    title="Run finance action",
                     department="Finance",
                     instruction=(
                         "Prepare financial "
@@ -315,9 +454,7 @@ def test_unregistered_department_fails_execution():
                     recommendation_score=90.0,
                     requires_approval=True,
                     metadata={
-                        "priority_level": (
-                            "high"
-                        ),
+                        "priority_level": "high",
                     },
                 )
             ],
@@ -334,18 +471,14 @@ def test_unregistered_department_fails_execution():
         result = asyncio.run(
             execute_action(
                 "executive_action",
-                None,
+                db_session,
                 payload,
                 "apr_test_failure",
             )
         )
 
         assert result["success"] is False
-
-        assert (
-            result["status"]
-            == "failed"
-        )
+        assert result["status"] == "failed"
 
         assert (
             result["completed_task_count"]
@@ -355,6 +488,26 @@ def test_unregistered_department_fails_execution():
         assert (
             result["failed_task_count"]
             == 1
+        )
+
+        record = (
+            db_session.query(
+                CEOExecutionRecord
+            )
+            .filter(
+                CEOExecutionRecord.approval_uid
+                == "apr_test_failure"
+            )
+            .one()
+        )
+
+        assert record.success is False
+        assert record.status == "failed"
+        assert record.failed_task_count == 1
+
+        assert (
+            record.execution_uid
+            == result["execution_uid"]
         )
 
     finally:

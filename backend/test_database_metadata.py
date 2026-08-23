@@ -7,6 +7,7 @@ EXPECTED_TABLES = {
     "agent_tasks",
     "businesses",
     "ceo_approvals",
+    "ceo_execution_records",
     "clinic_leads",
     "collaboration_contributions",
     "collaboration_sessions",
@@ -27,7 +28,7 @@ def test_canonical_metadata_has_exact_table_inventory():
     from app.database.metadata import metadata
 
     assert set(metadata.tables) == EXPECTED_TABLES
-    assert len(metadata.tables) == 16
+    assert len(metadata.tables) == 17
 
 
 def test_canonical_metadata_table_names_are_unique():

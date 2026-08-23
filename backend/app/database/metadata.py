@@ -7,6 +7,7 @@ from app.collaboration import models as collaboration_models
 from app.communication import models as communication_models
 from app.database import models as database_models
 from app.database.database import Base
+from app.execution_history import models as execution_history_models
 from app.follow_up_activity import models as follow_up_activity_models
 from app.memory import models as memory_models
 from app.outreach_activity import models as outreach_activity_models
@@ -20,6 +21,7 @@ _MAPPED_MODEL_MODULES = (
     collaboration_models,
     communication_models,
     database_models,
+    execution_history_models,
     follow_up_activity_models,
     memory_models,
     outreach_activity_models,
