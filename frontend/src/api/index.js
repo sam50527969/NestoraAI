@@ -76,3 +76,9 @@ export {
   loginAccount,
   registerAccount,
 } from "./auth";
+
+export {
+  getCEOExecution,
+  getCEOExecutionByApproval,
+  getCEOExecutions,
+} from "./ceoExecutions";

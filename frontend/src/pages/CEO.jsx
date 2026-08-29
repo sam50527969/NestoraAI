@@ -1,10 +1,11 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useState,
 } from "react";
 
 import CEOApprovalQueue from "../components/agents/ceo/CEOApprovalQueue";
+import CEOExecutionHistory from "../components/agents/ceo/CEOExecutionHistory";
 import CEOChat from "../components/agents/ceo/CEOChat";
 import CEOOutreachHistory from "../components/agents/ceo/CEOOutreachHistory";
 import CEORecommendationActions from "../components/agents/ceo/CEORecommendationActions";
@@ -298,6 +299,8 @@ export default function CEO() {
           <CEOApprovalQueue
             key={approvalQueueVersion}
           />
+
+          <CEOExecutionHistory />
 
           <CEOOutreachHistory />
           <CEOPipelineSummary />
