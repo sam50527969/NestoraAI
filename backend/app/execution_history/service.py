@@ -100,3 +100,65 @@ def save_execution_record(
     db.refresh(record)
 
     return record
+
+
+def get_execution_record(
+    db: Session,
+    execution_uid: str,
+) -> CEOExecutionRecord | None:
+    """Return one execution record by UID."""
+
+    return (
+        db.query(CEOExecutionRecord)
+        .filter(
+            CEOExecutionRecord.execution_uid
+            == execution_uid
+        )
+        .first()
+    )
+
+
+def get_execution_record_by_approval(
+    db: Session,
+    approval_uid: str,
+) -> CEOExecutionRecord | None:
+    """Return the execution for an approval."""
+
+    return (
+        db.query(CEOExecutionRecord)
+        .filter(
+            CEOExecutionRecord.approval_uid
+            == approval_uid
+        )
+        .first()
+    )
+
+
+def list_execution_records(
+    db: Session,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[CEOExecutionRecord]:
+    """Return recent CEO executions."""
+
+    safe_limit = max(
+        1,
+        min(limit, 100),
+    )
+
+    safe_offset = max(
+        0,
+        offset,
+    )
+
+    return (
+        db.query(CEOExecutionRecord)
+        .order_by(
+            CEOExecutionRecord.created_at.desc(),
+            CEOExecutionRecord.id.desc(),
+        )
+        .offset(safe_offset)
+        .limit(safe_limit)
+        .all()
+    )
