@@ -54,6 +54,10 @@ def test_builder_uses_live_crm_and_mission_data(
     db = Mock()
     builder = CEOCompanyStateBuilder(db)
 
+    builder._memory_service.list_memories = Mock(
+        return_value=[]
+    )
+
     builder._mission_repository.list_all = Mock(
         return_value=[
             make_mission(status="running", progress=50),
@@ -79,6 +83,7 @@ def test_builder_uses_live_crm_and_mission_data(
     assert state.metadata["departments_loaded"] == [
         "CRM",
         "Missions",
+        "Memory",
     ]
 
 
@@ -99,6 +104,10 @@ def test_builder_detects_empty_crm_risk(
 
     db = Mock()
     builder = CEOCompanyStateBuilder(db)
+
+    builder._memory_service.list_memories = Mock(
+        return_value=[]
+    )
 
     builder._mission_repository.list_all = Mock(
         return_value=[]
@@ -123,6 +132,10 @@ def test_builder_detects_mission_failure(
 
     db = Mock()
     builder = CEOCompanyStateBuilder(db)
+
+    builder._memory_service.list_memories = Mock(
+        return_value=[]
+    )
 
     builder._mission_repository.list_all = Mock(
         return_value=[
@@ -153,6 +166,10 @@ def test_builder_collects_business_opportunities(
 
     db = Mock()
     builder = CEOCompanyStateBuilder(db)
+
+    builder._memory_service.list_memories = Mock(
+        return_value=[]
+    )
 
     builder._mission_repository.list_all = Mock(
         return_value=[
@@ -186,3 +203,137 @@ def test_health_status_boundaries():
     assert CEOCompanyStateBuilder._health_status(74.99) == "warning"
     assert CEOCompanyStateBuilder._health_status(40) == "warning"
     assert CEOCompanyStateBuilder._health_status(39.99) == "critical"
+
+
+def make_memory(
+    *,
+    category: str = "strategy",
+    memory: str = "Prioritize qualified healthcare leads.",
+    importance: int = 9,
+):
+    record = Mock()
+    record.category = category
+    record.memory = memory
+    record.importance = importance
+    return record
+
+
+@patch(
+    "app.executives.ceo.state_builder.get_dashboard_summary"
+)
+def test_builder_loads_ceo_executive_memory(
+    mock_dashboard,
+):
+    mock_dashboard.return_value = make_dashboard()
+
+    db = Mock()
+    builder = CEOCompanyStateBuilder(db)
+
+    builder._mission_repository.list_all = Mock(
+        return_value=[]
+    )
+    builder._memory_service.list_memories = Mock(
+        return_value=[
+            make_memory(),
+            make_memory(
+                category="sales",
+                memory="Follow up high-value leads first.",
+                importance=8,
+            ),
+        ]
+    )
+
+    state = builder.build()
+
+    assert state.memory is not None
+    assert state.memory.department == "Memory"
+    assert state.memory.metrics["total"] == 2
+    assert state.memory.metrics["high_importance"] == 2
+
+    assert any(
+        "Prioritize qualified healthcare leads."
+        in opportunity
+        for opportunity in state.memory.opportunities
+    )
+
+    builder._memory_service.list_memories.assert_called_once_with(
+        executive="CEO",
+        limit=10,
+    )
+
+    assert "Memory" in state.metadata["departments_loaded"]
+
+
+@patch(
+    "app.executives.ceo.state_builder.get_dashboard_summary"
+)
+def test_ceo_memory_becomes_decision_context(
+    mock_dashboard,
+):
+    mock_dashboard.return_value = make_dashboard(
+        high_priority_leads=0,
+        pipeline_value=0,
+    )
+
+    db = Mock()
+    builder = CEOCompanyStateBuilder(db)
+
+    builder._mission_repository.list_all = Mock(
+        return_value=[]
+    )
+    builder._memory_service.list_memories = Mock(
+        return_value=[
+            make_memory(
+                category="strategy",
+                memory=(
+                    "Previous campaign showed healthcare "
+                    "leads convert strongly."
+                ),
+                importance=10,
+            )
+        ]
+    )
+
+    state = builder.build()
+
+    from app.executives.ceo import CEOBrain
+
+    plan = CEOBrain().evaluate(
+        company_state=state,
+        objective="Choose the next growth priority",
+    )
+
+    assert any(
+        (
+            "Previous campaign showed healthcare "
+            "leads convert strongly."
+        )
+        in recommendation.description
+        for recommendation in plan.recommendations
+    )
+
+
+@patch(
+    "app.executives.ceo.state_builder.get_dashboard_summary"
+)
+def test_builder_handles_empty_ceo_memory(
+    mock_dashboard,
+):
+    mock_dashboard.return_value = make_dashboard()
+
+    db = Mock()
+    builder = CEOCompanyStateBuilder(db)
+
+    builder._mission_repository.list_all = Mock(
+        return_value=[]
+    )
+    builder._memory_service.list_memories = Mock(
+        return_value=[]
+    )
+
+    state = builder.build()
+
+    assert state.memory is not None
+    assert state.memory.metrics["total"] == 0
+    assert state.memory.opportunities == []
+    assert state.memory.health_score == 100.0

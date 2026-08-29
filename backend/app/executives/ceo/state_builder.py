@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.executives.ceo.state import CompanyState, DepartmentState
+from app.memory.service import ExecutiveMemoryService
 from app.repositories.mission_repository import MissionRepository
 from app.services.dashboard_service import get_dashboard_summary
 
@@ -13,12 +14,14 @@ class CEOCompanyStateBuilder:
     def __init__(self, db: Session) -> None:
         self._db = db
         self._mission_repository = MissionRepository(db)
+        self._memory_service = ExecutiveMemoryService(db)
 
     def build(self) -> CompanyState:
         state = CompanyState()
 
         state.crm = self._build_crm_state()
         state.missions = self._build_mission_state()
+        state.memory = self._build_memory_state()
 
         state.calculate_overall_health()
 
@@ -162,6 +165,55 @@ class CEOCompanyStateBuilder:
                 "average_progress": average_progress,
             },
             risks=risks,
+            opportunities=opportunities,
+        )
+
+    def _build_memory_state(self) -> DepartmentState:
+        memories = self._memory_service.list_memories(
+            executive="CEO",
+            limit=10,
+        )
+
+        total = len(memories)
+
+        if not memories:
+            return DepartmentState(
+                department="Memory",
+                status="healthy",
+                health_score=100.0,
+                summary="No prior CEO executive memories are available.",
+                metrics={
+                    "total": 0,
+                    "high_importance": 0,
+                },
+            )
+
+        high_importance = sum(
+            1
+            for memory in memories
+            if int(memory.importance or 0) >= 8
+        )
+
+        opportunities = [
+            (
+                f"Prior CEO memory [{memory.category}]: "
+                f"{memory.memory}"
+            )
+            for memory in memories
+        ]
+
+        return DepartmentState(
+            department="Memory",
+            status="healthy",
+            health_score=100.0,
+            summary=(
+                f"{total} prior CEO executive "
+                f"memory record(s) loaded."
+            ),
+            metrics={
+                "total": total,
+                "high_importance": high_importance,
+            },
             opportunities=opportunities,
         )
 
