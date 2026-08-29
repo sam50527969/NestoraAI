@@ -57,6 +57,10 @@ def build_business_profile(
         name=request.name,
         industry=request.industry,
         country=request.country,
+        city=request.city,
+        region=request.region,
+        timezone=request.timezone,
+        locale=request.locale,
         size=request.size,
         description=request.description,
         team=BusinessTeam(

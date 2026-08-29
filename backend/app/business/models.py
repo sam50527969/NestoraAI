@@ -147,6 +147,14 @@ class BusinessProfile:
 
     country: str
 
+    city: str | None = None
+
+    region: str | None = None
+
+    timezone: str | None = None
+
+    locale: str | None = None
+
     size: BusinessSize = BusinessSize.SMALL
 
     description: str = ""
