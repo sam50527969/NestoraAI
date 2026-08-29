@@ -24,6 +24,13 @@ from app.schemas.business import (
     BusinessResponse,
     BusinessUpdateRequest,
 )
+from app.repositories.business_workspace_repository import (
+    BusinessWorkspaceRepository,
+)
+from app.services.business_membership_service import (
+    user_can_access_business,
+    user_has_business_role,
+)
 from app.services.business_onboarding_service import (
     BusinessOnboardingService,
 )
@@ -212,16 +219,22 @@ def list_businesses(
         ge=1,
         le=500,
     ),
-    service: BusinessService = Depends(
-        get_business_service
+    current_user: User = Depends(
+        get_current_user
     ),
+    db: Session = Depends(get_db),
 ) -> BusinessListResponse:
     """
     Return paginated business profiles.
     """
 
     try:
-        businesses = service.list_businesses(
+        workspace_repository = (
+            BusinessWorkspaceRepository(db)
+        )
+
+        businesses = workspace_repository.list_for_user(
+            user_uid=current_user.user_uid,
             offset=offset,
             limit=limit,
         )
@@ -256,10 +269,26 @@ def get_business(
     service: BusinessService = Depends(
         get_business_service
     ),
+    current_user: User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
 ) -> BusinessResponse:
     """
     Retrieve one business by public UID.
     """
+
+    if not user_can_access_business(
+        db,
+        user_uid=current_user.user_uid,
+        business_uid=business_uid,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "You do not have access to this business."
+            ),
+        )
 
     business = service.get_business(
         business_uid
@@ -289,10 +318,28 @@ def update_business(
     service: BusinessService = Depends(
         get_business_service
     ),
+    current_user: User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
 ) -> BusinessResponse:
     """
     Replace an existing business profile.
     """
+
+    if not user_has_business_role(
+        db,
+        user_uid=current_user.user_uid,
+        business_uid=business_uid,
+        allowed_roles={"owner", "admin"},
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "You do not have permission "
+                "to update this business."
+            ),
+        )
 
     business = build_business_profile(
         business_uid=business_uid,
@@ -341,22 +388,44 @@ def delete_business(
     service: BusinessService = Depends(
         get_business_service
     ),
+    current_user: User = Depends(
+        get_current_user
+    ),
+    db: Session = Depends(get_db),
 ) -> BusinessDeleteResponse:
     """
     Delete a business profile.
     """
 
-    try:
-        deleted = service.delete_business(
-            business_uid
+    if not user_has_business_role(
+        db,
+        user_uid=current_user.user_uid,
+        business_uid=business_uid,
+        allowed_roles={"owner"},
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Only an owner can delete this business."
+            ),
         )
 
-    except RuntimeError as exc:
+    try:
+        workspace_repository = (
+            BusinessWorkspaceRepository(db)
+        )
+        deleted = workspace_repository.delete_workspace(
+            business_uid=business_uid,
+        )
+
+    except Exception as exc:
         raise HTTPException(
             status_code=(
                 status.HTTP_500_INTERNAL_SERVER_ERROR
             ),
-            detail=str(exc),
+            detail=(
+                "The business workspace could not be deleted."
+            ),
         ) from exc
 
     if not deleted:
