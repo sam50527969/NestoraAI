@@ -5,6 +5,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.business.models import (
     BusinessProfile,
     BusinessTeam,
@@ -21,6 +23,9 @@ from app.schemas.business import (
     BusinessListResponse,
     BusinessResponse,
     BusinessUpdateRequest,
+)
+from app.services.business_onboarding_service import (
+    BusinessOnboardingService,
 )
 from app.services.business_service import BusinessService
 
@@ -144,9 +149,10 @@ def build_business_profile(
 )
 def create_business(
     request: BusinessCreateRequest,
-    service: BusinessService = Depends(
-        get_business_service
+    current_user: User = Depends(
+        get_current_user
     ),
+    db: Session = Depends(get_db),
 ) -> BusinessResponse:
     """
     Create a new business profile.
@@ -162,8 +168,15 @@ def create_business(
     )
 
     try:
-        created = service.create_business(
-            business
+        onboarding = BusinessOnboardingService(
+            db
+        )
+
+        created, _membership = (
+            onboarding.create_business_for_owner(
+                business=business,
+                owner_user_uid=current_user.user_uid,
+            )
         )
 
     except ValueError as exc:

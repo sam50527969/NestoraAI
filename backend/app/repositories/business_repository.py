@@ -34,6 +34,50 @@ class BusinessRepository:
     ) -> None:
         self.db = db
 
+    def add(
+        self,
+        business: BusinessProfile,
+    ) -> Business:
+        """
+        Add a business to the current transaction.
+
+        The caller owns commit or rollback. This is intended
+        for atomic workflows that persist a business together
+        with related records.
+        """
+
+        business.validate()
+
+        if self.exists(business.id):
+            raise ValueError(
+                f"Business '{business.id}' already exists."
+            )
+
+        record = Business(
+            business_uid=business.id,
+        )
+
+        self._apply_profile(
+            record=record,
+            business=business,
+        )
+
+        try:
+            self.db.add(record)
+            self.db.flush()
+
+        except IntegrityError as exc:
+            raise ValueError(
+                f"Business '{business.id}' already exists."
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            raise RuntimeError(
+                "The business could not be created."
+            ) from exc
+
+        return record
+
     def create(
         self,
         business: BusinessProfile,

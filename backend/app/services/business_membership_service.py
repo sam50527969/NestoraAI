@@ -54,6 +54,98 @@ def get_membership(
     )
 
 
+def add_membership(
+    db: Session,
+    *,
+    user_uid: str,
+    business_uid: str,
+    role: str,
+) -> BusinessMembership:
+    """
+    Add a membership to the current transaction.
+
+    The caller owns commit or rollback.
+    """
+
+    clean_user_uid = str(
+        user_uid or ""
+    ).strip()
+
+    clean_business_uid = str(
+        business_uid or ""
+    ).strip()
+
+    if not clean_user_uid:
+        raise ValueError(
+            "User UID is required."
+        )
+
+    if not clean_business_uid:
+        raise ValueError(
+            "Business UID is required."
+        )
+
+    clean_role = normalize_membership_role(
+        role
+    )
+
+    user = (
+        db.query(User)
+        .filter(
+            User.user_uid == clean_user_uid
+        )
+        .first()
+    )
+
+    if user is None:
+        raise ValueError(
+            f"User '{clean_user_uid}' "
+            "does not exist."
+        )
+
+    business = (
+        db.query(Business)
+        .filter(
+            Business.business_uid
+            == clean_business_uid
+        )
+        .first()
+    )
+
+    if business is None:
+        raise ValueError(
+            f"Business '{clean_business_uid}' "
+            "does not exist."
+        )
+
+    existing = get_membership(
+        db,
+        user_uid=clean_user_uid,
+        business_uid=clean_business_uid,
+    )
+
+    if existing is not None:
+        raise ValueError(
+            "This user already has a membership "
+            "for this business."
+        )
+
+    membership = BusinessMembership(
+        membership_uid=(
+            f"mem_{uuid.uuid4().hex[:16]}"
+        ),
+        user_uid=clean_user_uid,
+        business_uid=clean_business_uid,
+        role=clean_role,
+        is_active=True,
+    )
+
+    db.add(membership)
+    db.flush()
+
+    return membership
+
+
 def create_membership(
     db: Session,
     *,
