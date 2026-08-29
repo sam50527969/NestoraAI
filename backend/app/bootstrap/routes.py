@@ -24,6 +24,9 @@ from app.collaboration.routes import (
 from app.communication.routes import (
     router as communication_router,
 )
+from app.execution_history.routes import (
+    router as ceo_execution_history_router,
+)
 from app.follow_up_activity.routes import (
     router as follow_up_activities_router,
 )
@@ -144,6 +147,7 @@ def register_routes(
         ceo_router,
         ceo_advisor_router,
         ceo_approvals_router,
+        ceo_execution_history_router,
         business_router,
         objective_router,
         mission_scheduler.router,
