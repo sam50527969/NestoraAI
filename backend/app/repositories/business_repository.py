@@ -274,6 +274,10 @@ class BusinessRepository:
             name=record.name,
             industry=IndustryType(record.industry),
             country=record.country,
+            city=record.city,
+            region=record.region,
+            timezone=record.timezone,
+            locale=record.locale,
             size=BusinessSize(record.size),
             description=record.description or "",
             team=BusinessTeam(
@@ -359,6 +363,18 @@ class BusinessRepository:
             business.industry
         )
         record.country = business.country.strip()
+        record.city = cls._clean_optional_text(
+            business.city
+        )
+        record.region = cls._clean_optional_text(
+            business.region
+        )
+        record.timezone = cls._clean_optional_text(
+            business.timezone
+        )
+        record.locale = cls._clean_optional_text(
+            business.locale
+        )
         record.size = cls._enum_value(
             business.size
         )
@@ -446,6 +462,21 @@ class BusinessRepository:
         record.metadata_json = cls._serialize_json(
             business.metadata
         )
+
+    @staticmethod
+    def _clean_optional_text(
+        value: str | None,
+    ) -> str | None:
+        """
+        Normalize optional business context text.
+        """
+
+        if value is None:
+            return None
+
+        cleaned = value.strip()
+
+        return cleaned or None
 
     @staticmethod
     def _enum_value(

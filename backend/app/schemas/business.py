@@ -198,6 +198,26 @@ class BusinessCreateRequest(BaseModel):
         examples=["Qatar"],
     )
 
+    city: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    region: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    timezone: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    locale: str | None = Field(
+        default=None,
+        max_length=50,
+    )
+
     size: BusinessSize = Field(
         default=BusinessSize.SMALL,
     )
@@ -258,6 +278,26 @@ class BusinessUpdateRequest(BaseModel):
         max_length=100,
     )
 
+    city: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    region: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    timezone: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+
+    locale: str | None = Field(
+        default=None,
+        max_length=50,
+    )
+
     size: BusinessSize = Field(
         default=BusinessSize.SMALL,
     )
@@ -305,6 +345,14 @@ class BusinessResponse(BaseModel):
 
     country: str
 
+    city: str | None = None
+
+    region: str | None = None
+
+    timezone: str | None = None
+
+    locale: str | None = None
+
     size: BusinessSize
 
     description: str
@@ -335,6 +383,10 @@ class BusinessResponse(BaseModel):
             name=business.name,
             industry=business.industry,
             country=business.country,
+            city=business.city,
+            region=business.region,
+            timezone=business.timezone,
+            locale=business.locale,
             size=business.size,
             description=business.description,
             team=BusinessTeamSchema(

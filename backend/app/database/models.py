@@ -217,6 +217,26 @@ class Business(Base):
         index=True,
     )
 
+    city = Column(
+        String,
+        nullable=True,
+    )
+
+    region = Column(
+        String,
+        nullable=True,
+    )
+
+    timezone = Column(
+        String,
+        nullable=True,
+    )
+
+    locale = Column(
+        String,
+        nullable=True,
+    )
+
     size = Column(
         String,
         nullable=False,
