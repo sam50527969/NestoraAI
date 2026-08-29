@@ -8,6 +8,7 @@ from sqlalchemy import (
     Float,
     Integer,
     String,
+    UniqueConstraint,
     Text,
 )
 
@@ -23,6 +24,12 @@ class Lead(Base):
     id = Column(
         Integer,
         primary_key=True,
+        index=True,
+    )
+
+    business_uid = Column(
+        String,
+        nullable=True,
         index=True,
     )
 
@@ -181,6 +188,76 @@ class Lead(Base):
         onupdate=utc_now,
         nullable=False,
     )
+
+class BusinessMembership(Base):
+    __tablename__ = "business_memberships"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "membership_uid",
+            name=(
+                "uq_business_memberships_"
+                "membership_uid"
+            ),
+        ),
+        UniqueConstraint(
+            "user_uid",
+            "business_uid",
+            name=(
+                "uq_business_memberships_"
+                "user_business"
+            ),
+        ),
+    )
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    membership_uid = Column(
+        String,
+        nullable=False,
+        unique=False,
+    )
+
+    user_uid = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    business_uid = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    role = Column(
+        String,
+        nullable=False,
+    )
+
+    is_active = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+    )
+
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=utc_now,
+    )
+
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=utc_now,
+        onupdate=utc_now,
+    )
+
 
 class Business(Base):
     __tablename__ = "businesses"

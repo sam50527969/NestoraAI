@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.business.context import BusinessContext
 from app.business.models import (
     BusinessProfile,
     BusinessSize,
@@ -94,6 +95,21 @@ class BusinessRepository:
             return None
 
         return self._to_profile(record)
+
+    def get_context(
+        self,
+        business_uid: str,
+    ) -> BusinessContext | None:
+        """
+        Return canonical execution context for one business.
+        """
+
+        business = self.get_by_uid(business_uid)
+
+        if business is None:
+            return None
+
+        return BusinessContext.from_business(business)
 
     def get_all(
         self,

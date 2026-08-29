@@ -5,6 +5,7 @@ from alembic.config import Config
 
 EXPECTED_TABLES = {
     "agent_tasks",
+    "business_memberships",
     "businesses",
     "ceo_approvals",
     "ceo_execution_records",
@@ -28,7 +29,7 @@ def test_canonical_metadata_has_exact_table_inventory():
     from app.database.metadata import metadata
 
     assert set(metadata.tables) == EXPECTED_TABLES
-    assert len(metadata.tables) == 17
+    assert len(metadata.tables) == len(EXPECTED_TABLES)
 
 
 def test_canonical_metadata_table_names_are_unique():
