@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 
 import ProtectedRoute from "./auth/ProtectedRoute";
+import WorkspaceBoundary from "./workspace/WorkspaceBoundary";
 
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
@@ -51,7 +52,9 @@ function ApplicationShell() {
 
       <main className="main">
         <TopBar activePage="Nestora AI" />
-        <Outlet />
+        <WorkspaceBoundary>
+          <Outlet />
+        </WorkspaceBoundary>
       </main>
     </div>
   );
