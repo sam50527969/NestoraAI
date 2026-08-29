@@ -3,6 +3,7 @@ import {
 } from "react-router-dom";
 
 import useAuth from "../auth/useAuth";
+import WorkspaceSelector from "../workspace/WorkspaceSelector";
 
 function getInitials(user) {
   const name =
@@ -94,6 +95,8 @@ function TopBar({
       </div>
 
       <div className="topbar-actions">
+        <WorkspaceSelector />
+
         <button
           type="button"
           className="icon-button"

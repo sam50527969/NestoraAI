@@ -7,6 +7,7 @@ import {
 
 import App from "./App.jsx";
 import AuthProvider from "./auth/AuthProvider";
+import WorkspaceProvider from "./workspace/WorkspaceProvider";
 
 import "./index.css";
 import "./styles/theme.css";
@@ -23,7 +24,9 @@ createRoot(
 ).render(
   <StrictMode>
     <AuthProvider>
-      <App />
+      <WorkspaceProvider>
+        <App />
+      </WorkspaceProvider>
     </AuthProvider>
   </StrictMode>,
 );
