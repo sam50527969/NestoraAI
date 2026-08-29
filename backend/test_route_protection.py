@@ -220,10 +220,27 @@ def test_invalid_token_is_rejected(
     assert response.status_code == 401
 
 
+def test_crm_requires_business_membership(
+    protected_api: TestClient,
+) -> None:
+    token = register_and_login(
+        protected_api
+    )
+
+    response = protected_api.get(
+        "/crm/leads",
+        headers={
+            "Authorization":
+                f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 403
+
+
 @pytest.mark.parametrize(
     "path",
     [
-        "/crm/leads",
         "/dashboard/summary",
         "/clinic/leads",
         "/realtime/workforce",

@@ -108,9 +108,24 @@ def parse_datetime(
     return parsed_value
 
 
+def _apply_business_scope(
+    query,
+    business_uid: str | None,
+):
+    if business_uid is None:
+        return query.filter(
+            Lead.business_uid.is_(None)
+        )
+
+    return query.filter(
+        Lead.business_uid == business_uid
+    )
+
+
 def find_lead_by_name(
     db: Session,
     name: str,
+    business_uid: str | None = None,
 ) -> Lead | None:
     normalized_name = normalize_name(
         name
@@ -119,7 +134,13 @@ def find_lead_by_name(
     if not normalized_name:
         return None
 
-    leads = db.query(Lead).all()
+    leads = (
+        _apply_business_scope(
+            db.query(Lead),
+            business_uid,
+        )
+        .all()
+    )
 
     return next(
         (
@@ -195,9 +216,14 @@ def create_lead(
             "Lead name is required"
         )
 
+    business_uid = values.get(
+        "business_uid"
+    )
+
     existing_lead = find_lead_by_name(
         db,
         name,
+        business_uid=business_uid,
     )
 
     if existing_lead is not None:
@@ -227,9 +253,13 @@ def create_lead(
 
 def get_leads(
     db: Session,
+    business_uid: str | None = None,
 ) -> list[Lead]:
     return (
-        db.query(Lead)
+        _apply_business_scope(
+            db.query(Lead),
+            business_uid,
+        )
         .order_by(
             Lead.created_at.desc(),
             Lead.id.desc(),
@@ -241,9 +271,13 @@ def get_leads(
 def get_lead(
     db: Session,
     lead_id: int,
+    business_uid: str | None = None,
 ) -> Lead | None:
     return (
-        db.query(Lead)
+        _apply_business_scope(
+            db.query(Lead),
+            business_uid,
+        )
         .filter(
             Lead.id == lead_id
         )
@@ -254,11 +288,15 @@ def get_lead(
 def get_due_follow_ups(
     db: Session,
     limit: int = 100,
+    business_uid: str | None = None,
 ) -> list[Lead]:
     now = datetime.utcnow()
 
     candidates = (
-        db.query(Lead)
+        _apply_business_scope(
+            db.query(Lead),
+            business_uid,
+        )
         .filter(
             Lead.status.in_(
                 ACTIVE_FOLLOW_UP_STATUSES
@@ -307,8 +345,15 @@ def get_due_follow_ups(
 
 def get_pipeline_summary(
     db: Session,
+    business_uid: str | None = None,
 ) -> dict[str, Any]:
-    leads = db.query(Lead).all()
+    leads = (
+        _apply_business_scope(
+            db.query(Lead),
+            business_uid,
+        )
+        .all()
+    )
 
     status_counts = {
         status_name: 0
@@ -408,10 +453,12 @@ def update_lead(
     db: Session,
     lead_id: int,
     lead_data: LeadUpdate,
+    business_uid: str | None = None,
 ) -> Lead | None:
     lead = get_lead(
         db,
         lead_id,
+        business_uid=business_uid,
     )
 
     if not lead:

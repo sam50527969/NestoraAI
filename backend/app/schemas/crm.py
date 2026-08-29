@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class LeadBase(BaseModel):
+    business_uid: Optional[str] = None
     name: str
     category: Optional[str] = None
     address: Optional[str] = None

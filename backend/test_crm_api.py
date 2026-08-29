@@ -26,7 +26,16 @@ from app.database.database import (
     Base,
     get_db,
 )
-from app.database.models import Lead
+from app.auth.models import User
+from app.auth.security import (
+    create_access_token,
+    hash_password,
+)
+from app.database.models import (
+    Business,
+    BusinessMembership,
+    Lead,
+)
 from app.pipeline_activity import (
     service as pipeline_service,
 )
@@ -70,6 +79,60 @@ def api_environment(
 
     Base.metadata.create_all(bind=engine)
 
+    setup_db: Session = session_factory()
+
+    try:
+        user = User(
+            user_uid="usr-crm-api-test",
+            email="crm-api@nestora.test",
+            full_name="CRM API Test User",
+            password_hash=hash_password(
+                "StrongPassword123!"
+            ),
+            role="user",
+            is_active=True,
+        )
+
+        business = Business(
+            business_uid="biz-crm-api-test",
+            name="CRM API Test Business",
+            industry="OTHER",
+            country="Australia",
+            currency="AUD",
+        )
+
+        setup_db.add_all(
+            [
+                user,
+                business,
+            ]
+        )
+        setup_db.commit()
+
+        setup_db.add(
+            BusinessMembership(
+                membership_uid=(
+                    "mem-crm-api-test"
+                ),
+                user_uid=user.user_uid,
+                business_uid=(
+                    business.business_uid
+                ),
+                role="owner",
+                is_active=True,
+            )
+        )
+        setup_db.commit()
+
+        user_uid = user.user_uid
+
+    finally:
+        setup_db.close()
+
+    token, _ = create_access_token(
+        user_uid
+    )
+
     monkeypatch.setattr(
         pipeline_service,
         "SessionLocal",
@@ -93,6 +156,13 @@ def api_environment(
     ] = override_get_db
 
     with TestClient(app) as client:
+        client.headers.update(
+            {
+                "Authorization":
+                    f"Bearer {token}",
+            }
+        )
+
         yield client, session_factory
 
     app.dependency_overrides.clear()
