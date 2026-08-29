@@ -121,7 +121,7 @@ class BusinessRepository:
                 "The business could not be created."
             ) from exc
 
-        return self._to_profile(record)
+        return self.to_profile(record)
 
     def get_by_uid(
         self,
@@ -138,7 +138,7 @@ class BusinessRepository:
         if record is None:
             return None
 
-        return self._to_profile(record)
+        return self.to_profile(record)
 
     def get_context(
         self,
@@ -177,7 +177,7 @@ class BusinessRepository:
         )
 
         return [
-            self._to_profile(record)
+            self.to_profile(record)
             for record in records
         ]
 
@@ -221,7 +221,7 @@ class BusinessRepository:
                 "The business could not be updated."
             ) from exc
 
-        return self._to_profile(record)
+        return self.to_profile(record)
 
     def delete(
         self,
@@ -294,7 +294,7 @@ class BusinessRepository:
         )
 
     @classmethod
-    def _to_profile(
+    def to_profile(
         cls,
         record: Business,
     ) -> BusinessProfile:

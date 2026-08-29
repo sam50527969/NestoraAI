@@ -267,6 +267,30 @@ def list_user_memberships(
     )
 
 
+def user_has_business_role(
+    db: Session,
+    *,
+    user_uid: str,
+    business_uid: str,
+    allowed_roles: set[str] | frozenset[str],
+) -> bool:
+    """
+    Return whether the user has an active membership
+    with one of the explicitly allowed business roles.
+    """
+
+    membership = get_membership(
+        db,
+        user_uid=user_uid,
+        business_uid=business_uid,
+    )
+
+    if membership is None or not membership.is_active:
+        return False
+
+    return membership.role in allowed_roles
+
+
 def user_can_access_business(
     db: Session,
     *,
