@@ -1,15 +1,22 @@
-import {
+﻿import {
   Activity,
   Radio,
   Sparkles,
 } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
+import { getPersistedMissions } from "../api/mission";
 import ActivityFeed from "../components/commandCenter/ActivityFeed";
 import KPIBar from "../components/commandCenter/KPIBar";
 import MissionPipeline from "../components/commandCenter/MissionPipeline";
 import SystemHealth from "../components/commandCenter/SystemHealth";
 import WorkforceGrid from "../components/workforce/WorkforceGrid";
 import useWorkforce from "../hooks/useWorkforce";
+import useWorkspace from "../workspace/useWorkspace";
 
 import "./WorkforceDashboard.css";
 
@@ -27,12 +34,46 @@ function formatConnectionLabel(status) {
 }
 
 export default function WorkforceDashboard() {
+  const { activeWorkspace } = useWorkspace();
+  const activeBusinessUid =
+    activeWorkspace?.business_uid || "";
+
   const {
     executives,
     connectionStatus,
     lastEventAt,
     workforceSummary,
   } = useWorkforce();
+
+  const [missions, setMissions] = useState([]);
+  const [missionsLoading, setMissionsLoading] =
+    useState(true);
+
+  const loadMissions = useCallback(async () => {
+    setMissionsLoading(true);
+
+    try {
+      const response = await getPersistedMissions({
+        limit: 100,
+        offset: 0,
+      });
+
+      setMissions(
+        Array.isArray(response?.missions)
+          ? response.missions
+          : [],
+      );
+    } catch {
+      setMissions([]);
+    } finally {
+      setMissionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setMissions([]);
+    loadMissions();
+  }, [activeBusinessUid, loadMissions]);
 
   const connectionLabel =
     formatConnectionLabel(connectionStatus);
@@ -90,7 +131,10 @@ export default function WorkforceDashboard() {
             <WorkforceGrid executives={executives} />
           </section>
 
-          <MissionPipeline />
+          <MissionPipeline
+            missions={missions}
+            loading={missionsLoading}
+          />
         </div>
 
         <aside className="workforce-command-sidebar">
