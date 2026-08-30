@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import get_db
 from app.repositories.agent_task_repository import (
     AgentTaskRepository,
@@ -37,6 +38,25 @@ router = APIRouter(
     prefix="/missions",
     tags=["Missions"],
 )
+
+
+def get_workspace_mission_or_404(
+    repository: MissionRepository,
+    mission_uid: str,
+    business_uid: str,
+) -> Any:
+    mission = repository.get_by_uid_and_business(
+        mission_uid,
+        business_uid,
+    )
+
+    if mission is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Persisted mission not found.",
+        )
+
+    return mission
 
 
 def deserialize_json(
@@ -136,17 +156,23 @@ def build_task_response(
 )
 async def start_mission(
     request: MissionRequest,
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> MissionStatus:
     """
     Start the existing asynchronous lead-generation mission.
     """
 
-    mission = create_mission()
+    mission = create_mission(
+        business_uid=business_uid,
+    )
 
     asyncio.create_task(
         run_real_mission(
             mission["mission_id"],
             request,
+            business_uid,
         )
     )
 
@@ -168,6 +194,9 @@ def list_persisted_missions(
         ge=0,
     ),
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> PersistedMissionListResponse:
     """
     Return persisted missions for the Admin Explorer.
@@ -175,7 +204,8 @@ def list_persisted_missions(
 
     repository = MissionRepository(db)
 
-    missions = repository.list_all(
+    missions = repository.list_by_business(
+        business_uid,
         limit=limit,
         offset=offset,
     )
@@ -195,10 +225,20 @@ def list_persisted_missions(
 def execute_persisted_mission(
     mission_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> dict[str, Any]:
     """
     Execute all eligible persisted tasks for a mission.
     """
+
+    repository = MissionRepository(db)
+    get_workspace_mission_or_404(
+        repository,
+        mission_uid,
+        business_uid,
+    )
 
     orchestrator = WorkforceOrchestrator(db)
 
@@ -233,6 +273,9 @@ def execute_persisted_mission(
 def list_persisted_mission_tasks(
     mission_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> PersistedTaskListResponse:
     """
     Return all persisted tasks belonging to one mission.
@@ -240,15 +283,11 @@ def list_persisted_mission_tasks(
 
     mission_repository = MissionRepository(db)
 
-    mission = mission_repository.get_by_uid(
-        mission_uid
+    get_workspace_mission_or_404(
+        mission_repository,
+        mission_uid,
+        business_uid,
     )
-
-    if mission is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Persisted mission not found.",
-        )
 
     task_repository = AgentTaskRepository(db)
 
@@ -271,6 +310,9 @@ def list_persisted_mission_tasks(
 )
 async def mission_status(
     mission_id: str,
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> MissionStatus:
     """
     Return the status of an existing asynchronous mission.
@@ -280,7 +322,11 @@ async def mission_status(
         mission_id
     )
 
-    if mission is None:
+    if (
+        mission is None
+        or mission.get("business_uid")
+        != business_uid
+    ):
         raise HTTPException(
             status_code=404,
             detail=(

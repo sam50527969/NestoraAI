@@ -36,6 +36,7 @@ export {
 } from "./website";
 
 export {
+  executePersistedMission,
   startMission,
   getMissionStatus,
 } from "./mission";

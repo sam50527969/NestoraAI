@@ -65,6 +65,20 @@ class MissionRepository:
             .first()
         )
 
+    def get_by_uid_and_business(
+        self,
+        mission_uid: str,
+        business_uid: str,
+    ) -> Mission | None:
+        return (
+            self._db.query(Mission)
+            .filter(
+                Mission.mission_uid == mission_uid,
+                Mission.business_uid == business_uid,
+            )
+            .first()
+        )
+
     def list_by_business(
         self,
         business_uid: str,

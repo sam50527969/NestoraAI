@@ -35,10 +35,12 @@ class MissionExecutor:
         db: Session,
         mission_id: str,
         request,
+        business_uid: str,
     ):
         self.db = db
         self.mission_id = mission_id
         self.request = request
+        self.business_uid = business_uid
         self.active_task_type = None
 
         self.raw_result_count = 0
@@ -442,6 +444,7 @@ class MissionExecutor:
         website = lead.get("website")
 
         crm_lead = LeadCreate(
+            business_uid=self.business_uid,
             name=business_name,
             category=lead.get("category"),
             address=lead.get("location"),

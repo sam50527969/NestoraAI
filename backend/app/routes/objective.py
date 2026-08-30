@@ -10,6 +10,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import get_db
 from app.mission.planner import MissionPlanner
 from app.objective.exceptions import (
@@ -50,6 +51,9 @@ router = APIRouter(
 def analyze_objective(
     request: ObjectiveRequest,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> ObjectiveResponse:
     """
     Analyze a business objective and create a planned mission.
@@ -67,13 +71,22 @@ def analyze_objective(
     remain "pending". No task execution begins automatically.
     """
 
-    business_id = request.business_id.strip()
+    requested_business_id = str(
+        request.business_id or ""
+    ).strip()
+    business_id = business_uid
     objective_text = request.objective.strip()
 
-    if not business_id:
+    if (
+        requested_business_id
+        and requested_business_id != business_uid
+    ):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Business ID is required.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "CEO business context does not match "
+                "the active workspace."
+            ),
         )
 
     if not objective_text:

@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,11 +13,12 @@ import {
   Users,
 } from "lucide-react";
 
-import { createObjectiveMission } from "../api";
+import {
+  createObjectiveMission,
+  executePersistedMission,
+} from "../api";
+import useWorkspace from "../workspace/useWorkspace";
 import "./AIMissionCreator.css";
-
-
-const DEFAULT_BUSINESS_ID = "biz_5d86879387a7";
 
 
 function formatPercentage(value) {
@@ -40,13 +44,9 @@ function formatROI(value) {
 
 
 function AIMissionCreator() {
-  const [businessId, setBusinessId] = useState(
-    DEFAULT_BUSINESS_ID,
-  );
+  const { activeWorkspace } = useWorkspace();
 
-  const [objective, setObjective] = useState(
-    "Increase monthly revenue by 20% by improving patient follow-up, reducing appointment cancellations, and increasing repeat visits.",
-  );
+  const [objective, setObjective] = useState("");
 
   const [mission, setMission] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -54,15 +54,20 @@ function AIMissionCreator() {
   const [error, setError] = useState("");
   const [executionResult, setExecutionResult] = useState(null);
 
+  useEffect(() => {
+    setMission(null);
+    setExecutionResult(null);
+    setError("");
+  }, [activeWorkspace?.business_uid]);
+
 
   async function handleGenerateMission(event) {
     event.preventDefault();
 
-    const cleanBusinessId = businessId.trim();
     const cleanObjective = objective.trim();
 
-    if (!cleanBusinessId) {
-      setError("Please select a business.");
+    if (!activeWorkspace) {
+      setError("Please select an active workspace.");
       return;
     }
 
@@ -80,7 +85,6 @@ function AIMissionCreator() {
 
     try {
       const response = await createObjectiveMission({
-        businessId: cleanBusinessId,
         objective: cleanObjective,
       });
 
@@ -116,26 +120,9 @@ function AIMissionCreator() {
     setIsExecuting(true);
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/missions/${missionUid}/execute`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-          },
-        },
+      const responseData = await executePersistedMission(
+        missionUid,
       );
-
-      const responseData = await response.json().catch(
-        () => null,
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          responseData?.detail ||
-            `Mission execution failed with status ${response.status}.`,
-        );
-      }
 
       setExecutionResult(responseData);
 
@@ -203,20 +190,14 @@ function AIMissionCreator() {
           <label className="form-field">
             <span>Business</span>
 
-            <select
-              value={businessId}
-              onChange={(event) =>
-                setBusinessId(event.target.value)
-              }
+            <input
+              value={activeWorkspace?.name || ""}
+              readOnly
               disabled={isGenerating}
-            >
-              <option value={DEFAULT_BUSINESS_ID}>
-                Nestora Dental Clinic
-              </option>
-            </select>
+            />
 
             <small>
-              Business ID: {businessId}
+              Active workspace: {activeWorkspace?.name || "None"}
             </small>
           </label>
 

@@ -11,6 +11,7 @@ import MissionList from "../components/mission/MissionList";
 import MissionTaskList from "../components/mission/MissionTaskList";
 import MissionTaskOutput from "../components/mission/MissionTaskOutput";
 import MissionTimeline from "../components/mission/MissionTimeline";
+import useWorkspace from "../workspace/useWorkspace";
 
 import {
   getMissionTimeline,
@@ -50,6 +51,9 @@ function getErrorMessage(
 }
 
 export default function MissionDashboard() {
+  const { activeWorkspace } = useWorkspace();
+  const activeBusinessUid =
+    activeWorkspace?.business_uid || "";
   const [missions, setMissions] = useState([]);
   const [selectedMission, setSelectedMission] =
     useState(null);
@@ -257,8 +261,13 @@ export default function MissionDashboard() {
     ]);
 
   useEffect(() => {
+    setMissions([]);
+    setSelectedMission(null);
+    setTasks([]);
+    setSelectedTask(null);
+    setEvents([]);
     loadMissions();
-  }, [loadMissions]);
+  }, [activeBusinessUid, loadMissions]);
 
   useEffect(() => {
     if (!selectedMissionUid) {

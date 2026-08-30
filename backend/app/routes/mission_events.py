@@ -9,6 +9,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import (
     get_db,
 )
@@ -51,14 +52,18 @@ def get_mission_events(
         ge=0,
     ),
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> MissionEventListResponse:
     mission_repository = (
         MissionRepository(db)
     )
 
     mission = (
-        mission_repository.get_by_uid(
-            mission_uid
+        mission_repository.get_by_uid_and_business(
+            mission_uid,
+            business_uid,
         )
     )
 
