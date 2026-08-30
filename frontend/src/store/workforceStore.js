@@ -333,6 +333,7 @@ function calculateSummary(executives) {
 
 let socketInitialized = false;
 let socketUnsubscribe = null;
+let activeBusinessUid = null;
 
 
 export const useWorkforceStore = create(
@@ -341,8 +342,38 @@ export const useWorkforceStore = create(
     connectionStatus: "connecting",
     lastEventAt: null,
 
-    initialize: () => {
-      if (socketInitialized) {
+    initialize: (businessUid) => {
+      const cleanBusinessUid = String(
+        businessUid || "",
+      ).trim();
+
+      if (
+        socketInitialized
+        && activeBusinessUid
+          === cleanBusinessUid
+      ) {
+        return;
+      }
+
+      if (socketUnsubscribe) {
+        socketUnsubscribe();
+        socketUnsubscribe = null;
+      }
+
+      workforceSocket.disconnect();
+      socketInitialized = false;
+      activeBusinessUid = cleanBusinessUid || null;
+
+      set({
+        executives: [],
+        connectionStatus:
+          cleanBusinessUid
+            ? "connecting"
+            : "offline",
+        lastEventAt: null,
+      });
+
+      if (!cleanBusinessUid) {
         return;
       }
 
@@ -527,6 +558,7 @@ export const useWorkforceStore = create(
 
       workforceSocket.disconnect();
       socketInitialized = false;
+      activeBusinessUid = null;
 
       set({
         connectionStatus: "offline",

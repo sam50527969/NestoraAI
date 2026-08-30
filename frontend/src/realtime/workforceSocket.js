@@ -5,6 +5,9 @@ import {
 import {
   getAccessToken,
 } from "../auth/session";
+import {
+  getActiveBusinessUid,
+} from "../workspace/session";
 
 const WS_URL = (
   API_BASE_URL
@@ -27,18 +30,27 @@ class WorkforceSocket {
     this.reconnectTimer = null;
     this.heartbeat = null;
     this.manuallyClosed = false;
+    this.businessUid = null;
   }
 
   connect() {
     const token = getAccessToken();
+    const businessUid = getActiveBusinessUid();
 
-    if (!token) {
+    if (!token || !businessUid) {
       this.notify({
         event:
           "socket.authentication_required",
       });
 
       return;
+    }
+
+    if (
+      this.socket
+      && this.businessUid !== businessUid
+    ) {
+      this.disconnect();
     }
 
     if (
@@ -54,6 +66,7 @@ class WorkforceSocket {
     }
 
     this.manuallyClosed = false;
+    this.businessUid = businessUid;
 
     this.socket = new WebSocket(
       WS_URL
@@ -62,8 +75,15 @@ class WorkforceSocket {
     this.socket.onopen = () => {
       const currentToken =
         getAccessToken();
+      const currentBusinessUid =
+        getActiveBusinessUid();
 
-      if (!currentToken) {
+      if (
+        !currentToken
+        || !currentBusinessUid
+        || currentBusinessUid
+          !== this.businessUid
+      ) {
         this.socket.close(
           4401,
           "Authentication required",
@@ -77,6 +97,8 @@ class WorkforceSocket {
           event:
             "socket.authenticate",
           token: currentToken,
+          business_uid:
+            currentBusinessUid,
         }),
       );
     };
@@ -228,11 +250,17 @@ class WorkforceSocket {
     this.stopHeartbeat();
 
     if (this.socket) {
-      this.socket.close();
+      const socket = this.socket;
       this.socket = null;
+      socket.onopen = null;
+      socket.onmessage = null;
+      socket.onerror = null;
+      socket.onclose = null;
+      socket.close();
     }
 
     this.connected = false;
+    this.businessUid = null;
   }
 }
 
