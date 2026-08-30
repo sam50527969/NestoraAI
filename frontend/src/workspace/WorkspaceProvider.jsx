@@ -11,6 +11,10 @@ import {
   updateWorkspace as updateWorkspaceRequest,
 } from "../api/workspaces";
 import useAuth from "../auth/useAuth";
+import {
+  clearActiveBusinessUid,
+  setActiveBusinessUid,
+} from "./session";
 
 import WorkspaceContext from "./WorkspaceContext";
 
@@ -54,10 +58,15 @@ function WorkspaceProvider({
         setActiveWorkspace(workspace);
 
         if (workspace && userUid) {
+          setActiveBusinessUid(
+            workspace.business_uid,
+          );
           window.localStorage.setItem(
             storageKey(userUid),
             workspace.business_uid,
           );
+        } else {
+          clearActiveBusinessUid();
         }
       },
       [userUid],
@@ -71,6 +80,7 @@ function WorkspaceProvider({
       ) {
         setWorkspaces([]);
         setActiveWorkspace(null);
+        clearActiveBusinessUid();
         setError(null);
         setIsLoading(false);
         return [];
@@ -104,11 +114,15 @@ function WorkspaceProvider({
         setActiveWorkspace(selected);
 
         if (selected) {
+          setActiveBusinessUid(
+            selected.business_uid,
+          );
           window.localStorage.setItem(
             storageKey(userUid),
             selected.business_uid,
           );
         } else {
+          clearActiveBusinessUid();
           window.localStorage.removeItem(
             storageKey(userUid),
           );
@@ -118,6 +132,7 @@ function WorkspaceProvider({
       } catch (loadError) {
         setWorkspaces([]);
         setActiveWorkspace(null);
+        clearActiveBusinessUid();
         setError(loadError);
         return [];
       } finally {

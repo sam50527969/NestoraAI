@@ -1,6 +1,9 @@
 import {
   getAccessToken,
 } from "../auth/session";
+import {
+  getActiveBusinessUid,
+} from "../workspace/session";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
@@ -13,6 +16,9 @@ export async function request(
   const accessToken =
     getAccessToken();
 
+  const activeBusinessUid =
+    getActiveBusinessUid();
+
   const response = await fetch(
     `${API_BASE_URL}${endpoint}`,
     {
@@ -24,6 +30,12 @@ export async function request(
           ? {
               Authorization:
                 `Bearer ${accessToken}`,
+            }
+          : {}),
+        ...(activeBusinessUid
+          ? {
+              "X-Business-Uid":
+                activeBusinessUid,
             }
           : {}),
         ...(options.headers || {}),

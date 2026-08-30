@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status
+from fastapi import (
+    Depends,
+    Header,
+    HTTPException,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
@@ -10,20 +15,29 @@ from app.database.models import BusinessMembership
 
 
 def get_current_business_membership(
+    selected_business_uid: str | None = Header(
+        default=None,
+        alias="X-Business-Uid",
+    ),
     current_user: User = Depends(
         get_current_user
     ),
     db: Session = Depends(get_db),
 ) -> BusinessMembership:
     """
-    Resolve the authenticated user's active
-    business membership.
+    Resolve and validate the authenticated user's
+    active business workspace.
 
-    A single active membership is required until
-    explicit business selection is introduced.
+    Explicit selection is required when more than
+    one active membership exists. A single active
+    membership remains a safe compatibility fallback.
     """
 
-    memberships = (
+    clean_business_uid = str(
+        selected_business_uid or ""
+    ).strip()
+
+    query = (
         db.query(BusinessMembership)
         .filter(
             BusinessMembership.user_uid
@@ -32,9 +46,32 @@ def get_current_business_membership(
                 True
             ),
         )
-        .order_by(
+    )
+
+    if clean_business_uid:
+        membership = query.filter(
+            BusinessMembership.business_uid
+            == clean_business_uid
+        ).first()
+
+        if membership is None:
+            raise HTTPException(
+                status_code=(
+                    status.HTTP_403_FORBIDDEN
+                ),
+                detail=(
+                    "The selected business workspace "
+                    "is not available for this account."
+                ),
+            )
+
+        return membership
+
+    memberships = (
+        query.order_by(
             BusinessMembership.id.asc()
         )
+        .limit(2)
         .all()
     )
 
@@ -53,8 +90,8 @@ def get_current_business_membership(
             detail=(
                 "Multiple active business "
                 "memberships are available. "
-                "Explicit business selection "
-                "is required."
+                "Send X-Business-Uid to select "
+                "the active workspace."
             ),
         )
 
