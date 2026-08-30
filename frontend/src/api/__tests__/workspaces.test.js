@@ -10,7 +10,9 @@ import {
   request,
 } from "../client";
 import {
+  createWorkspace,
   getWorkspaces,
+  updateWorkspace,
 } from "../workspaces";
 
 vi.mock("../client", () => ({
@@ -21,7 +23,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("getWorkspaces", () => {
+describe("workspace API", () => {
   it("loads authenticated business workspaces", async () => {
     request.mockResolvedValue({
       businesses: [
@@ -63,5 +65,48 @@ describe("getWorkspaces", () => {
       [],
     );
     expect(response.count).toBe(0);
+  });
+
+  it("creates an authenticated workspace", async () => {
+    request.mockResolvedValue({
+      business_uid: "biz_created",
+    });
+
+    const payload = {
+      name: "Created Business",
+    };
+
+    await createWorkspace(payload);
+
+    expect(request).toHaveBeenCalledWith(
+      "/businesses",
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
+  });
+
+  it("updates an authenticated workspace", async () => {
+    request.mockResolvedValue({
+      business_uid: "biz_updated",
+    });
+
+    const payload = {
+      name: "Updated Business",
+    };
+
+    await updateWorkspace(
+      "biz_updated",
+      payload,
+    );
+
+    expect(request).toHaveBeenCalledWith(
+      "/businesses/biz_updated",
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      },
+    );
   });
 });

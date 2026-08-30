@@ -26,3 +26,32 @@ export async function getWorkspaces({
     count: response?.count ?? 0,
   };
 }
+
+export function createWorkspace(
+  workspace,
+) {
+  return request(
+    "/businesses",
+    {
+      method: "POST",
+      body: JSON.stringify(
+        workspace,
+      ),
+    },
+  );
+}
+
+export function updateWorkspace(
+  businessUid,
+  workspace,
+) {
+  return request(
+    `/businesses/${businessUid}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(
+        workspace,
+      ),
+    },
+  );
+}
