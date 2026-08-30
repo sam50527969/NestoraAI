@@ -15,14 +15,10 @@ export function askCEO(question) {
 /**
  * Analyze a business objective and generate a mission.
  */
-export function createObjectiveMission({
-  businessId,
-  objective,
-}) {
+export function createObjectiveMission({ objective }) {
   return request("/ceo/objective", {
     method: "POST",
     body: JSON.stringify({
-      business_id: businessId,
       objective,
     }),
   });

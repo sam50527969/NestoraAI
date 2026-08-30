@@ -4,21 +4,7 @@ import { getMissionStatus, startMission } from "../../api";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
-
-const BUSINESS_TYPES = [
-  { value: "restaurant", label: "Restaurant" },
-  { value: "cafe", label: "Cafe" },
-  { value: "clinic", label: "Clinic" },
-  { value: "dentist", label: "Dentist" },
-  { value: "pharmacy", label: "Pharmacy" },
-  { value: "salon", label: "Salon" },
-  { value: "barber", label: "Barber" },
-  { value: "gym", label: "Gym" },
-  { value: "school", label: "School" },
-  { value: "hotel", label: "Hotel" },
-  { value: "car_repair", label: "Auto Workshop" },
-  { value: "supermarket", label: "Supermarket" },
-];
+import useWorkspace from "../../workspace/useWorkspace";
 
 const PRIORITY_FILTERS = [
   { value: "all", label: "All Priorities" },
@@ -28,17 +14,46 @@ const PRIORITY_FILTERS = [
 ];
 
 function MissionControl({ onMissionChange }) {
+  const { activeWorkspace } = useWorkspace();
   const [mission, setMission] = useState(null);
   const [isStarting, setIsStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [businessType, setBusinessType] = useState("restaurant");
-  const [location, setLocation] = useState("doha");
+  const [businessType, setBusinessType] = useState("");
+  const [location, setLocation] = useState("");
   const [quantity, setQuantity] = useState(5);
   const [analyzeWebsites, setAnalyzeWebsites] = useState(true);
   const [generateOutreach, setGenerateOutreach] = useState(true);
   const [minimumQuality, setMinimumQuality] = useState(60);
   const [priorityFilter, setPriorityFilter] = useState("all");
+
+  useEffect(() => {
+    if (!activeWorkspace) {
+      setBusinessType("");
+      setLocation("");
+      setMission(null);
+      onMissionChange?.(null);
+      return;
+    }
+
+    setMission(null);
+    setErrorMessage("");
+    onMissionChange?.(null);
+
+    setBusinessType(
+      String(
+        activeWorkspace.industry || "",
+      ).replaceAll("_", " "),
+    );
+
+    setLocation(
+      [
+        activeWorkspace.city,
+        activeWorkspace.region,
+        activeWorkspace.country,
+      ].filter(Boolean).join(", "),
+    );
+  }, [activeWorkspace, onMissionChange]);
 
   useEffect(() => {
     if (!mission?.mission_id) {
@@ -176,23 +191,16 @@ function MissionControl({ onMissionChange }) {
             Business Type
           </label>
 
-          <select
+          <input
             id="mission-business-type"
+            type="text"
             value={businessType}
             onChange={(event) =>
               setBusinessType(event.target.value)
             }
+            placeholder="Example: Professional services"
             disabled={missionIsActive}
-          >
-            {BUSINESS_TYPES.map((type) => (
-              <option
-                key={type.value}
-                value={type.value}
-              >
-                {type.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="mission-field">
@@ -207,7 +215,7 @@ function MissionControl({ onMissionChange }) {
             onChange={(event) =>
               setLocation(event.target.value)
             }
-            placeholder="Example: Doha"
+            placeholder="Example: Sydney, Australia"
             disabled={missionIsActive}
           />
         </div>

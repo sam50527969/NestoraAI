@@ -17,6 +17,7 @@ from app.services.mission_task_runtime import fail_mission_task
 async def run_real_mission(
     mission_id,
     request,
+    business_uid,
 ):
     """
     Plan and execute one Nestora mission.
@@ -102,6 +103,7 @@ async def run_real_mission(
             db=db,
             mission_id=mission_id,
             request=request,
+            business_uid=business_uid,
         )
 
         return await executor.execute()

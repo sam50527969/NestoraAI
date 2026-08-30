@@ -26,6 +26,7 @@ from app.database.database import (
     Base,
     get_db,
 )
+from app.business.access import get_current_business_uid
 from app.database.models import (
     MissionEvent,
 )
@@ -88,6 +89,9 @@ def mission_events_environment(
     app.dependency_overrides[
         get_db
     ] = override_get_db
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_timeline_test"
 
     with TestClient(app) as client:
         yield client, session_factory
@@ -139,6 +143,31 @@ def test_empty_timeline_returns_200(
     )
 
     assert response.status_code == 200
+
+
+def test_other_workspace_timeline_returns_404(
+    mission_events_environment,
+):
+    client, session_factory = mission_events_environment
+    db: Session = session_factory()
+    try:
+        mission = MissionRepository(db).create(
+            business_uid="biz_other",
+            title="Private timeline",
+            objective="Remain private",
+        )
+        mission_uid = mission.mission_uid
+    finally:
+        db.close()
+
+    response = client.get(
+        f"/missions/{mission_uid}/events"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Persisted mission not found.",
+    }
 
     assert response.json() == {
         "mission_uid": mission_uid,

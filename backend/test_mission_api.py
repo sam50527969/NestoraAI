@@ -26,6 +26,7 @@ from app.database.database import (
     Base,
     get_db,
 )
+from app.business.access import get_current_business_uid
 from app.repositories.agent_task_repository import (
     AgentTaskRepository,
 )
@@ -88,6 +89,9 @@ def mission_api_environment(
     app.dependency_overrides[
         get_db
     ] = override_get_db
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_test_001"
 
     with TestClient(app) as client:
         yield client, session_factory
@@ -130,13 +134,20 @@ def test_start_mission(
         "mission-test-001"
     )
 
-    def fake_create_mission():
-        return expected.copy()
+    def fake_create_mission(
+        business_uid,
+    ):
+        return {
+            **expected,
+            "business_uid": business_uid,
+        }
 
     async def fake_run_real_mission(
         mission_id,
         request,
+        business_uid,
     ):
+        assert business_uid == "biz_test_001"
         return {
             "mission_id": mission_id,
             "status": "completed",
@@ -244,7 +255,11 @@ def test_get_async_mission_status(
         mission_routes,
         "get_mission",
         lambda mission_id: (
-            expected.copy()
+            {
+                **expected,
+                "business_uid":
+                    "biz_test_001",
+            }
         ),
     )
 
@@ -279,6 +294,27 @@ def test_missing_async_mission_returns_404(
         "Mission not found"
         in response.json()["detail"]
     )
+
+
+def test_other_workspace_async_mission_returns_404(
+    mission_api_environment,
+    monkeypatch,
+):
+    client, _ = mission_api_environment
+    mission = mission_status_payload("mission-private")
+    mission["business_uid"] = "biz_other"
+
+    monkeypatch.setattr(
+        mission_routes,
+        "get_mission",
+        lambda mission_id: mission,
+    )
+
+    response = client.get(
+        "/missions/mission-private"
+    )
+
+    assert response.status_code == 404
 
 
 def create_persisted_mission(
@@ -365,6 +401,32 @@ def test_list_persisted_missions(
     assert returned["metadata"] == {
         "created_by": "test",
     }
+
+
+def test_list_excludes_other_workspace_missions(
+    mission_api_environment,
+):
+    client, session_factory = mission_api_environment
+    create_persisted_mission(session_factory)
+
+    db: Session = session_factory()
+    try:
+        MissionRepository(db).create(
+            business_uid="biz_other",
+            title="Private mission",
+            objective="Remain private",
+        )
+    finally:
+        db.close()
+
+    response = client.get("/missions")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert {
+        mission["business_uid"]
+        for mission in response.json()["missions"]
+    } == {"biz_test_001"}
 
 
 @pytest.mark.parametrize(
@@ -516,13 +578,85 @@ def test_missing_persisted_mission_tasks_returns_404(
     }
 
 
+def test_other_workspace_mission_tasks_return_404(
+    mission_api_environment,
+):
+    client, session_factory = mission_api_environment
+    db: Session = session_factory()
+    try:
+        mission = MissionRepository(db).create(
+            business_uid="biz_other",
+            title="Private mission",
+            objective="Remain private",
+        )
+        mission_uid = mission.mission_uid
+    finally:
+        db.close()
+
+    response = client.get(
+        f"/missions/{mission_uid}/tasks"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Persisted mission not found.",
+    }
+
+
+def test_other_workspace_mission_cannot_execute(
+    mission_api_environment,
+    monkeypatch,
+):
+    client, session_factory = mission_api_environment
+    db: Session = session_factory()
+    try:
+        mission = MissionRepository(db).create(
+            business_uid="biz_other",
+            title="Private mission",
+            objective="Remain private",
+        )
+        mission_uid = mission.mission_uid
+    finally:
+        db.close()
+
+    class UnexpectedOrchestrator:
+        def __init__(self, db):
+            raise AssertionError(
+                "Foreign mission reached execution."
+            )
+
+    monkeypatch.setattr(
+        mission_routes,
+        "WorkforceOrchestrator",
+        UnexpectedOrchestrator,
+    )
+
+    response = client.post(
+        f"/missions/{mission_uid}/execute"
+    )
+
+    assert response.status_code == 404
+
+
 def test_execute_persisted_mission(
     mission_api_environment,
     monkeypatch,
 ):
-    client, _ = (
+    client, session_factory = (
         mission_api_environment
     )
+
+    db: Session = session_factory()
+
+    try:
+        MissionRepository(db).create(
+            business_uid="biz_test_001",
+            title="Execute mission",
+            objective="Execute safely",
+        ).mission_uid = "mis_execute"
+        db.commit()
+    finally:
+        db.close()
 
     class FakeOrchestrator:
         def __init__(

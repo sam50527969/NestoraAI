@@ -9,10 +9,13 @@ class ObjectiveRequest(BaseModel):
     to analyze a business objective.
     """
 
-    business_id: str = Field(
-        ...,
+    business_id: str | None = Field(
+        default=None,
         min_length=1,
-        examples=["clinic-001"],
+        description=(
+            "Legacy compatibility field. The authenticated active "
+            "workspace remains authoritative."
+        ),
     )
 
     objective: str = Field(

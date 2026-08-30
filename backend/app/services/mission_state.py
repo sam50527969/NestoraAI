@@ -69,7 +69,9 @@ def build_default_agents() -> List[Dict[str, Any]]:
     ]
 
 
-def create_mission() -> Dict[str, Any]:
+def create_mission(
+    business_uid: str,
+) -> Dict[str, Any]:
     """
     Create a new in-memory mission and return its initial state.
     """
@@ -77,6 +79,7 @@ def create_mission() -> Dict[str, Any]:
 
     mission = {
         "mission_id": mission_id,
+        "business_uid": business_uid,
         "status": "queued",
         "progress": 0,
         "current_step": "Waiting",
