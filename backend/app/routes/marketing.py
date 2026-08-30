@@ -9,10 +9,12 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
+    status,
 )
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import get_db
 from app.repositories import MarketingPlanRepository
 from app.schemas.marketing import (
@@ -50,7 +52,7 @@ class GrowthStrategyRequest(BaseModel):
     )
 
     location: str = Field(
-        default="Doha",
+        ...,
         min_length=1,
     )
 
@@ -71,7 +73,7 @@ class GrowthStrategyRequest(BaseModel):
     )
 
     currency: str = Field(
-        default="QAR",
+        ...,
         min_length=1,
     )
 
@@ -101,7 +103,19 @@ class GrowthStrategyRequest(BaseModel):
 async def run_marketing_director(
     request: MarketingDirectorRequest,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> MarketingDirectorResponse:
+    if request.business.business_id != business_uid:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Marketing business context does not match "
+                "the active workspace."
+            ),
+        )
+
     mission_id = str(uuid.uuid4())
 
     director = MarketingDirector(
@@ -223,7 +237,7 @@ async def discover_competitors(
         min_length=1,
     ),
     location: str = Query(
-        default="Doha",
+        default="",
         min_length=1,
     ),
     limit: int = Query(
