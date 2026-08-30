@@ -25,6 +25,10 @@ from app.auth.security import (
 from app.auth.service import (
     get_user_by_uid,
 )
+from app.business.access import (
+    get_current_business_uid,
+    resolve_business_membership,
+)
 from app.database.database import (
     get_db,
 )
@@ -68,7 +72,7 @@ class WorkforceUpdateRequest(
 async def authenticate_websocket(
     websocket: WebSocket,
     db: Session,
-) -> str | None:
+) -> tuple[str, str] | None:
     await connection_manager.accept(
         websocket
     )
@@ -159,8 +163,32 @@ async def authenticate_websocket(
 
         return None
 
+    selected_business_uid = payload.get(
+        "business_uid"
+    )
+
+    if (
+        selected_business_uid is not None
+        and not isinstance(selected_business_uid, str)
+    ):
+        await websocket.close(code=UNAUTHORIZED_WEBSOCKET_CODE)
+        return None
+
+    try:
+        membership = resolve_business_membership(
+            db,
+            user_uid=user.user_uid,
+            selected_business_uid=selected_business_uid,
+        )
+    except HTTPException:
+        await websocket.close(code=UNAUTHORIZED_WEBSOCKET_CODE)
+        return None
+
+    business_uid = membership.business_uid
+
     connection_manager.register(
-        websocket
+        websocket,
+        business_uid,
     )
 
     await (
@@ -171,13 +199,15 @@ async def authenticate_websocket(
                 {
                     "user_uid":
                         user.user_uid,
+                    "business_uid":
+                        business_uid,
                 },
             ),
             websocket,
         )
     )
 
-    return user.user_uid
+    return user.user_uid, business_uid
 
 
 @router.websocket("/workforce")
@@ -187,15 +217,17 @@ async def workforce_websocket(
 ) -> None:
     mission_event_publisher.register_current_loop()
 
-    authenticated_user_uid = (
+    authenticated_context = (
         await authenticate_websocket(
             websocket,
             db,
         )
     )
 
-    if authenticated_user_uid is None:
+    if authenticated_context is None:
         return
+
+    _, business_uid = authenticated_context
 
     try:
         await (
@@ -204,7 +236,7 @@ async def workforce_websocket(
                 build_event(
                     "workforce.snapshot",
                     workforce_registry
-                    .get_all(),
+                    .get_all(business_uid),
                 ),
                 websocket,
             )
@@ -253,10 +285,14 @@ async def workforce_websocket(
         ),
     ],
 )
-def get_workforce() -> dict:
+def get_workforce(
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
+) -> dict:
     return {
         "executives":
-            workforce_registry.get_all(),
+            workforce_registry.get_all(business_uid),
     }
 
 
@@ -270,12 +306,17 @@ def get_workforce() -> dict:
 )
 async def update_workforce(
     payload: WorkforceUpdateRequest,
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> dict:
     mission_event_publisher.register_current_loop()
 
     if (
-        payload.executive
-        not in workforce_registry.executives
+        not workforce_registry.has_executive(
+            business_uid,
+            payload.executive,
+        )
     ):
         raise HTTPException(
             status_code=404,
@@ -285,17 +326,16 @@ async def update_workforce(
         )
 
     workforce_registry.update(
+        business_uid,
         payload.executive,
         status=payload.status,
         task=payload.task,
         progress=payload.progress,
     )
 
-    executive_data = (
-        workforce_registry
-        .executives[
-            payload.executive
-        ]
+    executive_data = workforce_registry.get(
+        business_uid,
+        payload.executive,
     )
 
     event = build_event(
@@ -304,7 +344,8 @@ async def update_workforce(
     )
 
     await connection_manager.broadcast(
-        event
+        event,
+        business_uid,
     )
 
     return {

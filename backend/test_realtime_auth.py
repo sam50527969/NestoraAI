@@ -22,12 +22,17 @@ from app.database.database import (
     Base,
     get_db,
 )
+from app.database.models import (
+    Business,
+    BusinessMembership,
+)
 from app.realtime.connection_manager import (
     connection_manager,
 )
 from app.realtime.router import (
     router as realtime_router,
 )
+from app.realtime.workforce_registry import workforce_registry
 
 
 @pytest.fixture
@@ -77,12 +82,14 @@ def realtime_environment(
         get_db
     ] = override_get_db
 
-    connection_manager.active_connections.clear()
+    connection_manager.clear()
+    workforce_registry.clear()
 
     with TestClient(app) as client:
         yield client, session_factory
 
-    connection_manager.active_connections.clear()
+    connection_manager.clear()
+    workforce_registry.clear()
     app.dependency_overrides.clear()
 
     Base.metadata.drop_all(
@@ -109,6 +116,27 @@ def create_test_user(
         )
 
         db.add(user)
+        db.flush()
+
+        business = Business(
+            business_uid="biz_realtime",
+            name="Realtime Business",
+            industry="other",
+            country="Australia",
+            currency="AUD",
+        )
+        db.add(business)
+        db.flush()
+
+        db.add(
+            BusinessMembership(
+                membership_uid="mem_realtime",
+                user_uid=user.user_uid,
+                business_uid=business.business_uid,
+                role="owner",
+                is_active=True,
+            )
+        )
         db.commit()
         db.refresh(user)
 
@@ -158,6 +186,11 @@ def test_authenticated_socket_receives_snapshot_and_pong(
             == user.user_uid
         )
 
+        assert (
+            authenticated["data"]["business_uid"]
+            == "biz_realtime"
+        )
+
         snapshot = (
             websocket.receive_json()
         )
@@ -192,6 +225,27 @@ def test_invalid_token_is_rejected(
                 "token": "invalid-token",
             })
 
+            websocket.receive_json()
+
+    assert error.value.code == 4401
+
+
+def test_unavailable_workspace_is_rejected(
+    realtime_environment,
+) -> None:
+    client, session_factory = realtime_environment
+    user = create_test_user(session_factory)
+    token, _ = create_access_token(user.user_uid)
+
+    with pytest.raises(WebSocketDisconnect) as error:
+        with client.websocket_connect(
+            "/realtime/workforce"
+        ) as websocket:
+            websocket.send_json({
+                "event": "socket.authenticate",
+                "token": token,
+                "business_uid": "biz_other",
+            })
             websocket.receive_json()
 
     assert error.value.code == 4401

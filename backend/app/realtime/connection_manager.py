@@ -15,6 +15,7 @@ class ConnectionManager:
         self.active_connections: list[
             WebSocket
         ] = []
+        self._business_by_connection: dict[WebSocket, str] = {}
 
     async def accept(
         self,
@@ -25,6 +26,7 @@ class ConnectionManager:
     def register(
         self,
         websocket: WebSocket,
+        business_uid: str,
     ) -> None:
         if (
             websocket
@@ -34,12 +36,15 @@ class ConnectionManager:
                 websocket
             )
 
+        self._business_by_connection[websocket] = business_uid
+
     async def connect(
         self,
         websocket: WebSocket,
+        business_uid: str,
     ) -> None:
         await self.accept(websocket)
-        self.register(websocket)
+        self.register(websocket, business_uid)
 
     def disconnect(
         self,
@@ -53,6 +58,12 @@ class ConnectionManager:
                 websocket
             )
 
+        self._business_by_connection.pop(websocket, None)
+
+    def clear(self) -> None:
+        self.active_connections.clear()
+        self._business_by_connection.clear()
+
     async def send_personal_message(
         self,
         message: dict[str, Any],
@@ -65,6 +76,7 @@ class ConnectionManager:
     async def broadcast(
         self,
         message: dict[str, Any],
+        business_uid: str,
     ) -> None:
         disconnected_connections: list[
             WebSocket
@@ -73,6 +85,12 @@ class ConnectionManager:
         for connection in (
             self.active_connections
         ):
+            if (
+                self._business_by_connection.get(connection)
+                != business_uid
+            ):
+                continue
+
             try:
                 await connection.send_json(
                     message

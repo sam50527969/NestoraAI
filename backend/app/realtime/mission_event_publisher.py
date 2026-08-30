@@ -43,6 +43,7 @@ class MissionEventPublisher:
     def publish(
         self,
         event_data: dict[str, Any],
+        business_uid: str,
     ) -> None:
         """
         Publish a mission event from synchronous or asynchronous code.
@@ -56,15 +57,8 @@ class MissionEventPublisher:
             event_data,
         )
 
-        print("=" * 80)
-        print("MISSION PUBLISHER CALLED")
-        print(payload)
-
         with self._lock:
             event_loop = self._event_loop
-
-        print("REGISTERED LOOP:", event_loop)
-        print("=" * 80)
 
         if (
             event_loop is None
@@ -83,7 +77,10 @@ class MissionEventPublisher:
 
         if current_loop is event_loop:
             task = event_loop.create_task(
-                connection_manager.broadcast(payload)
+                connection_manager.broadcast(
+                    payload,
+                    business_uid,
+                )
             )
             task.add_done_callback(
                 self._handle_task_result
@@ -91,7 +88,10 @@ class MissionEventPublisher:
             return
 
         future = asyncio.run_coroutine_threadsafe(
-            connection_manager.broadcast(payload),
+            connection_manager.broadcast(
+                payload,
+                business_uid,
+            ),
             event_loop,
         )
 

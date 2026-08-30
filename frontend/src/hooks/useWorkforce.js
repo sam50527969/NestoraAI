@@ -6,6 +6,7 @@ import {
 import {
   useWorkforceStore,
 } from "../store/workforceStore";
+import useWorkspace from "../workspace/useWorkspace";
 
 
 function normalizeName(value) {
@@ -16,6 +17,9 @@ function normalizeName(value) {
 
 
 export default function useWorkforce() {
+  const { activeWorkspace } = useWorkspace();
+  const activeBusinessUid =
+    activeWorkspace?.business_uid || "";
   const executives = useWorkforceStore(
     (state) => state.executives,
   );
@@ -33,8 +37,8 @@ export default function useWorkforce() {
   );
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize(activeBusinessUid);
+  }, [activeBusinessUid, initialize]);
 
   const workforceSummary = useMemo(() => {
     const summary = {

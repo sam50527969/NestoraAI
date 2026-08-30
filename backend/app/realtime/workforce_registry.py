@@ -1,85 +1,84 @@
 from __future__ import annotations
 
-from datetime import datetime
+from copy import deepcopy
+from datetime import datetime, timezone
+
+
+DEFAULT_EXECUTIVES = {
+    "ceo": {"name": "CEO AI", "department": "Executive"},
+    "sales": {"name": "Sales Director", "department": "Sales"},
+    "marketing": {"name": "Marketing Director", "department": "Marketing"},
+    "finance": {"name": "Finance Director", "department": "Finance"},
+    "reception": {"name": "Reception AI", "department": "Operations"},
+}
+
+
+def _new_executives() -> dict[str, dict]:
+    executives = deepcopy(DEFAULT_EXECUTIVES)
+
+    for data in executives.values():
+        data.update({
+            "status": "idle",
+            "current_task": None,
+            "progress": 0,
+            "missions_today": 0,
+            "success_rate": 100,
+            "last_updated": None,
+        })
+
+    return executives
 
 
 class WorkforceRegistry:
-    """
-    Holds the live state of every AI executive.
-    This will later be backed by Redis or a database,
-    but an in-memory registry is perfect for development.
-    """
+    """Hold independent live executive state for each workspace."""
 
     def __init__(self) -> None:
-        self.executives = {
-            "ceo": {
-                "name": "CEO AI",
-                "department": "Executive",
-                "status": "idle",
-                "current_task": None,
-                "progress": 0,
-                "missions_today": 0,
-                "success_rate": 100,
-                "last_updated": None,
-            },
-            "sales": {
-                "name": "Sales Director",
-                "department": "Sales",
-                "status": "idle",
-                "current_task": None,
-                "progress": 0,
-                "missions_today": 0,
-                "success_rate": 100,
-                "last_updated": None,
-            },
-            "marketing": {
-                "name": "Marketing Director",
-                "department": "Marketing",
-                "status": "idle",
-                "current_task": None,
-                "progress": 0,
-                "missions_today": 0,
-                "success_rate": 100,
-                "last_updated": None,
-            },
-            "finance": {
-                "name": "Finance Director",
-                "department": "Finance",
-                "status": "idle",
-                "current_task": None,
-                "progress": 0,
-                "missions_today": 0,
-                "success_rate": 100,
-                "last_updated": None,
-            },
-            "reception": {
-                "name": "Reception AI",
-                "department": "Operations",
-                "status": "idle",
-                "current_task": None,
-                "progress": 0,
-                "missions_today": 0,
-                "success_rate": 100,
-                "last_updated": None,
-            },
-        }
+        self._workspaces: dict[str, dict[str, dict]] = {}
 
-    def get_all(self):
-        return list(self.executives.values())
+    def _workspace(self, business_uid: str) -> dict[str, dict]:
+        clean_uid = str(business_uid or "").strip()
+
+        if not clean_uid:
+            raise ValueError("Business UID is required.")
+
+        return self._workspaces.setdefault(
+            clean_uid,
+            _new_executives(),
+        )
+
+    def has_executive(
+        self,
+        business_uid: str,
+        executive: str,
+    ) -> bool:
+        return executive in self._workspace(business_uid)
+
+    def get_all(self, business_uid: str) -> list[dict]:
+        return list(
+            deepcopy(self._workspace(business_uid)).values()
+        )
+
+    def get(
+        self,
+        business_uid: str,
+        executive: str,
+    ) -> dict | None:
+        data = self._workspace(business_uid).get(executive)
+        return deepcopy(data) if data else None
 
     def update(
         self,
+        business_uid: str,
         executive: str,
         *,
         status: str | None = None,
         task: str | None = None,
         progress: int | None = None,
-    ) -> None:
+    ) -> dict | None:
+        data = self._workspace(business_uid).get(executive)
 
-        if executive not in self.executives:
-            return
-
-        data = self.executives[executive]
+        if data is None:
+            return None
 
         if status is not None:
             data["status"] = status
@@ -90,7 +89,14 @@ class WorkforceRegistry:
         if progress is not None:
             data["progress"] = progress
 
-        data["last_updated"] = datetime.utcnow().isoformat()
+        data["last_updated"] = datetime.now(
+            timezone.utc
+        ).isoformat()
+
+        return deepcopy(data)
+
+    def clear(self) -> None:
+        self._workspaces.clear()
 
 
 workforce_registry = WorkforceRegistry()

@@ -17,6 +17,17 @@ async def main() -> None:
             "before running this script."
         )
 
+    business_uid = os.getenv(
+        "NESTORA_BUSINESS_UID",
+        "",
+    ).strip()
+
+    if not business_uid:
+        raise RuntimeError(
+            "Set NESTORA_BUSINESS_UID "
+            "before running this script."
+        )
+
     uri = (
         "ws://127.0.0.1:8000"
         "/realtime/workforce"
@@ -31,6 +42,8 @@ async def main() -> None:
                     "event":
                         "socket.authenticate",
                     "token": token,
+                    "business_uid":
+                        business_uid,
                 }
             )
         )
