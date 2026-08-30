@@ -50,7 +50,7 @@ class GrowthStrategyRequest(BaseModel):
     )
 
     location: str = Field(
-        default="Doha",
+        ...,
         min_length=1,
     )
 
@@ -71,7 +71,7 @@ class GrowthStrategyRequest(BaseModel):
     )
 
     currency: str = Field(
-        default="QAR",
+        ...,
         min_length=1,
     )
 
@@ -223,7 +223,7 @@ async def discover_competitors(
         min_length=1,
     ),
     location: str = Query(
-        default="Doha",
+        default="",
         min_length=1,
     ),
     limit: int = Query(

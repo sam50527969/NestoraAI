@@ -96,7 +96,7 @@ class MarketingGoal(BaseModel):
     )
 
     currency: str = Field(
-        default="QAR",
+        ...,
         min_length=3,
         max_length=3,
     )

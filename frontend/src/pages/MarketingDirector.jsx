@@ -2,26 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   MARKETING_CHANNELS,
-  createDefaultMarketingRequest,
+  createMarketingBusinessView,
+  createMarketingRequestFromWorkspace,
+  mergeMarketingRequestWithWorkspace,
   runMarketingDirector,
 } from "../api/marketingApi";
 
-import { getSavedBusinesses } from "../api/business";
-import BusinessSelector from "../components/business/BusinessSelector";
-import BusinessHealthCard from "../components/marketing/BusinessHealthCard";
 import ExecutiveAssessment from "../components/marketing/ExecutiveAssessment";
 import CompetitorIntelligence from "../components/competitors/CompetitorIntelligence";
-import {
-  generateBusinessDescription,
-} from "../services/businessDescription";
-
-function formatCategory(value) {
-  return String(value || "")
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase(),
-    );
-}
+import useWorkspace from "../workspace/useWorkspace";
 
 function splitCommaSeparated(value) {
   return value
@@ -92,61 +81,19 @@ function MetricCard({
 
 
 export default function MarketingDirector() {
+  const {
+    activeWorkspace,
+  } = useWorkspace();
+
   const [request, setRequest] = useState(
-    createDefaultMarketingRequest(),
+    () => createMarketingRequestFromWorkspace(
+      activeWorkspace,
+    ),
   );
 
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBusinessId, setSelectedBusinessId] =
-    useState("");
-  const [isBusinessesLoading, setIsBusinessesLoading] =
-    useState(true);
-  const [businessesError, setBusinessesError] =
-    useState("");
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadBusinesses() {
-      setIsBusinessesLoading(true);
-      setBusinessesError("");
-
-      try {
-        const savedBusinesses =
-          await getSavedBusinesses();
-
-        if (isMounted) {
-          setBusinesses(savedBusinesses);
-        }
-      } catch (requestError) {
-        console.error(
-          "Saved business loading failed:",
-          requestError,
-        );
-
-        if (isMounted) {
-          setBusinessesError(
-            requestError?.message
-              || "Unable to load businesses from CRM.",
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsBusinessesLoading(false);
-        }
-      }
-    }
-
-    loadBusinesses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const selectedCurrentChannels = useMemo(
     () => request.business.current_channels || [],
@@ -159,14 +106,23 @@ export default function MarketingDirector() {
   );
 
   const selectedBusiness = useMemo(
-    () =>
-      businesses.find(
-        (business) =>
-          String(business.id)
-          === String(selectedBusinessId),
-      ) || null,
-    [businesses, selectedBusinessId],
+    () => createMarketingBusinessView(
+      activeWorkspace,
+    ),
+    [activeWorkspace],
   );
+
+  useEffect(() => {
+    setRequest(
+      createMarketingRequestFromWorkspace(
+        activeWorkspace,
+      ),
+    );
+    setResult(null);
+    setError("");
+  }, [
+    activeWorkspace,
+  ]);
 
   function updateBusinessField(
     field,
@@ -246,70 +202,6 @@ export default function MarketingDirector() {
     });
   }
 
-  function handleBusinessSelect(businessId) {
-    setSelectedBusinessId(businessId);
-  setResult(null);
-  setError("");
-
-  const selectedBusiness = businesses.find(
-    (business) =>
-      String(business.id) === String(businessId),
-  );
-
-  if (!selectedBusiness) {
-    return;
-  }
-
-  const descriptionParts = [
-    selectedBusiness.notes,
-    selectedBusiness.aiRecommendation,
-    selectedBusiness.aiOpportunity,
-  ].filter(Boolean);
-
-  const validWebsite =
-    selectedBusiness.website
-    && String(selectedBusiness.website)
-      .trim()
-      .toLowerCase() !== "not found";
-
-  setRequest((current) => ({
-    ...current,
-
-    business: {
-      ...current.business,
-
-      business_id: String(
-        selectedBusiness.id,
-      ),
-
-      business_name:
-        selectedBusiness.name || "",
-
-      industry:
-        formatCategory(
-          selectedBusiness.category,
-        ),
-
-      location:
-        selectedBusiness.address
-        || selectedBusiness.location
-        || "Doha, Qatar",
-
-      description:
-        descriptionParts.join("\n\n")
-        || generateBusinessDescription(
-          selectedBusiness,
-        ),
-    },
-
-    additional_instructions:
-      validWebsite
-        ? `Use the available business website for context: ${selectedBusiness.website}`
-        : "",
-  }));
-  }
-
-
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -318,8 +210,14 @@ export default function MarketingDirector() {
     setIsLoading(true);
 
     try {
+      const authoritativeRequest =
+        mergeMarketingRequestWithWorkspace(
+          request,
+          activeWorkspace,
+        );
+
       const response = await runMarketingDirector(
-        request,
+        authoritativeRequest,
       );
 
       setResult(response);
@@ -335,10 +233,10 @@ export default function MarketingDirector() {
 
   function handleReset() {
     setRequest(
-      createDefaultMarketingRequest(),
+      createMarketingRequestFromWorkspace(
+        activeWorkspace,
+      ),
     );
-
-    setSelectedBusinessId("");
     setResult(null);
     setError("");
   }
@@ -361,18 +259,6 @@ export default function MarketingDirector() {
         </div>
       </div>
 
-      <BusinessSelector
-        businesses={businesses}
-        selectedBusinessId={selectedBusinessId}
-        isLoading={isBusinessesLoading}
-        errorMessage={businessesError}
-        onSelect={handleBusinessSelect}
-      />
-
-      <BusinessHealthCard
-        business={selectedBusiness}
-      />
-
       <form
         className="marketing-director-layout"
         onSubmit={handleSubmit}
@@ -392,7 +278,8 @@ export default function MarketingDirector() {
                       event.target.value,
                     );
                   }}
-                  placeholder="clinic-001"
+                  placeholder="Authoritative workspace ID"
+                  readOnly
                   required
                 />
               </label>
@@ -409,7 +296,8 @@ export default function MarketingDirector() {
                       event.target.value,
                     );
                   }}
-                  placeholder="Smile Dental Clinic"
+                  placeholder="Business name"
+                  readOnly
                   required
                 />
               </label>
@@ -426,7 +314,8 @@ export default function MarketingDirector() {
                       event.target.value,
                     );
                   }}
-                  placeholder="Dental Clinic"
+                  placeholder="Configured industry"
+                  readOnly
                   required
                 />
               </label>
@@ -443,7 +332,8 @@ export default function MarketingDirector() {
                       event.target.value,
                     );
                   }}
-                  placeholder="Doha"
+                  placeholder="Configured location"
+                  readOnly
                 />
               </label>
             </div>
@@ -481,7 +371,8 @@ export default function MarketingDirector() {
                       ),
                     );
                   }}
-                  placeholder="Dental implants, braces, whitening"
+                  placeholder="Configured products and services"
+                  readOnly
                 />
               </label>
 
@@ -533,14 +424,7 @@ export default function MarketingDirector() {
                   value={joinCommaSeparated(
                     request.business.preferred_languages,
                   )}
-                  onChange={(event) => {
-                    updateBusinessField(
-                      "preferred_languages",
-                      splitCommaSeparated(
-                        event.target.value,
-                      ),
-                    );
-                  }}
+                  readOnly
                   placeholder="English, Arabic"
                 />
               </label>
@@ -608,7 +492,7 @@ export default function MarketingDirector() {
                     event.target.value,
                   );
                 }}
-                placeholder="Increase monthly patient bookings"
+                placeholder="Increase qualified leads or revenue"
                 required
               />
             </label>
@@ -655,12 +539,7 @@ export default function MarketingDirector() {
                   type="text"
                   maxLength="3"
                   value={request.goal.currency}
-                  onChange={(event) => {
-                    updateGoalField(
-                      "currency",
-                      event.target.value.toUpperCase(),
-                    );
-                  }}
+                  readOnly
                 />
               </label>
 
@@ -729,7 +608,7 @@ export default function MarketingDirector() {
                       event.target.value,
                   }));
                 }}
-                placeholder="Focus on families living in Doha."
+                placeholder="Add campaign-specific guidance."
               />
             </label>
 

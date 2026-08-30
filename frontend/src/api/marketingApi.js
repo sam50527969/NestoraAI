@@ -1,3 +1,10 @@
+import {
+  getAccessToken,
+} from "../auth/session";
+import {
+  getActiveBusinessUid,
+} from "../workspace/session";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -59,6 +66,229 @@ function getErrorMessage(data, fallbackMessage) {
 }
 
 
+function formatIndustry(value) {
+  return String(value || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) =>
+      letter.toUpperCase(),
+    );
+}
+
+
+function workspaceLocation(workspace) {
+  return [
+    workspace?.city,
+    workspace?.region,
+    workspace?.country,
+  ]
+    .map((value) =>
+      String(value || "").trim(),
+    )
+    .filter(Boolean)
+    .filter(
+      (value, index, values) =>
+        values.indexOf(value) === index,
+    )
+    .join(", ");
+}
+
+
+function metadataList(
+  workspace,
+  field,
+) {
+  const value =
+    workspace?.metadata?.[field];
+
+  return Array.isArray(value)
+    ? value
+    : [];
+}
+
+
+export function createDefaultMarketingRequest() {
+  return {
+    business: {
+      business_id: "",
+      business_name: "",
+      industry: "",
+      location: "",
+      description: "",
+      products_or_services: [],
+      target_audience: [],
+      differentiators: [],
+      current_channels: [],
+      preferred_languages: [],
+      brand_voice: "",
+    },
+
+    goal: {
+      objective: "",
+      timeline_days: 30,
+      monthly_budget: 0,
+      currency: "",
+      preferred_channels: [],
+      approval_required: true,
+    },
+
+    additional_instructions: "",
+  };
+}
+
+
+export function createMarketingRequestFromWorkspace(
+  workspace,
+) {
+  const request =
+    createDefaultMarketingRequest();
+
+  if (!workspace) {
+    return request;
+  }
+
+  const configuredIndustry =
+    formatIndustry(
+      workspace.industry,
+    );
+
+  const businessType = String(
+    workspace.metadata?.business_type
+    || "",
+  ).trim();
+
+  return {
+    ...request,
+    business: {
+      ...request.business,
+      business_id:
+        workspace.business_uid,
+      business_name:
+        workspace.name,
+      industry: [
+        configuredIndustry,
+        businessType,
+      ]
+        .filter(Boolean)
+        .join(" / "),
+      location:
+        workspaceLocation(
+          workspace,
+        ),
+      description:
+        workspace.description || "",
+      products_or_services:
+        metadataList(
+          workspace,
+          "products_services",
+        ),
+      target_audience:
+        metadataList(
+          workspace,
+          "target_audience",
+        ),
+      differentiators:
+        metadataList(
+          workspace,
+          "differentiators",
+        ),
+      current_channels:
+        metadataList(
+          workspace,
+          "marketing_channels",
+        ),
+      preferred_languages:
+        metadataList(
+          workspace,
+          "preferred_languages",
+        ),
+      brand_voice:
+        workspace.metadata
+          ?.brand_voice || "",
+    },
+    goal: {
+      ...request.goal,
+      currency:
+        workspace.finances
+          ?.currency || "",
+    },
+  };
+}
+
+
+export function mergeMarketingRequestWithWorkspace(
+  current,
+  workspace,
+) {
+  const authoritative =
+    createMarketingRequestFromWorkspace(
+      workspace,
+    );
+
+  return {
+    ...current,
+    business: {
+      ...authoritative.business,
+      target_audience:
+        current.business
+          ?.target_audience || [],
+      differentiators:
+        current.business
+          ?.differentiators || [],
+      current_channels:
+        current.business
+          ?.current_channels || [],
+      brand_voice:
+        current.business
+          ?.brand_voice || "",
+    },
+    goal: {
+      ...current.goal,
+      currency:
+        authoritative.goal.currency,
+    },
+  };
+}
+
+
+export function createMarketingBusinessView(
+  workspace,
+) {
+  if (!workspace) {
+    return null;
+  }
+
+  return {
+    id: workspace.business_uid,
+    name: workspace.name,
+    category:
+      formatIndustry(
+        workspace.industry,
+      ),
+    industry:
+      workspace.industry,
+    address:
+      workspaceLocation(
+        workspace,
+      ),
+    location:
+      workspaceLocation(
+        workspace,
+      ),
+    website:
+      workspace.metadata?.website
+      || "Not found",
+    description:
+      workspace.description || "",
+    products:
+      metadataList(
+        workspace,
+        "products_services",
+      ),
+    source: "Workspace",
+  };
+}
+
+
 export async function runMarketingDirector(
   request,
   options = {},
@@ -74,6 +304,12 @@ export async function runMarketingDirector(
     controller.abort();
   }, timeoutMs);
 
+  const accessToken =
+    getAccessToken();
+
+  const activeBusinessUid =
+    getActiveBusinessUid();
+
   try {
     const response = await fetch(
       `${API_BASE_URL}/marketing/director`,
@@ -83,6 +319,18 @@ export async function runMarketingDirector(
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          ...(accessToken
+            ? {
+                Authorization:
+                  `Bearer ${accessToken}`,
+              }
+            : {}),
+          ...(activeBusinessUid
+            ? {
+                "X-Business-Uid":
+                  activeBusinessUid,
+              }
+            : {}),
         },
 
         body: JSON.stringify(request),
@@ -125,36 +373,6 @@ export async function runMarketingDirector(
   } finally {
     window.clearTimeout(timeoutId);
   }
-}
-
-
-export function createDefaultMarketingRequest() {
-  return {
-    business: {
-      business_id: "",
-      business_name: "",
-      industry: "",
-      location: "Doha",
-      description: "",
-      products_or_services: [],
-      target_audience: [],
-      differentiators: [],
-      current_channels: [],
-      preferred_languages: ["English"],
-      brand_voice: "Professional and friendly",
-    },
-
-    goal: {
-      objective: "",
-      timeline_days: 30,
-      monthly_budget: 0,
-      currency: "QAR",
-      preferred_channels: [],
-      approval_required: true,
-    },
-
-    additional_instructions: "",
-  };
 }
 
 
@@ -201,5 +419,8 @@ export const MARKETING_CHANNELS = [
 export default {
   runMarketingDirector,
   createDefaultMarketingRequest,
+  createMarketingRequestFromWorkspace,
+  mergeMarketingRequestWithWorkspace,
+  createMarketingBusinessView,
   MARKETING_CHANNELS,
 };
