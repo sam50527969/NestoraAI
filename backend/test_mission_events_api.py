@@ -143,6 +143,11 @@ def test_empty_timeline_returns_200(
     )
 
     assert response.status_code == 200
+    assert response.json() == {
+        "mission_uid": mission_uid,
+        "count": 0,
+        "events": [],
+    }
 
 
 def test_other_workspace_timeline_returns_404(
@@ -168,13 +173,6 @@ def test_other_workspace_timeline_returns_404(
     assert response.json() == {
         "detail": "Persisted mission not found.",
     }
-
-    assert response.json() == {
-        "mission_uid": mission_uid,
-        "count": 0,
-        "events": [],
-    }
-
 
 def test_missing_mission_returns_404(
     mission_events_environment,
