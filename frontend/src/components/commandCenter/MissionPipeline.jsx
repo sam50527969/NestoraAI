@@ -1,44 +1,60 @@
-import {
+﻿import {
   CheckCircle2,
   CircleAlert,
   Clock3,
   LoaderCircle,
 } from "lucide-react";
+import PropTypes from "prop-types";
 
 import "./MissionPipeline.css";
 
-const pipelineItems = [
-  {
-    label: "Running",
-    value: 4,
-    icon: LoaderCircle,
-    type: "running",
-  },
-  {
-    label: "Pending",
-    value: 11,
-    icon: Clock3,
-    type: "pending",
-  },
-  {
-    label: "Completed",
-    value: 89,
-    icon: CheckCircle2,
-    type: "completed",
-  },
-  {
-    label: "Failed",
-    value: 1,
-    icon: CircleAlert,
-    type: "failed",
-  },
-];
+export default function MissionPipeline({
+  missions = [],
+  loading = false,
+}) {
+  const running = missions.filter(
+    (mission) => mission.status === "running",
+  ).length;
 
-export default function MissionPipeline() {
-  const total = pipelineItems.reduce(
-    (sum, item) => sum + item.value,
-    0,
-  );
+  const completed = missions.filter(
+    (mission) => mission.status === "completed",
+  ).length;
+
+  const failed = missions.filter(
+    (mission) => mission.status === "failed",
+  ).length;
+
+  const pending =
+    missions.length - running - completed - failed;
+
+  const pipelineItems = [
+    {
+      label: "Running",
+      value: running,
+      icon: LoaderCircle,
+      type: "running",
+    },
+    {
+      label: "Pending",
+      value: pending,
+      icon: Clock3,
+      type: "pending",
+    },
+    {
+      label: "Completed",
+      value: completed,
+      icon: CheckCircle2,
+      type: "completed",
+    },
+    {
+      label: "Failed",
+      value: failed,
+      icon: CircleAlert,
+      type: "failed",
+    },
+  ];
+
+  const total = missions.length;
 
   return (
     <section className="mission-pipeline">
@@ -48,7 +64,11 @@ export default function MissionPipeline() {
           <h3>Mission Pipeline</h3>
         </div>
 
-        <span>{total} missions</span>
+        <span>
+          {loading && total === 0
+            ? "Loading..."
+            : `${total} missions`}
+        </span>
       </header>
 
       <div className="mission-pipeline-list">
@@ -96,3 +116,12 @@ export default function MissionPipeline() {
     </section>
   );
 }
+
+MissionPipeline.propTypes = {
+  missions: PropTypes.arrayOf(
+    PropTypes.shape({
+      status: PropTypes.string,
+    }),
+  ),
+  loading: PropTypes.bool,
+};
