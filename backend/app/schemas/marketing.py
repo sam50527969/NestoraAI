@@ -68,7 +68,7 @@ class MarketingBusinessProfile(BaseModel):
     )
 
     preferred_languages: list[str] = Field(
-        default_factory=lambda: ["English"],
+        default_factory=list,
     )
 
     brand_voice: str | None = None

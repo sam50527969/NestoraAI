@@ -1,14 +1,26 @@
 import {
+  afterEach,
   describe,
   expect,
   it,
+  vi,
 } from "vitest";
+
+import {
+  clearAccessToken,
+  setAccessToken,
+} from "../../auth/session";
+import {
+  clearActiveBusinessUid,
+  setActiveBusinessUid,
+} from "../../workspace/session";
 
 import {
   createDefaultMarketingRequest,
   createMarketingBusinessView,
   createMarketingRequestFromWorkspace,
   mergeMarketingRequestWithWorkspace,
+  runMarketingDirector,
 } from "../marketingApi";
 
 const workspace = {
@@ -40,6 +52,12 @@ const workspace = {
       "https://global.example",
   },
 };
+
+afterEach(() => {
+  clearAccessToken();
+  clearActiveBusinessUid();
+  vi.unstubAllGlobals();
+});
 
 describe("marketing workspace context", () => {
   it("has no regional or industry defaults", () => {
@@ -151,6 +169,47 @@ describe("marketing workspace context", () => {
     );
     expect(view.source).toBe(
       "Workspace",
+    );
+  });
+
+  it("sends authenticated active workspace headers", async () => {
+    setAccessToken("access-token");
+    setActiveBusinessUid("biz_global");
+
+    const fetchMock = vi.fn(
+      async () => ({
+        ok: true,
+        headers: {
+          get: () =>
+            "application/json",
+        },
+        json: async () => ({
+          success: true,
+        }),
+      }),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await runMarketingDirector(
+      createMarketingRequestFromWorkspace(
+        workspace,
+      ),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "/marketing/director",
+      ),
+      expect.objectContaining({
+        headers:
+          expect.objectContaining({
+            Authorization:
+              "Bearer access-token",
+            "X-Business-Uid":
+              "biz_global",
+          }),
+      }),
     );
   });
 });
