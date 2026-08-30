@@ -23,6 +23,7 @@ import Login from "./pages/Login";
 import MarketingDirector from "./pages/MarketingDirector";
 import MissionDashboard from "./pages/MissionDashboard";
 import WorkforceDashboard from "./pages/WorkforceDashboard";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
 
 import "./App.css";
 
@@ -173,9 +174,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                <PlaceholderPage
-                  title="Settings"
-                />
+                <WorkspaceSettings />
               }
             />
           </Route>

@@ -1,3 +1,4 @@
+import WorkspaceOnboarding from "./WorkspaceOnboarding";
 import useWorkspace from "./useWorkspace";
 
 function WorkspaceBoundary({
@@ -56,26 +57,7 @@ function WorkspaceBoundary({
   }
 
   if (!hasWorkspaces) {
-    return (
-      <section className="workspace-state">
-        <div className="workspace-state-content">
-          <span className="eyebrow">
-            Business workspace
-          </span>
-
-          <h2>
-            Create your first workspace
-          </h2>
-
-          <p>
-            Your authenticated business
-            workspace will become the
-            authoritative context for every
-            Nestora module.
-          </p>
-        </div>
-      </section>
-    );
+    return <WorkspaceOnboarding />;
   }
 
   return children;

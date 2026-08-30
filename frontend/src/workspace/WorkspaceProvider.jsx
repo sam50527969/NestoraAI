@@ -6,7 +6,9 @@ import {
 } from "react";
 
 import {
+  createWorkspace as createWorkspaceRequest,
   getWorkspaces,
+  updateWorkspace as updateWorkspaceRequest,
 } from "../api/workspaces";
 import useAuth from "../auth/useAuth";
 
@@ -45,6 +47,21 @@ function WorkspaceProvider({
   ] = useState(null);
 
   const userUid = user?.user_uid;
+
+  const rememberWorkspace =
+    useCallback(
+      (workspace) => {
+        setActiveWorkspace(workspace);
+
+        if (workspace && userUid) {
+          window.localStorage.setItem(
+            storageKey(userUid),
+            workspace.business_uid,
+          );
+        }
+      },
+      [userUid],
+    );
 
   const refreshWorkspaces =
     useCallback(async () => {
@@ -129,18 +146,79 @@ function WorkspaceProvider({
           return false;
         }
 
-        setActiveWorkspace(selected);
-
-        window.localStorage.setItem(
-          storageKey(userUid),
-          selected.business_uid,
-        );
-
+        rememberWorkspace(selected);
         return true;
       },
       [
         workspaces,
         userUid,
+        rememberWorkspace,
+      ],
+    );
+
+  const createWorkspace =
+    useCallback(
+      async (workspace) => {
+        const created =
+          await createWorkspaceRequest(
+            workspace,
+          );
+
+        setWorkspaces(
+          (current) => [
+            created,
+            ...current.filter(
+              (item) =>
+                item.business_uid
+                !== created.business_uid,
+            ),
+          ],
+        );
+
+        rememberWorkspace(created);
+        setError(null);
+
+        return created;
+      },
+      [rememberWorkspace],
+    );
+
+  const updateWorkspace =
+    useCallback(
+      async (
+        businessUid,
+        workspace,
+      ) => {
+        const updated =
+          await updateWorkspaceRequest(
+            businessUid,
+            workspace,
+          );
+
+        setWorkspaces(
+          (current) =>
+            current.map((item) =>
+              item.business_uid
+                === updated.business_uid
+                ? updated
+                : item,
+            ),
+        );
+
+        if (
+          activeWorkspace?.business_uid
+          === updated.business_uid
+        ) {
+          rememberWorkspace(updated);
+        }
+
+        setError(null);
+
+        return updated;
+      },
+      [
+        activeWorkspace,
+        rememberWorkspace,
       ],
     );
 
@@ -156,6 +234,8 @@ function WorkspaceProvider({
       hasWorkspaces:
         workspaces.length > 0,
       selectWorkspace,
+      createWorkspace,
+      updateWorkspace,
       refreshWorkspaces,
     }),
     [
@@ -164,6 +244,8 @@ function WorkspaceProvider({
       isLoading,
       error,
       selectWorkspace,
+      createWorkspace,
+      updateWorkspace,
       refreshWorkspaces,
     ],
   );
