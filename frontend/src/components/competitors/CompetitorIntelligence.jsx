@@ -246,12 +246,12 @@ export default function CompetitorIntelligence({
         const category =
           business.category
           || business.industry
-          || "medical center";
+          || "business";
 
         const location =
           business.location
           || business.address
-          || "Doha";
+          || "";
 
         const response =
           await competitorsApi.getCompetitors(
@@ -554,7 +554,7 @@ export default function CompetitorIntelligence({
                   {marketSummary.phones} provide direct
                   phone contact. Nestora recommends
                   strengthening local SEO, reputation,
-                  online booking, and patient follow-up
+                  conversion pathways, and customer follow-up
                   to improve competitive positioning.
                 </p>
               </div>
