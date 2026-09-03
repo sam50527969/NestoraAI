@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
@@ -23,12 +23,37 @@ import {
 } from "lucide-react";
 
 import { createObjectiveMission } from "../api";
+import { request } from "../api/client";
 import { executePersistedMission } from "../api/mission";
+import useWorkspace from "../workspace/useWorkspace";
 
 import "./BusinessAnalysis.css";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
-const DEFAULT_MISSION_BUSINESS_ID = "biz_5d86879387a7";
+function createAnalysisFormFromWorkspace(workspace) {
+  const city = workspace?.city || "";
+  const country = workspace?.country || "";
+  const location = [city, country].filter(Boolean).join(", ");
+
+  return {
+    business_name: workspace?.name || "",
+    industry:
+      workspace?.metadata?.business_type
+      || workspace?.industry
+      || "",
+    location,
+    objective: "",
+    timeline_days: 90,
+    monthly_budget: 0,
+    currency:
+      workspace?.finances?.currency
+      || "",
+    average_sale_value:
+      workspace?.customers?.average_customer_value
+      || 0,
+    competitor_limit: 5,
+  };
+}
+
 
 const STRATEGY_TABS = [
   { id: "strategy", label: "Strategy", icon: Target },
@@ -39,30 +64,31 @@ const STRATEGY_TABS = [
 ];
 
 function BusinessAnalysis() {
-  const [form, setForm] = useState({
-    business_name: "Reem Medical Center",
-    industry: "Medical Center",
-    location: "Doha, Qatar",
-    objective: "Increase patient enquiries and appointments",
-    timeline_days: 90,
-    monthly_budget: 5000,
-    currency: "QAR",
-    average_sale_value: 500,
-    competitor_limit: 5,
-  });
+  const { activeWorkspace } = useWorkspace();
+
+  const [form, setForm] = useState(
+    () => createAnalysisFormFromWorkspace(activeWorkspace)
+  );
 
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("strategy");
-  const [missionBusinessId, setMissionBusinessId] = useState(
-    DEFAULT_MISSION_BUSINESS_ID
-  );
+
   const [missionCreating, setMissionCreating] = useState("");
   const [missionExecuting, setMissionExecuting] = useState(false);
   const [missionError, setMissionError] = useState("");
   const [createdMission, setCreatedMission] = useState(null);
   const [missionExecutionResult, setMissionExecutionResult] = useState(null);
+
+  useEffect(() => {
+    setForm(createAnalysisFormFromWorkspace(activeWorkspace));
+    setReport(null);
+    setError("");
+    setMissionError("");
+    setCreatedMission(null);
+    setMissionExecutionResult(null);
+  }, [activeWorkspace]);
 
   const marketSummary = useMemo(
   () => report?.market_summary || {},
@@ -115,19 +141,16 @@ function BusinessAnalysis() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/business-analysis/analyze`,
+      const data = await request(
+        "/business-analysis/analyze",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...form, additional_context: {} }),
+          body: JSON.stringify({
+            ...form,
+            additional_context: {},
+          }),
         }
       );
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.detail || "Business analysis failed.");
-      }
 
       setReport(data);
       setActiveTab("strategy");
@@ -228,11 +251,11 @@ function BusinessAnalysis() {
   }
 
   async function createMissionFromAnalysis(type) {
-    const businessId = missionBusinessId.trim();
+    const businessId = activeWorkspace?.business_uid || "";
 
     if (!businessId) {
       setMissionError(
-        "Enter the saved Business ID that should own this mission."
+        "Select an active workspace before creating a mission."
       );
       return;
     }
@@ -447,25 +470,6 @@ function BusinessAnalysis() {
                   the existing CEO objective engine.
                 </p>
               </div>
-            </div>
-
-            <div className="mission-business-row">
-              <label>
-                Mission Business ID
-                <input
-                  value={missionBusinessId}
-                  onChange={(event) =>
-                    setMissionBusinessId(event.target.value)
-                  }
-                  placeholder="biz_..."
-                />
-              </label>
-
-              <p>
-                Development note: this must be the saved business ID that owns
-                the mission. Later, Nestora can populate it automatically when
-                Business Analysis is opened from a saved business.
-              </p>
             </div>
 
             <div className="analysis-action-grid">
