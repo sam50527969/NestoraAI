@@ -122,7 +122,7 @@ function normalizeFallbackBusiness(
     location:
       business?.location
       ?? business?.address
-      ?? "Doha, Qatar",
+      ?? "Location unavailable",
 
     phone:
       business?.phone
@@ -185,7 +185,7 @@ async function getCRMCompetitors(
 
 export async function getCompetitors(
   category,
-  location = "Doha",
+  location = "",
   limit = 8,
 ) {
   const normalizedCategory =
@@ -193,11 +193,7 @@ export async function getCompetitors(
     || "business";
 
   const normalizedLocation =
-    String(location || "")
-      .toLowerCase()
-      .includes("doha")
-      ? "Doha"
-      : String(location || "Doha");
+    String(location || "").trim();
 
   const query = new URLSearchParams({
     category: normalizedCategory,
