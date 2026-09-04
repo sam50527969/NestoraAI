@@ -86,7 +86,7 @@ class CompetitorEnrichmentService:
         location = str(
             competitor.get("location")
             or competitor.get("address")
-            or "Doha, Qatar"
+            or ""
         ).strip()
 
         category = str(

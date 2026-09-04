@@ -192,7 +192,7 @@ def _build_result(
             place.get(
                 "formattedAddress"
             ),
-            "Doha, Qatar",
+            "Not found",
         ),
         "phone": phone,
         "email": "Not found",
@@ -293,7 +293,6 @@ async def search_google_places(
         "textQuery": text_query,
         "pageSize": safe_limit,
         "languageCode": "en",
-        "regionCode": "QA",
     }
 
     try:

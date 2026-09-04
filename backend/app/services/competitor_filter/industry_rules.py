@@ -4,6 +4,61 @@ from typing import Any
 
 
 INDUSTRY_RULES: dict[str, dict[str, Any]] = {
+    "auto repair workshop": {
+        "aliases": [
+            "auto repair",
+            "car repair",
+            "automotive repair",
+            "vehicle repair",
+            "garage",
+            "mechanic",
+        ],
+        "allowed_categories": [
+            "car repair",
+            "car_repair",
+            "auto repair",
+            "auto_repair",
+            "auto repair shop",
+            "auto_repair_shop",
+            "vehicle repair",
+            "automotive repair",
+            "mechanic",
+            "garage",
+        ],
+        "positive_terms": [
+            "auto",
+            "automotive",
+            "car",
+            "vehicle",
+            "repair",
+            "garage",
+            "mechanic",
+            "workshop",
+            "service center",
+            "service centre",
+        ],
+        "excluded_categories": [
+            "country",
+            "administrative area",
+            "locality",
+            "political",
+            "restaurant",
+            "cafe",
+            "hotel",
+            "hospital",
+            "clinic",
+            "dentist",
+        ],
+        "excluded_terms": [
+            "restaurant",
+            "cafe",
+            "hotel",
+            "hospital",
+            "clinic",
+            "dental",
+        ],
+    },
+
     "medical center": {
         "aliases": [
             "medical centre",
