@@ -28,9 +28,7 @@ def build_content_calendar(
         industry or "business"
     ).strip().replace("_", " ")
 
-    safe_location = str(
-        location or "Doha"
-    ).strip()
+    safe_location = str(location).strip()
 
     safe_days = max(
         7,

@@ -33,9 +33,7 @@ def build_seo_plan(
         .replace("_", " ")
     )
 
-    safe_location = (
-        str(location or "Doha").strip()
-    )
+    safe_location = str(location).strip()
 
     keyword_base = safe_industry.lower()
 
@@ -43,7 +41,7 @@ def build_seo_plan(
         f"{keyword_base} {safe_location}",
         f"best {keyword_base} {safe_location}",
         f"{keyword_base} near me",
-        f"{keyword_base} Qatar",
+        f"{keyword_base} {safe_location}",
         f"{safe_business_name} {safe_location}",
     ]
 
@@ -90,7 +88,7 @@ def build_seo_plan(
             ),
             priority="Medium",
             target_keywords=[
-                f"{keyword_base} Qatar",
+                f"{keyword_base} {safe_location}",
                 f"{keyword_base} {safe_location}",
             ],
         ),
@@ -105,7 +103,7 @@ def build_seo_plan(
             priority="Medium",
             target_keywords=[
                 f"how to choose {keyword_base}",
-                f"{keyword_base} cost Qatar",
+                f"{keyword_base} cost {safe_location}",
                 f"best {keyword_base} in {safe_location}",
             ],
         ),

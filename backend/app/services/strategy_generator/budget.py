@@ -9,7 +9,7 @@ from app.services.strategy_generator.models import (
 def build_budget_plan(
     *,
     monthly_budget: float,
-    currency: str = "QAR",
+    currency: str,
 ) -> StrategyBudget:
     """
     Create a balanced default marketing budget.

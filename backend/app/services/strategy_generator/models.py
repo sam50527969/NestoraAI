@@ -19,7 +19,7 @@ class StrategyBudgetAllocation:
 @dataclass(slots=True)
 class StrategyBudget:
     monthly_budget: float
-    currency: str = "QAR"
+    currency: str
 
     allocations: list[
         StrategyBudgetAllocation
@@ -100,7 +100,7 @@ class StrategyTimelineAction:
 @dataclass(slots=True)
 class StrategyRoiForecast:
     monthly_investment: float
-    currency: str = "QAR"
+    currency: str
 
     estimated_leads: int = 0
     estimated_customers: int = 0

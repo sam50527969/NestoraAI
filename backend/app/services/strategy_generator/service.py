@@ -43,7 +43,7 @@ class StrategyGeneratorService:
         objective: str,
         timeline_days: int = 90,
         monthly_budget: float = 0.0,
-        currency: str = "QAR",
+        currency: str,
         average_sale_value: float = 500.0,
         competitor_context: list[
             dict[str, Any]
@@ -61,9 +61,7 @@ class StrategyGeneratorService:
             industry or "business"
         ).strip()
 
-        safe_location = str(
-            location or "Doha"
-        ).strip()
+        safe_location = str(location).strip()
 
         safe_objective = str(
             objective
