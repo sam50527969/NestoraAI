@@ -17,8 +17,10 @@ INVALID_VALUES = {
 
 
 PHONE_PATTERNS = [
-    re.compile(r"\+974[\s-]?\d{4}[\s-]?\d{4}"),
-    re.compile(r"(?<!\d)(?:3|4|5|6|7)\d{7}(?!\d)"),
+    re.compile(
+        r"(?<!\w)\+\d{1,3}"
+        r"(?:[\s().-]*\d){6,14}(?!\d)"
+    ),
 ]
 
 
@@ -38,14 +40,8 @@ def _normalize_phone(value: str) -> str:
         value,
     )
 
-    if cleaned.startswith("00974"):
-        cleaned = f"+974{cleaned[5:]}"
-
-    if (
-        cleaned.isdigit()
-        and len(cleaned) == 8
-    ):
-        cleaned = f"+974{cleaned}"
+    if cleaned.startswith("00"):
+        cleaned = f"+{cleaned[2:]}"
 
     return cleaned
 
