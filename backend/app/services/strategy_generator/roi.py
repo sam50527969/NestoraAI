@@ -11,7 +11,7 @@ def build_roi_forecast(
     average_sale_value: float,
     lead_conversion_rate: float = 0.25,
     estimated_cost_per_lead: float = 75.0,
-    currency: str = "QAR",
+    currency: str,
 ) -> StrategyRoiForecast:
     """
     Generate a simple ROI forecast.

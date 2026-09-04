@@ -31,9 +31,7 @@ def build_ad_campaigns(
         industry or "business"
     ).strip().replace("_", " ")
 
-    safe_location = str(
-        location or "Doha"
-    ).strip()
+    safe_location = str(location).strip()
 
     safe_budget = max(
         0.0,
@@ -82,7 +80,7 @@ def build_ad_campaigns(
             keywords=[
                 f"{industry_lower} {safe_location}",
                 f"best {industry_lower} {safe_location}",
-                f"{industry_lower} Qatar",
+                f"{industry_lower} services {safe_location}",
                 f"{industry_lower} near me",
             ],
             message=(
@@ -150,7 +148,7 @@ def build_ad_campaigns(
                         "High-intent local searchers",
                     ],
                     keywords=[
-                        f"best {industry_lower} Qatar",
+                        f"best {industry_lower} {safe_location}",
                         f"top {industry_lower} {safe_location}",
                         f"{industry_lower} reviews {safe_location}",
                     ],
