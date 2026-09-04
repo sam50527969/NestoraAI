@@ -34,14 +34,14 @@ class BusinessAnalysisRequest(BaseModel):
     )
 
     location: str = Field(
-        default="Doha",
+        ...,
         min_length=1,
     )
 
     objective: str = Field(
         default=(
-            "Increase qualified leads, "
-            "appointments, and revenue"
+            "Increase qualified leads "
+            "and revenue"
         ),
         min_length=1,
     )
@@ -58,7 +58,7 @@ class BusinessAnalysisRequest(BaseModel):
     )
 
     currency: str = Field(
-        default="QAR",
+        ...,
         min_length=1,
     )
 

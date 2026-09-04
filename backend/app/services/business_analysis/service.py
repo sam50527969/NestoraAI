@@ -45,7 +45,7 @@ class BusinessAnalysisService:
         objective: str,
         timeline_days: int = 90,
         monthly_budget: float = 0.0,
-        currency: str = "QAR",
+        currency: str,
         average_sale_value: float = 500.0,
         competitor_limit: int = 5,
         additional_context: dict[str, Any] | None = None,
