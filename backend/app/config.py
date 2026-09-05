@@ -38,13 +38,17 @@ AUTH_ACCESS_TOKEN_MINUTES = int(
     )
 )
 
-if (
-    APP_ENV.lower() == "production"
-    and AUTH_SECRET_KEY.startswith(
+if APP_ENV.lower() == "production":
+    if AUTH_SECRET_KEY.startswith(
         "nestora-development-secret"
-    )
-):
-    raise RuntimeError(
-        "AUTH_SECRET_KEY must be configured "
-        "in production."
-    )
+    ):
+        raise RuntimeError(
+            "AUTH_SECRET_KEY must be configured "
+            "in production."
+        )
+
+    if DATABASE_URL.lower().startswith("sqlite"):
+        raise RuntimeError(
+            "DATABASE_URL must use a production "
+            "database in production."
+        )
