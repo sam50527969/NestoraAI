@@ -11,12 +11,15 @@ class ExecutiveLearningRepository:
     def get_recent_memories(
         self,
         executive: str,
+        *,
+        business_uid: str,
         limit: int = 5,
     ):
         return (
             self.db.query(ExecutiveMemory)
             .filter(
-                ExecutiveMemory.executive == executive
+                ExecutiveMemory.business_uid == business_uid,
+                ExecutiveMemory.executive == executive,
             )
             .order_by(
                 ExecutiveMemory.updated_at.desc()

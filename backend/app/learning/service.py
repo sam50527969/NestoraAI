@@ -20,11 +20,14 @@ class ExecutiveLearningService:
     def build_context(
         self,
         executive: str,
+        *,
+        business_uid: str,
     ) -> ExecutiveLearningContext:
 
         memories = (
             self.repository.get_recent_memories(
-                executive
+                executive,
+                business_uid=business_uid,
             )
         )
 

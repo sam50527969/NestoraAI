@@ -299,7 +299,8 @@ class WorkforceOrchestrator:
 
             learning_context = (
                 self._learning_service.build_context(
-                    task.agent_name
+                    task.agent_name,
+                    business_uid=mission.business_uid,
                 )
             )
 
@@ -413,7 +414,8 @@ class WorkforceOrchestrator:
                     source=(
                         f"mission:{mission.mission_uid}"
                     ),
-                )
+                ),
+                business_uid=mission.business_uid,
             )
 
             print(

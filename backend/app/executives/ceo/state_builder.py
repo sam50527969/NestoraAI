@@ -208,6 +208,7 @@ class CEOCompanyStateBuilder:
 
     def _build_memory_state(self) -> DepartmentState:
         memories = self._memory_service.list_memories(
+            business_uid=self._business_uid,
             executive="CEO",
             limit=10,
         )

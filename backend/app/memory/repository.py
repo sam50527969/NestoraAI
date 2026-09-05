@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,7 @@ class ExecutiveMemoryRepository:
     def create(
         self,
         *,
+        business_uid: str,
         executive: str,
         category: str,
         memory: str,
@@ -19,6 +20,7 @@ class ExecutiveMemoryRepository:
         source: str = "mission",
     ) -> ExecutiveMemory:
         record = ExecutiveMemory(
+            business_uid=business_uid,
             executive=executive,
             category=category,
             memory=memory,
@@ -36,12 +38,14 @@ class ExecutiveMemoryRepository:
         self,
         executive: str,
         *,
+        business_uid: str,
         limit: int = 50,
     ) -> list[ExecutiveMemory]:
         return (
             self._db.query(ExecutiveMemory)
             .filter(
-                ExecutiveMemory.executive == executive
+                ExecutiveMemory.business_uid == business_uid,
+                ExecutiveMemory.executive == executive,
             )
             .order_by(
                 ExecutiveMemory.importance.desc(),
@@ -54,12 +58,16 @@ class ExecutiveMemoryRepository:
     def list_all(
         self,
         *,
+        business_uid: str,
         limit: int = 100,
     ) -> list[ExecutiveMemory]:
         return (
             self._db.query(ExecutiveMemory)
+            .filter(
+                ExecutiveMemory.business_uid == business_uid,
+            )
             .order_by(
-                ExecutiveMemory.created_at.desc()
+                ExecutiveMemory.created_at.desc(),
             )
             .limit(limit)
             .all()
@@ -68,11 +76,14 @@ class ExecutiveMemoryRepository:
     def get_by_id(
         self,
         memory_id: int,
+        *,
+        business_uid: str,
     ) -> ExecutiveMemory | None:
         return (
             self._db.query(ExecutiveMemory)
             .filter(
-                ExecutiveMemory.id == memory_id
+                ExecutiveMemory.id == memory_id,
+                ExecutiveMemory.business_uid == business_uid,
             )
             .first()
         )
@@ -80,8 +91,13 @@ class ExecutiveMemoryRepository:
     def delete(
         self,
         memory_id: int,
+        *,
+        business_uid: str,
     ) -> bool:
-        record = self.get_by_id(memory_id)
+        record = self.get_by_id(
+            memory_id,
+            business_uid=business_uid,
+        )
 
         if record is None:
             return False

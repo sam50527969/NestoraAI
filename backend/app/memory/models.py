@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
+﻿from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 
 from app.database.database import Base
@@ -8,6 +8,12 @@ class ExecutiveMemory(Base):
     __tablename__ = "executive_memory"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    business_uid = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
 
     executive = Column(String(100), index=True)
 
