@@ -21,6 +21,21 @@ APP_ENV = os.getenv(
     "development",
 )
 
+
+CORS_ALLOWED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        (
+            "http://localhost:5173,"
+            "http://localhost:5174,"
+            "http://localhost:5175,"
+            "http://localhost:5176"
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
 AUTH_SECRET_KEY = os.getenv(
     "AUTH_SECRET_KEY",
     (

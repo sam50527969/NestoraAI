@@ -12,7 +12,10 @@ from app.bootstrap import (
     create_application,
     register_routes,
 )
-from app.config import APP_NAME
+from app.config import (
+    APP_NAME,
+    CORS_ALLOWED_ORIGINS,
+)
 from app.core.registry import (
     executive_registry,
     load_executives,
@@ -103,12 +106,7 @@ app = create_application(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://localhost:5176",
-    ],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
