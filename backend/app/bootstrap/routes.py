@@ -27,6 +27,9 @@ from app.communication.routes import (
 from app.execution_history.routes import (
     router as ceo_execution_history_router,
 )
+from app.bootstrap.health import (
+    router as health_router,
+)
 from app.follow_up_activity.routes import (
     router as follow_up_activities_router,
 )
@@ -125,6 +128,10 @@ def register_routes(
     which uses a different authentication
     mechanism.
     """
+
+    app.include_router(
+        health_router
+    )
 
     app.include_router(
         auth_router
