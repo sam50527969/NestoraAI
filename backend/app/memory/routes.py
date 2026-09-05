@@ -9,6 +9,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import get_db
 from app.memory.schemas import (
     ExecutiveMemoryCreate,
@@ -39,11 +40,15 @@ def memory_health() -> dict[str, str]:
 )
 def create_memory(
     payload: ExecutiveMemoryCreate,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ExecutiveMemoryResponse:
     service = ExecutiveMemoryService(db)
 
-    return service.create_memory(payload)
+    return service.create_memory(
+        payload,
+        business_uid=business_uid,
+    )
 
 
 @router.get(
@@ -61,11 +66,13 @@ def list_memories(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ExecutiveMemoryListResponse:
     service = ExecutiveMemoryService(db)
 
     memories = service.list_memories(
+        business_uid=business_uid,
         executive=executive,
         limit=limit,
     )
@@ -82,11 +89,15 @@ def list_memories(
 )
 def get_memory(
     memory_id: int,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ExecutiveMemoryResponse:
     service = ExecutiveMemoryService(db)
 
-    memory = service.get_memory(memory_id)
+    memory = service.get_memory(
+        memory_id,
+        business_uid=business_uid,
+    )
 
     if memory is None:
         raise HTTPException(
@@ -103,11 +114,15 @@ def get_memory(
 )
 def delete_memory(
     memory_id: int,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     service = ExecutiveMemoryService(db)
 
-    deleted = service.delete_memory(memory_id)
+    deleted = service.delete_memory(
+        memory_id,
+        business_uid=business_uid,
+    )
 
     if not deleted:
         raise HTTPException(

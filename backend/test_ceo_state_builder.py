@@ -303,6 +303,7 @@ def test_builder_loads_ceo_executive_memory(
     )
 
     builder._memory_service.list_memories.assert_called_once_with(
+        business_uid="biz_atlas",
         executive="CEO",
         limit=10,
     )

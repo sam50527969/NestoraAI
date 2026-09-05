@@ -39,6 +39,7 @@ class ExecutiveMemoryResponse(BaseModel):
     )
 
     id: int
+    business_uid: str | None = None
     executive: str
     category: str
     memory: str
