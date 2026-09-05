@@ -678,7 +678,6 @@ async def _search_nominatim(
         for part in [
             search_text.strip(),
             location.strip(),
-            "Qatar",
         ]
         if part
     )
@@ -688,7 +687,6 @@ async def _search_nominatim(
         params={
             "q": query_text,
             "format": "jsonv2",
-            "countrycodes": "qa",
             "addressdetails": 1,
             "namedetails": 1,
             "limit": min(limit, 20),
@@ -763,9 +761,32 @@ def _safe_float(
         return None
 
 
+def _is_qatar_location(location: str) -> bool:
+    normalized_location = normalize_business_name(
+        location
+    )
+
+    qatar_terms = {
+        "qatar",
+        "doha",
+        "al rayyan",
+        "al wakrah",
+        "lusail",
+    }
+
+    return any(
+        term in normalized_location
+        for term in qatar_terms
+    )
+
+
 def _get_verified_matches(
     search_text: str,
+    location: str,
 ) -> list[dict]:
+    if not _is_qatar_location(location):
+        return []
+
     normalized_search = normalize_business_name(
         search_text
     )
@@ -916,7 +937,8 @@ async def search_businesses(
     }
 
     all_results = _get_verified_matches(
-        search_text
+        search_text,
+        location,
     )
 
     try:
