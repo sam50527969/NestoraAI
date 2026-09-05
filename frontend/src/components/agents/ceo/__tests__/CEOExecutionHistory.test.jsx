@@ -204,6 +204,50 @@ describe("CEOExecutionHistory", () => {
   });
 
 
+  it(
+    "reloads when the active workspace changes",
+    async () => {
+      getCEOExecutions
+        .mockResolvedValueOnce({
+          executions: [],
+          count: 0,
+          limit: 20,
+          offset: 0,
+        })
+        .mockResolvedValueOnce({
+          executions: [],
+          count: 0,
+          limit: 20,
+          offset: 0,
+        });
+
+      const { rerender } = render(
+        <CEOExecutionHistory
+          businessUid="biz_atlas"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getCEOExecutions,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      rerender(
+        <CEOExecutionHistory
+          businessUid="biz_dental"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getCEOExecutions,
+        ).toHaveBeenCalledTimes(2);
+      });
+    },
+  );
+
+
   it("renders API failures", async () => {
     getCEOExecutions.mockRejectedValue(
       new Error(

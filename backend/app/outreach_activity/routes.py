@@ -1,8 +1,11 @@
 from fastapi import (
     APIRouter,
+    Depends,
     HTTPException,
     Query,
 )
+
+from app.business.access import get_current_business_uid
 
 from app.outreach_activity.schemas import (
     OutreachActivityResponse,
@@ -34,8 +37,12 @@ def list_activity_history(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     return list_outreach_activities(
+        business_uid=business_uid,
         status=status,
         approval_uid=approval_uid,
         limit=limit,
@@ -48,10 +55,14 @@ def list_activity_history(
 )
 def get_activity(
     activity_uid: str,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return get_outreach_activity(
-            activity_uid
+            activity_uid,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(
@@ -66,10 +77,14 @@ def get_activity(
 )
 def mark_activity_sent(
     activity_uid: str,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return mark_outreach_activity_sent(
-            activity_uid
+            activity_uid,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(

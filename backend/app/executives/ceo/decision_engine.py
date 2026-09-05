@@ -30,6 +30,10 @@ class CEODecisionEngine:
     ) -> list[ExecutiveRecommendation]:
         recommendations: list[ExecutiveRecommendation] = []
 
+        currency = str(
+            state.metadata.get("currency") or ""
+        ).strip()
+
         for department in state.available_departments():
             if department.health_score < 40:
                 recommendations.append(
@@ -45,6 +49,7 @@ class CEODecisionEngine:
                         impact_score=85,
                         urgency_score=90,
                         confidence_score=80,
+                        currency=currency,
                     )
                 )
 
@@ -59,6 +64,7 @@ class CEODecisionEngine:
                         impact_score=80,
                         urgency_score=85,
                         confidence_score=75,
+                        currency=currency,
                     )
                 )
 
@@ -73,6 +79,7 @@ class CEODecisionEngine:
                         impact_score=85,
                         urgency_score=65,
                         confidence_score=70,
+                        currency=currency,
                     )
                 )
 
@@ -87,6 +94,7 @@ class CEODecisionEngine:
                     impact_score=100,
                     urgency_score=100,
                     confidence_score=90,
+                    currency=currency,
                 )
             )
 
@@ -101,6 +109,7 @@ class CEODecisionEngine:
                     impact_score=95,
                     urgency_score=70,
                     confidence_score=75,
+                    currency=currency,
                 )
             )
 

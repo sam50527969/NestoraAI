@@ -70,6 +70,7 @@ class CEOExecutionOrchestrator:
         self,
         plan: ExecutivePlan,
         *,
+        business_uid: str,
         source_uid: str | None = None,
         requested_by: str = "CEO Agent",
     ) -> CEOOrchestrationResult:
@@ -91,6 +92,7 @@ class CEOExecutionOrchestrator:
             self._create_action_approval(
                 plan=plan,
                 action=action,
+                business_uid=business_uid,
                 source_uid=source_uid,
                 requested_by=requested_by,
             )
@@ -108,6 +110,7 @@ class CEOExecutionOrchestrator:
         *,
         plan: ExecutivePlan,
         action: ExecutiveAction,
+        business_uid: str,
         source_uid: str | None,
         requested_by: str,
     ) -> dict[str, Any]:
@@ -147,7 +150,10 @@ class CEOExecutionOrchestrator:
             payload=payload,
         )
 
-        return create_approval(approval)
+        return create_approval(
+            approval,
+            business_uid=business_uid,
+        )
 
     @staticmethod
     def _build_action_plan_payload(

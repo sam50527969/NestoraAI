@@ -4,6 +4,8 @@ import {
   useState,
 } from "react";
 
+import PropTypes from "prop-types";
+
 import {
   getFollowUpMetrics,
 } from "../../../api";
@@ -92,7 +94,9 @@ function getDateFilters(period) {
   };
 }
 
-export default function CEOFollowUpMetrics() {
+export default function CEOFollowUpMetrics({
+  businessUid,
+}) {
   const [metrics, setMetrics] =
     useState(null);
 
@@ -138,7 +142,7 @@ export default function CEOFollowUpMetrics() {
 
   useEffect(() => {
     loadMetrics();
-  }, [loadMetrics]);
+  }, [loadMetrics, businessUid]);
 
   const outcomes =
     metrics?.outcomes || {};
@@ -393,3 +397,8 @@ export default function CEOFollowUpMetrics() {
     </Card>
   );
 }
+
+
+CEOFollowUpMetrics.propTypes = {
+  businessUid: PropTypes.string,
+};

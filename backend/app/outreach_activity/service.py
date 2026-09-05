@@ -124,6 +124,7 @@ def save_prepared_outreach(
 
 def list_outreach_activities(
     *,
+    business_uid: str,
     status: str | None = None,
     approval_uid: str | None = None,
     limit: int = 100,
@@ -131,8 +132,17 @@ def list_outreach_activities(
     db = SessionLocal()
 
     try:
-        query = db.query(
-            OutreachActivity
+        query = (
+            db.query(OutreachActivity)
+            .join(
+                Lead,
+                Lead.id
+                == OutreachActivity.lead_id,
+            )
+            .filter(
+                Lead.business_uid
+                == business_uid
+            )
         )
 
         if status:
@@ -169,15 +179,24 @@ def list_outreach_activities(
 
 def get_outreach_activity(
     activity_uid: str,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
         activity = (
             db.query(OutreachActivity)
+            .join(
+                Lead,
+                Lead.id
+                == OutreachActivity.lead_id,
+            )
             .filter(
                 OutreachActivity.activity_uid
-                == activity_uid
+                == activity_uid,
+                Lead.business_uid
+                == business_uid,
             )
             .first()
         )
@@ -272,15 +291,24 @@ def synchronize_lead_contact(
 
 def mark_outreach_activity_sent(
     activity_uid: str,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
         activity = (
             db.query(OutreachActivity)
+            .join(
+                Lead,
+                Lead.id
+                == OutreachActivity.lead_id,
+            )
             .filter(
                 OutreachActivity.activity_uid
-                == activity_uid
+                == activity_uid,
+                Lead.business_uid
+                == business_uid,
             )
             .first()
         )

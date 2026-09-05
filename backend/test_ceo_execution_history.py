@@ -67,6 +67,7 @@ def create_execution(
     return save_execution_record(
         db,
         approval_uid=approval_uid,
+        business_uid="biz_atlas",
         objective=objective,
         execution_result={
             "status": (
@@ -103,6 +104,7 @@ def test_get_execution_record_by_uid(
     found = get_execution_record(
         db_session,
         created.execution_uid,
+        business_uid="biz_atlas",
     )
 
     assert found is not None
@@ -136,6 +138,7 @@ def test_get_execution_record_by_approval(
         get_execution_record_by_approval(
             db_session,
             "apr_history_approval",
+            business_uid="biz_atlas",
         )
     )
 
@@ -153,6 +156,7 @@ def test_missing_execution_returns_none(
     found = get_execution_record(
         db_session,
         "exec_missing",
+        business_uid="biz_atlas",
     )
 
     assert found is None
@@ -165,6 +169,7 @@ def test_missing_approval_returns_none(
         get_execution_record_by_approval(
             db_session,
             "apr_missing",
+            business_uid="biz_atlas",
         )
     )
 
@@ -194,7 +199,8 @@ def test_list_execution_records(
     )
 
     records = list_execution_records(
-        db_session
+        db_session,
+        business_uid="biz_atlas",
     )
 
     assert len(records) == 3
@@ -227,12 +233,14 @@ def test_list_execution_records_supports_pagination(
 
     first_page = list_execution_records(
         db_session,
+        business_uid="biz_atlas",
         limit=2,
         offset=0,
     )
 
     second_page = list_execution_records(
         db_session,
+        business_uid="biz_atlas",
         limit=2,
         offset=2,
     )
@@ -260,6 +268,7 @@ def test_list_execution_records_limits_maximum(
 ):
     records = list_execution_records(
         db_session,
+        business_uid="biz_atlas",
         limit=1000,
     )
 
@@ -277,6 +286,7 @@ def test_list_execution_records_handles_negative_values(
 
     records = list_execution_records(
         db_session,
+        business_uid="biz_atlas",
         limit=-10,
         offset=-50,
     )

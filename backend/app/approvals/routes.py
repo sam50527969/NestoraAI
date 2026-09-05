@@ -1,5 +1,6 @@
 from fastapi import (
     APIRouter,
+    Depends,
     HTTPException,
     Query,
     status,
@@ -20,6 +21,10 @@ from app.approvals.service import (
     list_approvals,
 )
 
+from app.business.access import (
+    get_current_business_uid,
+)
+
 
 router = APIRouter(
     prefix="/ceo-approvals",
@@ -34,8 +39,14 @@ router = APIRouter(
 )
 def create_approval_request(
     data: ApprovalCreate,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
-    return create_approval(data)
+    return create_approval(
+        data,
+        business_uid=business_uid,
+    )
 
 
 @router.get(
@@ -52,8 +63,12 @@ def get_approval_requests(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     return list_approvals(
+        business_uid=business_uid,
         status=approval_status,
         limit=limit,
     )
@@ -65,10 +80,14 @@ def get_approval_requests(
 )
 def get_approval_request(
     approval_uid: str,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return get_approval(
-            approval_uid
+            approval_uid,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(
@@ -84,12 +103,16 @@ def get_approval_request(
 def approve_request(
     approval_uid: str,
     data: ApprovalDecision,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return decide_approval(
             approval_uid,
             "approved",
             data,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(
@@ -110,12 +133,16 @@ def approve_request(
 def reject_request(
     approval_uid: str,
     data: ApprovalDecision,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return decide_approval(
             approval_uid,
             "rejected",
             data,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(
@@ -135,10 +162,14 @@ def reject_request(
 )
 async def execute_approved_request(
     approval_uid: str,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return await execute_approval(
-            approval_uid
+            approval_uid,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(

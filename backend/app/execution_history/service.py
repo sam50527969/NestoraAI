@@ -15,6 +15,7 @@ def save_execution_record(
     db: Session,
     *,
     approval_uid: str,
+    business_uid: str,
     objective: str,
     execution_result: dict[str, Any],
 ) -> CEOExecutionRecord:
@@ -30,7 +31,9 @@ def save_execution_record(
         db.query(CEOExecutionRecord)
         .filter(
             CEOExecutionRecord.approval_uid
-            == approval_uid
+            == approval_uid,
+            CEOExecutionRecord.business_uid
+            == business_uid,
         )
         .first()
     )
@@ -60,6 +63,7 @@ def save_execution_record(
 
     record = CEOExecutionRecord(
         approval_uid=approval_uid,
+        business_uid=business_uid,
         mission_id=execution_result.get(
             "mission_id"
         ),
@@ -105,6 +109,8 @@ def save_execution_record(
 def get_execution_record(
     db: Session,
     execution_uid: str,
+    *,
+    business_uid: str,
 ) -> CEOExecutionRecord | None:
     """Return one execution record by UID."""
 
@@ -112,7 +118,9 @@ def get_execution_record(
         db.query(CEOExecutionRecord)
         .filter(
             CEOExecutionRecord.execution_uid
-            == execution_uid
+            == execution_uid,
+            CEOExecutionRecord.business_uid
+            == business_uid,
         )
         .first()
     )
@@ -121,6 +129,8 @@ def get_execution_record(
 def get_execution_record_by_approval(
     db: Session,
     approval_uid: str,
+    *,
+    business_uid: str,
 ) -> CEOExecutionRecord | None:
     """Return the execution for an approval."""
 
@@ -128,7 +138,9 @@ def get_execution_record_by_approval(
         db.query(CEOExecutionRecord)
         .filter(
             CEOExecutionRecord.approval_uid
-            == approval_uid
+            == approval_uid,
+            CEOExecutionRecord.business_uid
+            == business_uid,
         )
         .first()
     )
@@ -137,6 +149,7 @@ def get_execution_record_by_approval(
 def list_execution_records(
     db: Session,
     *,
+    business_uid: str,
     limit: int = 50,
     offset: int = 0,
 ) -> list[CEOExecutionRecord]:
@@ -154,6 +167,10 @@ def list_execution_records(
 
     return (
         db.query(CEOExecutionRecord)
+        .filter(
+            CEOExecutionRecord.business_uid
+            == business_uid
+        )
         .order_by(
             CEOExecutionRecord.created_at.desc(),
             CEOExecutionRecord.id.desc(),

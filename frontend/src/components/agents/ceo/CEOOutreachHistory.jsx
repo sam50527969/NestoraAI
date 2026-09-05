@@ -3,6 +3,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import PropTypes from "prop-types";
 
 import {
   getOutreachActivities,
@@ -15,7 +16,10 @@ import CEOOutreachPackage from "./CEOOutreachPackage";
 
 import "./CEOOutreachHistory.css";
 
-export default function CEOOutreachHistory() {
+export default function CEOOutreachHistory({
+  businessUid,
+  currency = "",
+}) {
   const [activities, setActivities] =
     useState([]);
 
@@ -65,7 +69,7 @@ export default function CEOOutreachHistory() {
 
   useEffect(() => {
     loadActivities();
-  }, [loadActivities]);
+  }, [loadActivities, businessUid]);
 
   async function handleMarkSent(
     activity,
@@ -170,6 +174,7 @@ export default function CEOOutreachHistory() {
             <CEOOutreachPackage
               key={activity.activity_uid}
               outreach={activity}
+              currency={currency}
               onMarkSent={handleMarkSent}
               isUpdating={
                 activeActivityUid ===
@@ -187,3 +192,8 @@ export default function CEOOutreachHistory() {
     </Card>
   );
 }
+
+CEOOutreachHistory.propTypes = {
+  businessUid: PropTypes.string,
+  currency: PropTypes.string,
+};

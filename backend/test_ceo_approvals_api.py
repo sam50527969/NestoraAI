@@ -15,6 +15,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.business.access import (
+    get_current_business_uid,
+)
 from app.approvals import (
     executor as approval_executor,
 )
@@ -110,6 +113,10 @@ def approval_api(
         approval_router
     )
 
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
+
     with TestClient(app) as client:
         yield client, session_factory
 
@@ -200,6 +207,7 @@ def add_high_priority_lead(
 
     try:
         lead = Lead(
+            business_uid="biz_atlas",
             name="Gulf Neon Advertising",
             category="Advertising",
             phone="+97455550000",
@@ -681,3 +689,397 @@ def test_missing_approval_returns_404(
                 "not found."
             )
         }
+
+def test_approval_isolated_by_workspace(
+    approval_api,
+):
+    client, session_factory = approval_api
+
+    db = session_factory()
+
+    try:
+        dental = CEOApproval(
+            approval_uid="apr_dental_private",
+            business_uid="biz_dental",
+            decision_type="crm_outreach",
+            title="Dental private approval",
+            description=(
+                "Must never be visible to Atlas."
+            ),
+            source_type="executive_report",
+            source_uid="dental_report_private",
+            status="pending",
+            requested_by="CEO Agent",
+            payload_json="{}",
+        )
+
+        legacy = CEOApproval(
+            approval_uid="apr_legacy_null",
+            business_uid=None,
+            decision_type="crm_outreach",
+            title="Legacy unowned approval",
+            description=(
+                "Legacy rows must not leak."
+            ),
+            source_type="executive_report",
+            source_uid="legacy_report",
+            status="pending",
+            requested_by="CEO Agent",
+            payload_json="{}",
+        )
+
+        db.add_all([
+            dental,
+            legacy,
+        ])
+        db.commit()
+
+    finally:
+        db.close()
+
+    atlas = create_approval(
+        client,
+        title="Atlas visible approval",
+        source_uid="atlas_report_visible",
+    )
+
+    assert atlas["business_uid"] == "biz_atlas"
+
+    response = client.get(
+        "/ceo-approvals"
+    )
+    assert response.status_code == 200
+
+    approvals = response.json()
+
+    approval_uids = {
+        item["approval_uid"]
+        for item in approvals
+    }
+
+    assert atlas["approval_uid"] in approval_uids
+    assert (
+        "apr_dental_private"
+        not in approval_uids
+    )
+    assert (
+        "apr_legacy_null"
+        not in approval_uids
+    )
+
+    protected_urls = [
+        (
+            "get",
+            "/ceo-approvals/"
+            "apr_dental_private",
+            None,
+        ),
+        (
+            "post",
+            "/ceo-approvals/"
+            "apr_dental_private/approve",
+            {
+                "reviewed_by": "Atlas CEO",
+            },
+        ),
+        (
+            "post",
+            "/ceo-approvals/"
+            "apr_dental_private/reject",
+            {
+                "reviewed_by": "Atlas CEO",
+            },
+        ),
+        (
+            "post",
+            "/ceo-approvals/"
+            "apr_dental_private/execute",
+            None,
+        ),
+        (
+            "get",
+            "/ceo-approvals/"
+            "apr_legacy_null",
+            None,
+        ),
+    ]
+
+    for method, url, payload in protected_urls:
+        if method == "get":
+            response = client.get(url)
+        else:
+            response = client.post(
+                url,
+                json=payload,
+            )
+
+        assert response.status_code == 404
+
+    db = session_factory()
+
+    try:
+        dental = (
+            db.query(CEOApproval)
+            .filter(
+                CEOApproval.approval_uid
+                == "apr_dental_private"
+            )
+            .one()
+        )
+
+        legacy = (
+            db.query(CEOApproval)
+            .filter(
+                CEOApproval.approval_uid
+                == "apr_legacy_null"
+            )
+            .one()
+        )
+
+        assert dental.status == "pending"
+        assert dental.reviewed_by is None
+        assert dental.executed_at is None
+
+        assert legacy.status == "pending"
+        assert legacy.reviewed_by is None
+        assert legacy.executed_at is None
+
+    finally:
+        db.close()
+
+
+def test_duplicate_approval_is_workspace_scoped(
+    approval_api,
+):
+    client, session_factory = approval_api
+
+    db = session_factory()
+
+    try:
+        dental = CEOApproval(
+            approval_uid="apr_dental_duplicate",
+            business_uid="biz_dental",
+            decision_type="crm_outreach",
+            title="Shared duplicate title",
+            description=(
+                "Same duplicate description."
+            ),
+            source_type="executive_report",
+            source_uid="shared_duplicate_source",
+            status="pending",
+            requested_by="CEO Agent",
+            payload_json="{}",
+        )
+
+        db.add(dental)
+        db.commit()
+
+    finally:
+        db.close()
+
+    atlas = create_approval(
+        client,
+        title="Shared duplicate title",
+        description=(
+            "Same duplicate description."
+        ),
+        source_uid="shared_duplicate_source",
+    )
+
+    assert (
+        atlas["approval_uid"]
+        != "apr_dental_duplicate"
+    )
+    assert atlas["business_uid"] == "biz_atlas"
+
+    second_atlas = create_approval(
+        client,
+        title="Shared duplicate title",
+        description=(
+            "Same duplicate description."
+        ),
+        source_uid="shared_duplicate_source",
+    )
+
+    assert (
+        second_atlas["approval_uid"]
+        == atlas["approval_uid"]
+    )
+
+    db = session_factory()
+
+    try:
+        matching = (
+            db.query(CEOApproval)
+            .filter(
+                CEOApproval.title
+                == "Shared duplicate title"
+            )
+            .all()
+        )
+
+        assert len(matching) == 2
+
+        owners = {
+            item.business_uid
+            for item in matching
+        }
+
+        assert owners == {
+            "biz_atlas",
+            "biz_dental",
+        }
+
+    finally:
+        db.close()
+
+def test_crm_execution_cannot_use_foreign_workspace_lead(
+    approval_api,
+):
+    client, session_factory = approval_api
+
+    db = session_factory()
+
+    try:
+        atlas = Lead(
+            business_uid="biz_atlas",
+            name="Atlas Local Prospect",
+            category="Fleet Services",
+            phone="+971500000001",
+            website="https://atlas-prospect.example",
+            priority="high",
+            ai_score=80,
+            estimated_value=5000,
+        )
+
+        dental = Lead(
+            business_uid="biz_dental",
+            name="Dental Foreign Prospect",
+            category="Dental",
+            phone="+974500000002",
+            website="https://dental-prospect.example",
+            priority="high",
+            ai_score=100,
+            estimated_value=50000,
+        )
+
+        db.add_all([
+            atlas,
+            dental,
+        ])
+        db.commit()
+
+        db.refresh(atlas)
+        db.refresh(dental)
+
+        atlas_lead_id = atlas.id
+        dental_lead_id = dental.id
+
+    finally:
+        db.close()
+
+    created = create_approval(
+        client,
+        title=(
+            "Atlas workspace outreach "
+            "isolation"
+        ),
+        source_uid=(
+            "atlas_workspace_outreach_test"
+        ),
+        payload={
+            "high_priority_count": 1,
+            "offer": "Atlas service package",
+        },
+    )
+
+    approval_uid = created["approval_uid"]
+
+    approve_response = client.post(
+        (
+            f"/ceo-approvals/"
+            f"{approval_uid}/approve"
+        ),
+        json={
+            "reviewed_by": "Atlas CEO",
+            "decision_note": (
+                "Approved for Atlas only."
+            ),
+        },
+    )
+
+    assert approve_response.status_code == 200
+
+    execute_response = client.post(
+        (
+            f"/ceo-approvals/"
+            f"{approval_uid}/execute"
+        )
+    )
+
+    assert execute_response.status_code == 200
+
+    executed = execute_response.json()
+
+    result = executed["payload"][
+        "execution_result"
+    ]
+
+    assert result["prepared_count"] == 1
+
+    packages = result["outreach_packages"]
+
+    assert len(packages) == 1
+
+    assert (
+        packages[0]["lead_id"]
+        == atlas_lead_id
+    )
+
+    assert (
+        packages[0]["lead_name"]
+        == "Atlas Local Prospect"
+    )
+
+    assert (
+        packages[0]["lead_id"]
+        != dental_lead_id
+    )
+
+    db = session_factory()
+
+    try:
+        activities = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.approval_uid
+                == approval_uid
+            )
+            .all()
+        )
+
+        assert len(activities) == 1
+
+        assert (
+            activities[0].lead_id
+            == atlas_lead_id
+        )
+
+        assert (
+            activities[0].lead_id
+            != dental_lead_id
+        )
+
+        foreign_activity_count = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.lead_id
+                == dental_lead_id
+            )
+            .count()
+        )
+
+        assert foreign_activity_count == 0
+
+    finally:
+        db.close()

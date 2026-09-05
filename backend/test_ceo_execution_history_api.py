@@ -24,9 +24,15 @@ warnings.filterwarnings(
 from app.bootstrap.routes import (
     register_routes,
 )
+from app.business.access import (
+    get_current_business_uid,
+)
 from app.database.database import (
     Base,
     get_db,
+)
+from app.execution_history.models import (
+    CEOExecutionRecord,
 )
 from app.execution_history.service import (
     save_execution_record,
@@ -82,6 +88,10 @@ def execution_history_api(
     app.dependency_overrides[
         get_db
     ] = override_get_db
+
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
 
     with TestClient(app) as client:
         yield client, session_factory
@@ -150,6 +160,7 @@ def create_execution(
         record = save_execution_record(
             db,
             approval_uid=approval_uid,
+            business_uid="biz_atlas",
             objective="Test CEO objective",
             execution_result={
                 "success": success,
@@ -426,3 +437,108 @@ def test_invalid_pagination_returns_422(
     )
 
     assert response.status_code == 422
+
+def test_execution_history_isolated_by_workspace(
+    execution_history_api,
+):
+    client, session_factory = (
+        execution_history_api
+    )
+
+    headers = auth_headers(client)
+
+    db = session_factory()
+
+    try:
+        dental = CEOExecutionRecord(
+            execution_uid="exec_dental_private",
+            business_uid="biz_dental",
+            approval_uid="apr_dental_private",
+            objective=(
+                "Dental private execution"
+            ),
+            status="completed",
+            success=True,
+            completed_task_count=1,
+            failed_task_count=0,
+        )
+
+        legacy = CEOExecutionRecord(
+            execution_uid="exec_legacy_null",
+            business_uid=None,
+            approval_uid="apr_legacy_null",
+            objective=(
+                "Legacy unowned execution"
+            ),
+            status="completed",
+            success=True,
+            completed_task_count=1,
+            failed_task_count=0,
+        )
+
+        db.add_all([
+            dental,
+            legacy,
+        ])
+        db.commit()
+
+    finally:
+        db.close()
+
+    response = client.get(
+        "/ceo-executions",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+
+    payload = response.json()
+
+    records = (
+        payload["executions"]
+        if "executions" in payload
+        else payload.get("records", [])
+    )
+
+    execution_uids = {
+        item["execution_uid"]
+        for item in records
+    }
+
+    assert (
+        "exec_dental_private"
+        not in execution_uids
+    )
+    assert (
+        "exec_legacy_null"
+        not in execution_uids
+    )
+
+    protected_urls = [
+        (
+            "/ceo-executions/"
+            "exec_dental_private"
+        ),
+        (
+            "/ceo-executions/"
+            "approval/"
+            "apr_dental_private"
+        ),
+        (
+            "/ceo-executions/"
+            "exec_legacy_null"
+        ),
+        (
+            "/ceo-executions/"
+            "approval/"
+            "apr_legacy_null"
+        ),
+    ]
+
+    for url in protected_urls:
+        response = client.get(
+            url,
+            headers=headers,
+        )
+
+        assert response.status_code == 404

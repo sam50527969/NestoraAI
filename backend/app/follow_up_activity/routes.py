@@ -4,10 +4,13 @@ from io import StringIO
 
 from fastapi import (
     APIRouter,
+    Depends,
     HTTPException,
     Query,
 )
 from fastapi.responses import Response
+
+from app.business.access import get_current_business_uid
 
 from app.follow_up_activity.schemas import (
     FollowUpActivityResponse,
@@ -45,8 +48,12 @@ def make_csv_safe(value) -> str:
 def read_follow_up_metrics(
     start_date: datetime | None = None,
     end_date: datetime | None = None,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     return get_follow_up_metrics(
+        business_uid=business_uid,
         start_date=start_date,
         end_date=end_date,
     )
@@ -62,8 +69,12 @@ def export_follow_up_history(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     activities = list_follow_up_activities(
+        business_uid=business_uid,
         lead_id=lead_id,
         start_date=start_date,
         end_date=end_date,
@@ -181,8 +192,12 @@ def list_activity_history(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     return list_follow_up_activities(
+        business_uid=business_uid,
         lead_id=lead_id,
         start_date=start_date,
         end_date=end_date,
@@ -197,11 +212,15 @@ def list_activity_history(
 def create_follow_up_outcome(
     lead_id: int,
     data: FollowUpOutcomeCreate,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ):
     try:
         return record_follow_up_outcome(
             lead_id,
             data,
+            business_uid=business_uid,
         )
     except LookupError as error:
         raise HTTPException(

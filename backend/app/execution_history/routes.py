@@ -11,6 +11,9 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import (
+    get_current_business_uid,
+)
 from app.database.database import get_db
 from app.execution_history.models import (
     CEOExecutionRecord,
@@ -91,9 +94,13 @@ def get_execution_history(
         ge=0,
     ),
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ) -> CEOExecutionListResponse:
     records = list_execution_records(
         db,
+        business_uid=business_uid,
         limit=limit,
         offset=offset,
     )
@@ -118,11 +125,15 @@ def get_execution_history(
 def get_execution_for_approval(
     approval_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ) -> CEOExecutionDetailResponse:
     record = (
         get_execution_record_by_approval(
             db,
             approval_uid,
+            business_uid=business_uid,
         )
     )
 
@@ -147,10 +158,14 @@ def get_execution_for_approval(
 def get_execution(
     execution_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ) -> CEOExecutionDetailResponse:
     record = get_execution_record(
         db,
         execution_uid,
+        business_uid=business_uid,
     )
 
     if record is None:

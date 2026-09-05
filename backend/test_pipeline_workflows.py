@@ -66,6 +66,7 @@ def create_test_lead(
             category="clinic",
             status=status,
             priority="High",
+            business_uid="biz_atlas",
         )
 
         db.add(lead)
@@ -126,6 +127,7 @@ def test_manual_stage_change_creates_pipeline_history(
                 LeadUpdate(
                     status="Contacted",
                 ),
+                business_uid="biz_atlas",
             )
         )
 
@@ -186,6 +188,7 @@ def test_same_stage_does_not_create_pipeline_history(
                 LeadUpdate(
                     status="Contacted",
                 ),
+                business_uid="biz_atlas",
             )
         )
 
@@ -232,7 +235,8 @@ def test_sent_outreach_updates_lead_and_pipeline_history(
     result = (
         outreach_service
         .mark_outreach_activity_sent(
-            activity_uid
+            activity_uid,
+            business_uid="biz_atlas",
         )
     )
 
@@ -314,14 +318,16 @@ def test_marking_sent_outreach_twice_is_idempotent(
     first_result = (
         outreach_service
         .mark_outreach_activity_sent(
-            activity_uid
+            activity_uid,
+            business_uid="biz_atlas",
         )
     )
 
     second_result = (
         outreach_service
         .mark_outreach_activity_sent(
-            activity_uid
+            activity_uid,
+            business_uid="biz_atlas",
         )
     )
 

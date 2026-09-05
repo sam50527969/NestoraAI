@@ -69,6 +69,7 @@ def create_test_lead(
             category="clinic",
             status=status,
             priority="High",
+            business_uid="biz_atlas",
         )
 
         db.add(lead)
@@ -98,6 +99,7 @@ def test_qualified_follow_up_updates_pipeline_history(
         .record_follow_up_outcome(
             lead_id,
             outcome,
+            business_uid="biz_atlas",
         )
     )
 
@@ -186,6 +188,7 @@ def test_won_follow_up_creates_pipeline_history(
         .record_follow_up_outcome(
             lead_id,
             outcome,
+            business_uid="biz_atlas",
         )
     )
 
@@ -252,6 +255,7 @@ def test_rescheduled_follow_up_does_not_create_stage_change(
         .record_follow_up_outcome(
             lead_id,
             outcome,
+            business_uid="biz_atlas",
         )
     )
 

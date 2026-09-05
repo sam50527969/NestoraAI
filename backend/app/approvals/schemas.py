@@ -39,6 +39,7 @@ class ApprovalDecision(BaseModel):
 
 class ApprovalResponse(BaseModel):
     approval_uid: str
+    business_uid: str | None = None
     decision_type: str
     title: str
     description: str | None

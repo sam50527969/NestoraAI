@@ -22,6 +22,7 @@ warnings.filterwarnings(
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.business.access import get_current_business_uid
 from app.database.database import Base
 from app.database.models import Lead
 from app.follow_up_activity import (
@@ -83,6 +84,9 @@ def api_environment(
     )
 
     app = FastAPI()
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
     app.include_router(follow_up_router)
 
     with TestClient(app) as client:
@@ -106,6 +110,7 @@ def create_test_lead(
             category="clinic",
             status=status,
             priority="High",
+            business_uid="biz_atlas",
         )
 
         db.add(lead)
@@ -423,3 +428,168 @@ def test_csv_export_is_downloadable_and_safe(
         csv_content
     )
     assert "'=SUM(1,1)" in csv_content
+
+def test_follow_up_isolated_by_workspace(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+) -> None:
+    client, session_factory = api_environment
+
+    db: Session = session_factory()
+
+    try:
+        atlas_lead = Lead(
+            name="Atlas Follow-up Lead",
+            category="auto repair",
+            status="Contacted",
+            priority="High",
+            business_uid="biz_atlas",
+        )
+
+        dental_lead = Lead(
+            name="Dental Follow-up Lead",
+            category="dental",
+            status="Contacted",
+            priority="High",
+            business_uid="biz_dental",
+        )
+
+        db.add_all([
+            atlas_lead,
+            dental_lead,
+        ])
+        db.commit()
+        db.refresh(atlas_lead)
+        db.refresh(dental_lead)
+
+        atlas_activity = FollowUpActivity(
+            lead_id=atlas_lead.id,
+            lead_name=atlas_lead.name,
+            outcome="qualified",
+            previous_status="Contacted",
+            new_status="Qualified",
+            completed_by="CEO",
+        )
+
+        dental_activity = FollowUpActivity(
+            lead_id=dental_lead.id,
+            lead_name=dental_lead.name,
+            outcome="won",
+            previous_status="Contacted",
+            new_status="Won",
+            completed_by="CEO",
+        )
+
+        db.add_all([
+            atlas_activity,
+            dental_activity,
+        ])
+        db.commit()
+
+        dental_lead_id = dental_lead.id
+
+    finally:
+        db.close()
+
+    history_response = client.get(
+        "/follow-up-activities"
+    )
+
+    assert history_response.status_code == 200
+
+    history = history_response.json()
+
+    assert len(history) == 1
+    assert (
+        history[0]["lead_name"]
+        == "Atlas Follow-up Lead"
+    )
+    assert history[0]["outcome"] == "qualified"
+
+    foreign_history = client.get(
+        "/follow-up-activities",
+        params={
+            "lead_id": dental_lead_id,
+        },
+    )
+
+    assert foreign_history.status_code == 200
+    assert foreign_history.json() == []
+
+    metrics_response = client.get(
+        "/follow-up-activities/metrics"
+    )
+
+    assert metrics_response.status_code == 200
+
+    metrics = metrics_response.json()
+
+    assert metrics["total_activities"] == 1
+    assert metrics["unique_leads"] == 1
+    assert metrics["outcomes"]["qualified"] == 1
+    assert metrics["outcomes"]["won"] == 0
+
+    export_response = client.get(
+        "/follow-up-activities/export"
+    )
+
+    assert export_response.status_code == 200
+
+    csv_content = export_response.text
+
+    assert "Atlas Follow-up Lead" in csv_content
+    assert "Dental Follow-up Lead" not in csv_content
+
+    foreign_export = client.get(
+        "/follow-up-activities/export",
+        params={
+            "lead_id": dental_lead_id,
+        },
+    )
+
+    assert foreign_export.status_code == 200
+    assert (
+        "Dental Follow-up Lead"
+        not in foreign_export.text
+    )
+
+    foreign_outcome = client.post(
+        (
+            "/follow-up-activities/"
+            f"leads/{dental_lead_id}/outcome"
+        ),
+        json={
+            "outcome": "won",
+            "notes": (
+                "Atlas must not modify Dental."
+            ),
+        },
+    )
+
+    assert foreign_outcome.status_code == 404
+
+    db = session_factory()
+
+    try:
+        dental_lead = db.get(
+            Lead,
+            dental_lead_id,
+        )
+
+        dental_activity_count = (
+            db.query(FollowUpActivity)
+            .filter(
+                FollowUpActivity.lead_id
+                == dental_lead_id
+            )
+            .count()
+        )
+
+        assert dental_lead is not None
+        assert dental_lead.status == "Contacted"
+        assert dental_activity_count == 1
+
+    finally:
+        db.close()

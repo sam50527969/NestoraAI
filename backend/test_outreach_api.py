@@ -22,6 +22,7 @@ warnings.filterwarnings(
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.business.access import get_current_business_uid
 from app.database.database import Base
 from app.database.models import Lead
 from app.outreach_activity import (
@@ -83,6 +84,9 @@ def api_environment(
     )
 
     app = FastAPI()
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
     app.include_router(outreach_router)
 
     with TestClient(app) as client:
@@ -106,6 +110,7 @@ def create_test_lead(
             category="clinic",
             status=status,
             priority="High",
+            business_uid="biz_atlas",
         )
 
         db.add(lead)
@@ -405,3 +410,141 @@ def test_invalid_activity_state_returns_409(
             "marked as sent."
         ),
     }
+
+def test_outreach_isolated_by_workspace(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+) -> None:
+    client, session_factory = api_environment
+
+    db: Session = session_factory()
+
+    try:
+        atlas_lead = Lead(
+            name="Atlas Outreach Lead",
+            category="auto repair",
+            status="New",
+            priority="High",
+            business_uid="biz_atlas",
+        )
+
+        dental_lead = Lead(
+            name="Dental Outreach Lead",
+            category="dental",
+            status="New",
+            priority="High",
+            business_uid="biz_dental",
+        )
+
+        db.add_all([
+            atlas_lead,
+            dental_lead,
+        ])
+        db.commit()
+        db.refresh(atlas_lead)
+        db.refresh(dental_lead)
+
+        atlas_activity = OutreachActivity(
+            approval_uid="approval-atlas",
+            lead_id=atlas_lead.id,
+            lead_name=atlas_lead.name,
+            status="prepared",
+            prepared_by="CEO Agent",
+            email_subject="Atlas outreach",
+            email_body="Atlas only",
+        )
+
+        dental_activity = OutreachActivity(
+            approval_uid="approval-dental",
+            lead_id=dental_lead.id,
+            lead_name=dental_lead.name,
+            status="prepared",
+            prepared_by="CEO Agent",
+            email_subject="Dental outreach",
+            email_body="Dental only",
+        )
+
+        db.add_all([
+            atlas_activity,
+            dental_activity,
+        ])
+        db.commit()
+        db.refresh(atlas_activity)
+        db.refresh(dental_activity)
+
+        atlas_activity_uid = (
+            atlas_activity.activity_uid
+        )
+        dental_activity_uid = (
+            dental_activity.activity_uid
+        )
+        dental_lead_id = dental_lead.id
+
+    finally:
+        db.close()
+
+    list_response = client.get(
+        "/outreach-activities"
+    )
+
+    assert list_response.status_code == 200
+
+    activities = list_response.json()
+
+    assert len(activities) == 1
+    assert (
+        activities[0]["activity_uid"]
+        == atlas_activity_uid
+    )
+    assert (
+        activities[0]["lead_name"]
+        == "Atlas Outreach Lead"
+    )
+
+    foreign_get = client.get(
+        (
+            "/outreach-activities/"
+            f"{dental_activity_uid}"
+        )
+    )
+
+    assert foreign_get.status_code == 404
+
+    foreign_mark = client.post(
+        (
+            "/outreach-activities/"
+            f"{dental_activity_uid}"
+            "/mark-sent"
+        )
+    )
+
+    assert foreign_mark.status_code == 404
+
+    db = session_factory()
+
+    try:
+        dental_activity = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.activity_uid
+                == dental_activity_uid
+            )
+            .one()
+        )
+
+        dental_lead = db.get(
+            Lead,
+            dental_lead_id,
+        )
+
+        assert dental_activity.status == "prepared"
+        assert dental_activity.sent_at is None
+        assert dental_lead is not None
+        assert dental_lead.status == "New"
+        assert dental_lead.last_contacted is None
+        assert dental_lead.next_follow_up is None
+
+    finally:
+        db.close()

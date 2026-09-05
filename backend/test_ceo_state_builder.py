@@ -52,13 +52,19 @@ def test_builder_uses_live_crm_and_mission_data(
     mock_dashboard.return_value = make_dashboard()
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
+
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
 
     builder._memory_service.list_memories = Mock(
         return_value=[]
     )
 
-    builder._mission_repository.list_all = Mock(
+    builder._mission_repository.list_by_business = Mock(
         return_value=[
             make_mission(status="running", progress=50),
             make_mission(status="completed", progress=100),
@@ -68,11 +74,27 @@ def test_builder_uses_live_crm_and_mission_data(
 
     state = builder.build()
 
+    mock_dashboard.assert_called_once_with(
+        db,
+        business_uid="biz_atlas",
+    )
+
+    builder._mission_repository.list_by_business.assert_called_once_with(
+        "biz_atlas",
+        limit=100,
+    )
+
     assert state.crm is not None
     assert state.missions is not None
 
     assert state.crm.metrics["total_leads"] == 10
     assert state.crm.metrics["pipeline_value"] == 50000
+    assert state.metadata["business_uid"] == "biz_atlas"
+    assert state.metadata["currency"] == "AED"
+    assert (
+        "Current CRM pipeline value is 50000 AED."
+        in state.crm.opportunities
+    )
 
     assert state.missions.metrics["total"] == 3
     assert state.missions.metrics["running"] == 1
@@ -103,13 +125,19 @@ def test_builder_detects_empty_crm_risk(
     )
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
+
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
 
     builder._memory_service.list_memories = Mock(
         return_value=[]
     )
 
-    builder._mission_repository.list_all = Mock(
+    builder._mission_repository.list_by_business = Mock(
         return_value=[]
     )
 
@@ -131,13 +159,19 @@ def test_builder_detects_mission_failure(
     mock_dashboard.return_value = make_dashboard()
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
+
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
 
     builder._memory_service.list_memories = Mock(
         return_value=[]
     )
 
-    builder._mission_repository.list_all = Mock(
+    builder._mission_repository.list_by_business = Mock(
         return_value=[
             make_mission(status="failed", progress=25),
         ]
@@ -165,13 +199,19 @@ def test_builder_collects_business_opportunities(
     )
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
+
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
 
     builder._memory_service.list_memories = Mock(
         return_value=[]
     )
 
-    builder._mission_repository.list_all = Mock(
+    builder._mission_repository.list_by_business = Mock(
         return_value=[
             make_mission(status="running", progress=40),
         ]
@@ -186,7 +226,7 @@ def test_builder_collects_business_opportunities(
     )
 
     assert any(
-        "75000 QAR"
+        "75000 AED"
         in opportunity
         for opportunity in state.major_opportunities
     )
@@ -227,9 +267,15 @@ def test_builder_loads_ceo_executive_memory(
     mock_dashboard.return_value = make_dashboard()
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
 
-    builder._mission_repository.list_all = Mock(
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
+
+    builder._mission_repository.list_by_business = Mock(
         return_value=[]
     )
     builder._memory_service.list_memories = Mock(
@@ -276,9 +322,15 @@ def test_ceo_memory_becomes_decision_context(
     )
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
 
-    builder._mission_repository.list_all = Mock(
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
+
+    builder._mission_repository.list_by_business = Mock(
         return_value=[]
     )
     builder._memory_service.list_memories = Mock(
@@ -322,9 +374,15 @@ def test_builder_handles_empty_ceo_memory(
     mock_dashboard.return_value = make_dashboard()
 
     db = Mock()
-    builder = CEOCompanyStateBuilder(db)
+    builder = CEOCompanyStateBuilder(db, business_uid="biz_atlas")
 
-    builder._mission_repository.list_all = Mock(
+    business = Mock()
+    business.finances.currency = "AED"
+    builder._business_repository.get_by_uid = Mock(
+        return_value=business
+    )
+
+    builder._mission_repository.list_by_business = Mock(
         return_value=[]
     )
     builder._memory_service.list_memories = Mock(

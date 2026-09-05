@@ -185,6 +185,7 @@ def execute_test_plan(
             db,
             payload,
             approval_uid,
+            "biz_atlas",
         )
     )
 
@@ -262,6 +263,13 @@ def test_executive_action_builds_real_mission(
             mission.assigned_to
         )
 
+        assert (
+            mission.metadata[
+                "business_uid"
+            ]
+            == "biz_atlas"
+        )
+
     finally:
         teardown_executives()
 
@@ -297,6 +305,13 @@ def test_executive_action_executes_departments(
             task.status.value
             == "completed"
             for task in workflow.tasks
+        )
+
+        assert (
+            workflow.metadata[
+                "business_uid"
+            ]
+            == "biz_atlas"
         )
 
     finally:
@@ -347,6 +362,11 @@ def test_execution_result_is_persisted(
 
         assert record.status == "completed"
         assert record.success is True
+
+        assert (
+            record.business_uid
+            == "biz_atlas"
+        )
 
         assert (
             record.completed_task_count
@@ -421,6 +441,7 @@ def test_missing_executive_plan_is_rejected(
                     db_session,
                     {},
                     "apr_test_missing",
+                    "biz_atlas",
                 )
             )
 
@@ -474,6 +495,7 @@ def test_unregistered_department_fails_execution(
                 db_session,
                 payload,
                 "apr_test_failure",
+                "biz_atlas",
             )
         )
 

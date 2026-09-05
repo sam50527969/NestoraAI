@@ -550,13 +550,47 @@ def build_recommendations(
     return recommendations[:5]
 
 
-def build_ceo_brief() -> dict[str, Any]:
+def build_ceo_brief(
+    *,
+    business_uid: str,
+) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
-        leads = db.query(Lead).all()
-        missions = db.query(Mission).all()
-        tasks = db.query(AgentTask).all()
+        leads = (
+            db.query(Lead)
+            .filter(
+                Lead.business_uid
+                == business_uid
+            )
+            .all()
+        )
+
+        missions = (
+            db.query(Mission)
+            .filter(
+                Mission.business_uid
+                == business_uid
+            )
+            .all()
+        )
+
+        mission_uids = [
+            mission.mission_uid
+            for mission in missions
+        ]
+
+        tasks = (
+            db.query(AgentTask)
+            .filter(
+                AgentTask.mission_id.in_(
+                    mission_uids
+                )
+            )
+            .all()
+            if mission_uids
+            else []
+        )
 
         lead_snapshot = (
             build_lead_snapshot(leads)

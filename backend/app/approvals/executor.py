@@ -254,6 +254,7 @@ def build_crm_outreach_action(
     db,
     payload: dict[str, Any],
     approval_uid: str,
+    business_uid: str,
 ) -> dict[str, Any]:
     requested_count = int(
         payload.get(
@@ -272,7 +273,12 @@ def build_crm_outreach_action(
     )
 
     all_leads = (
-        db.query(Lead).all()
+        db.query(Lead)
+        .filter(
+            Lead.business_uid
+            == business_uid
+        )
+        .all()
     )
 
     selected_leads = (
@@ -384,6 +390,7 @@ async def execute_executive_action(
     db,
     payload: dict[str, Any],
     approval_uid: str,
+    business_uid: str,
 ) -> dict[str, Any]:
     plan_payload = payload.get(
         "executive_plan"
@@ -404,7 +411,8 @@ async def execute_executive_action(
 
     result = await (
         execution_service.execute_plan(
-            plan
+            plan,
+            business_uid=business_uid,
         )
     )
 
@@ -438,6 +446,7 @@ async def execute_executive_action(
         save_execution_record(
             db,
             approval_uid=approval_uid,
+            business_uid=business_uid,
             objective=plan.objective,
             execution_result=(
                 execution_result
@@ -456,6 +465,7 @@ async def execute_action(
     db,
     payload: dict[str, Any],
     approval_uid: str,
+    business_uid: str,
 ) -> dict[str, Any]:
     normalized_type = (
         normalize_name(
@@ -475,6 +485,7 @@ async def execute_action(
                 db,
                 payload,
                 approval_uid,
+                business_uid,
             )
         )
 
@@ -499,11 +510,14 @@ async def execute_action(
         db,
         payload,
         approval_uid,
+        business_uid,
     )
 
 
 async def execute_approval(
     approval_uid: str,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
@@ -512,7 +526,9 @@ async def execute_approval(
             db.query(CEOApproval)
             .filter(
                 CEOApproval.approval_uid
-                == approval_uid
+                == approval_uid,
+                CEOApproval.business_uid
+                == business_uid,
             )
             .first()
         )
@@ -541,6 +557,7 @@ async def execute_approval(
                 db,
                 payload,
                 approval.approval_uid,
+                business_uid,
             )
         )
 
