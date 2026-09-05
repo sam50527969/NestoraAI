@@ -124,7 +124,6 @@ class OutreachAgent(BaseAgent):
                 priority=lead.get("priority") or "Medium",
                 notes=analysis.get("recommendation"),
             ),
-            offer="99 QAR starter business package",
         )
 
         result = generate_outreach(outreach_request)
