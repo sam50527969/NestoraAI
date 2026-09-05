@@ -26,6 +26,7 @@ class ExecutiveMessage(Base):
         default=lambda: f"con_{uuid.uuid4().hex[:12]}",
     )
     mission_uid = Column(String(64), index=True, nullable=True)
+    business_uid = Column(String(64), index=True, nullable=True)
     sender = Column(String(100), index=True, nullable=False)
     recipient = Column(String(100), index=True, nullable=False)
     subject = Column(String(200), nullable=False)

@@ -17,6 +17,7 @@ class ExecutiveCommunicationRepository:
     def create(
         self,
         *,
+        business_uid: str,
         sender: str,
         recipient: str,
         subject: str,
@@ -29,6 +30,7 @@ class ExecutiveCommunicationRepository:
         metadata: dict[str, Any] | None = None,
     ) -> ExecutiveMessage:
         record = ExecutiveMessage(
+            business_uid=business_uid,
             sender=sender,
             recipient=recipient,
             subject=subject,
@@ -47,10 +49,18 @@ class ExecutiveCommunicationRepository:
         self._db.refresh(record)
         return record
 
-    def get_by_uid(self, message_uid: str) -> ExecutiveMessage | None:
+    def get_by_uid(
+        self,
+        message_uid: str,
+        *,
+        business_uid: str,
+    ) -> ExecutiveMessage | None:
         return (
             self._db.query(ExecutiveMessage)
-            .filter(ExecutiveMessage.message_uid == message_uid)
+            .filter(
+                ExecutiveMessage.message_uid == message_uid,
+                ExecutiveMessage.business_uid == business_uid,
+            )
             .first()
         )
 
@@ -58,12 +68,14 @@ class ExecutiveCommunicationRepository:
         self,
         recipient: str,
         *,
+        business_uid: str,
         unread_only: bool = False,
         mission_uid: str | None = None,
         limit: int = 100,
     ) -> list[ExecutiveMessage]:
         query = self._db.query(ExecutiveMessage).filter(
-            ExecutiveMessage.recipient == recipient
+            ExecutiveMessage.business_uid == business_uid,
+            ExecutiveMessage.recipient == recipient,
         )
         if unread_only:
             query = query.filter(ExecutiveMessage.is_read.is_(False))
@@ -79,11 +91,13 @@ class ExecutiveCommunicationRepository:
         self,
         sender: str,
         *,
+        business_uid: str,
         mission_uid: str | None = None,
         limit: int = 100,
     ) -> list[ExecutiveMessage]:
         query = self._db.query(ExecutiveMessage).filter(
-            ExecutiveMessage.sender == sender
+            ExecutiveMessage.business_uid == business_uid,
+            ExecutiveMessage.sender == sender,
         )
         if mission_uid:
             query = query.filter(ExecutiveMessage.mission_uid == mission_uid)
@@ -94,22 +108,36 @@ class ExecutiveCommunicationRepository:
         )
 
     def list_conversation(
-        self, conversation_uid: str, *, limit: int = 500
+        self,
+        conversation_uid: str,
+        *,
+        business_uid: str,
+        limit: int = 500,
     ) -> list[ExecutiveMessage]:
         return (
             self._db.query(ExecutiveMessage)
-            .filter(ExecutiveMessage.conversation_uid == conversation_uid)
+            .filter(
+                ExecutiveMessage.conversation_uid == conversation_uid,
+                ExecutiveMessage.business_uid == business_uid,
+            )
             .order_by(ExecutiveMessage.created_at.asc())
             .limit(limit)
             .all()
         )
 
     def list_mission_messages(
-        self, mission_uid: str, *, limit: int = 500
+        self,
+        mission_uid: str,
+        *,
+        business_uid: str,
+        limit: int = 500,
     ) -> list[ExecutiveMessage]:
         return (
             self._db.query(ExecutiveMessage)
-            .filter(ExecutiveMessage.mission_uid == mission_uid)
+            .filter(
+                ExecutiveMessage.mission_uid == mission_uid,
+                ExecutiveMessage.business_uid == business_uid,
+            )
             .order_by(ExecutiveMessage.created_at.asc())
             .limit(limit)
             .all()
@@ -120,11 +148,13 @@ class ExecutiveCommunicationRepository:
         executive_a: str,
         executive_b: str,
         *,
+        business_uid: str,
         limit: int = 200,
     ) -> list[ExecutiveMessage]:
         return (
             self._db.query(ExecutiveMessage)
             .filter(
+                ExecutiveMessage.business_uid == business_uid,
                 or_(
                     and_(
                         ExecutiveMessage.sender == executive_a,
@@ -141,8 +171,16 @@ class ExecutiveCommunicationRepository:
             .all()
         )
 
-    def mark_as_read(self, message_uid: str) -> ExecutiveMessage | None:
-        record = self.get_by_uid(message_uid)
+    def mark_as_read(
+        self,
+        message_uid: str,
+        *,
+        business_uid: str,
+    ) -> ExecutiveMessage | None:
+        record = self.get_by_uid(
+            message_uid,
+            business_uid=business_uid,
+        )
         if record is None:
             return None
         if not record.is_read:
@@ -153,8 +191,16 @@ class ExecutiveCommunicationRepository:
             self._db.refresh(record)
         return record
 
-    def delete(self, message_uid: str) -> bool:
-        record = self.get_by_uid(message_uid)
+    def delete(
+        self,
+        message_uid: str,
+        *,
+        business_uid: str,
+    ) -> bool:
+        record = self.get_by_uid(
+            message_uid,
+            business_uid=business_uid,
+        )
         if record is None:
             return False
         self._db.delete(record)
