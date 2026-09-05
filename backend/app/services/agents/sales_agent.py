@@ -28,6 +28,18 @@ class SalesAgent(BaseAgent):
 
         self.analyzed_count = 0
 
+        request_currency = getattr(
+            request,
+            "currency",
+            None,
+        )
+
+        self.currency = (
+            str(request_currency).strip().upper()
+            if request_currency
+            else ""
+        )
+
     async def prepare(self) -> None:
         """
         Prepare Sales AI processing.
@@ -135,10 +147,19 @@ class SalesAgent(BaseAgent):
         self.log(
             f"{business_name} → "
             f"{opportunity['business_potential']} Opportunity "
-            f"(QAR {opportunity['estimated_value']})"
+            f"({self._format_estimated_value(opportunity['estimated_value'])})"
         )
 
         return analysis
+
+    def _format_estimated_value(
+        self,
+        estimated_value,
+    ) -> str:
+        if self.currency:
+            return f"{self.currency} {estimated_value}"
+
+        return str(estimated_value)
 
     async def complete(self) -> None:
         """
