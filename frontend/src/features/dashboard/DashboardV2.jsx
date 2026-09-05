@@ -11,6 +11,7 @@ import CEOSection from "./components/CEOSection";
 import ExecutiveHero from "./components/ExecutiveHero";
 import MetricsGrid from "./components/MetricsGrid";
 import ResearchSection from "./components/ResearchSection";
+import useWorkspace from "../../workspace/useWorkspace";
 import useDashboardData from "./hooks/useDashboardData";
 
 import "./styles/dashboard.css";
@@ -18,6 +19,16 @@ import "./styles/dashboard.css";
 
 export default function DashboardV2() {
   const navigate = useNavigate();
+
+  const {
+    activeWorkspace,
+  } = useWorkspace();
+
+  const businessUid =
+    activeWorkspace?.business_uid || "";
+
+  const currency =
+    activeWorkspace?.finances?.currency || "";
 
   const {
     leads,
@@ -28,7 +39,10 @@ export default function DashboardV2() {
     isSearching,
     errorMessage,
     searchLeads,
-  } = useDashboardData();
+  } = useDashboardData({
+    businessUid,
+    currency,
+  });
 
 
   function scrollToMissionControl() {
@@ -71,6 +85,7 @@ export default function DashboardV2() {
     <main className="dashboard-v2-page">
       <ExecutiveHero
         pipelineValue={kpis.pipeline_value}
+        currency={currency}
         priorityLeads={kpis.high_priority_leads}
         aiConfidence={kpis.ai_score}
         onRunMission={scrollToMissionControl}
@@ -85,7 +100,10 @@ export default function DashboardV2() {
       <ExecutiveOperationsCenter />
 
       <section className="dashboard-v2-grid">
-        <ExecutiveBrief />
+        <ExecutiveBrief
+          currency={currency}
+          pipelineValue={kpis.pipeline_value}
+        />
 
         <OpportunityPanel
           lead={topOpportunity}

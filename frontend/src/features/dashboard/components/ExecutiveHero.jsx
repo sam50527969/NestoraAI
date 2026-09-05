@@ -3,6 +3,7 @@ import Card from "../../../components/ui/Card";
 
 export default function ExecutiveHero({
   pipelineValue = 0,
+  currency = "",
   priorityLeads = 0,
   aiConfidence = 0,
   onRunMission,
@@ -47,7 +48,14 @@ export default function ExecutiveHero({
       <div className="dashboard-v2-hero-stats">
         <div className="dashboard-v2-hero-stat">
           <span>Pipeline</span>
-          <strong>QAR {Number(pipelineValue).toLocaleString()}</strong>
+          <strong>
+            {[
+              currency,
+              Number(pipelineValue).toLocaleString(),
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          </strong>
         </div>
 
         <div className="dashboard-v2-hero-stat">

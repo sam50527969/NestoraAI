@@ -22,6 +22,9 @@ warnings.filterwarnings(
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.business.access import (
+    get_current_business_uid,
+)
 from app.database.database import (
     Base,
     get_db,
@@ -81,6 +84,10 @@ def dashboard_environment(
         get_db
     ] = override_get_db
 
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
+
     with TestClient(app) as client:
         yield client, session_factory
 
@@ -100,12 +107,14 @@ def add_lead(
     priority: str,
     estimated_value: int | None,
     ai_score: int | None,
+    business_uid: str | None = "biz_atlas",
 ) -> None:
     db: Session = session_factory()
 
     try:
         db.add(
             Lead(
+                business_uid=business_uid,
                 name=name,
                 category="clinic",
                 status=status,
@@ -389,3 +398,67 @@ def test_dashboard_contains_operational_lists(
         and item.strip()
         for item in data["activity"]
     )
+
+
+def test_dashboard_is_scoped_to_active_workspace(
+    dashboard_environment,
+):
+    client, session_factory = (
+        dashboard_environment
+    )
+
+    add_lead(
+        session_factory,
+        name="Atlas Opportunity",
+        status="Qualified",
+        priority="High",
+        estimated_value=4000,
+        ai_score=80,
+        business_uid="biz_atlas",
+    )
+
+    add_lead(
+        session_factory,
+        name="Dental Opportunity",
+        status="Won",
+        priority="High",
+        estimated_value=9000,
+        ai_score=100,
+        business_uid="biz_dental",
+    )
+
+    add_lead(
+        session_factory,
+        name="Legacy Opportunity",
+        status="New",
+        priority="High",
+        estimated_value=7000,
+        ai_score=60,
+        business_uid=None,
+    )
+
+    response = client.get(
+        "/dashboard/summary"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["kpis"] == {
+        "total_leads": 1,
+        "high_priority_leads": 1,
+        "qualified_leads": 1,
+        "won_leads": 0,
+        "pipeline_value": 4000,
+        "ai_score": 80,
+    }
+
+    stage_counts = {
+        stage["label"]: stage["value"]
+        for stage in data["pipeline"]
+    }
+
+    assert stage_counts["Qualified"] == 1
+    assert stage_counts["Won"] == 0
+    assert stage_counts["New"] == 0
