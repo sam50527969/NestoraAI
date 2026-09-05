@@ -44,6 +44,7 @@ class ExecutiveMessageResponse(BaseModel):
     message_uid: str
     conversation_uid: str
     mission_uid: str | None
+    business_uid: str | None
     sender: str
     recipient: str
     subject: str
