@@ -102,7 +102,7 @@ Return only professional business recommendations.
                 "Track KPIs",
             ],
             "budget": {
-                "currency": "QAR",
+                "currency": input_data.get("currency"),
                 "estimated_total": 0,
                 "allocation": [],
             },
