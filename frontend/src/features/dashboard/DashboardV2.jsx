@@ -37,7 +37,8 @@ export default function DashboardV2() {
     topOpportunity,
     isDashboardLoading,
     isSearching,
-    errorMessage,
+    dashboardError,
+    searchError,
     searchLeads,
   } = useDashboardData({
     businessUid,
@@ -66,11 +67,11 @@ export default function DashboardV2() {
   }
 
 
-  if (errorMessage || !dashboardSummary) {
+  if (dashboardError || !dashboardSummary) {
     return (
       <main className="dashboard-v2-page">
         <section className="dashboard-v2-state dashboard-v2-error">
-          {errorMessage
+          {dashboardError
             || "Unable to load the executive dashboard."}
         </section>
       </main>
@@ -135,6 +136,7 @@ export default function DashboardV2() {
         <ResearchSection
           leads={leads}
           isLoading={isSearching}
+          errorMessage={searchError}
           onSearch={searchLeads}
         />
       </div>

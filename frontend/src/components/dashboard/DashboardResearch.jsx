@@ -1,7 +1,12 @@
 import LeadSearchForm from "../LeadSearchForm";
 import LeadTable from "../LeadTable";
 
-function DashboardResearch({ leads, isLoading, onSearch }) {
+function DashboardResearch({
+  leads,
+  isLoading,
+  errorMessage,
+  onSearch,
+}) {
   return (
     <>
       <section className="panel">
@@ -9,6 +14,12 @@ function DashboardResearch({ leads, isLoading, onSearch }) {
         <h2>Find New Leads</h2>
         <LeadSearchForm onSearch={onSearch} />
       </section>
+
+      {errorMessage ? (
+        <section className="panel dashboard-v2-error">
+          <p>{errorMessage}</p>
+        </section>
+      ) : null}
 
       {isLoading ? (
         <section className="panel">

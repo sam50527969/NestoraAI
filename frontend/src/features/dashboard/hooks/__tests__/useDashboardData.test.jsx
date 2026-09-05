@@ -313,4 +313,98 @@ describe("useDashboardData workspace behavior", () => {
     ).toBe("Dental Opportunity");
   });
 
+
+  it("keeps dashboard data loaded when business search fails", async () => {
+    const loadedSummary = {
+      kpis: {
+        total_leads: 2,
+        high_priority_leads: 1,
+        qualified_leads: 1,
+        won_leads: 0,
+        pipeline_value: 5000,
+        ai_score: 85,
+      },
+      activity: [],
+    };
+
+    getDashboardSummaryMock.mockReset();
+    getSavedLeadsMock.mockReset();
+    searchBusinessesMock.mockReset();
+
+    getDashboardSummaryMock.mockResolvedValue(
+      loadedSummary
+    );
+
+    getSavedLeadsMock.mockResolvedValue([
+      {
+        name: "Saved Opportunity",
+        ai_score: 85,
+      },
+    ]);
+
+    searchBusinessesMock.mockRejectedValue(
+      new Error("Search provider unavailable")
+    );
+
+    const { result } = renderHook(() =>
+      useDashboardData({
+        businessUid: "biz_atlas",
+        currency: "AED",
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        result.current.isDashboardLoading
+      ).toBe(false);
+    });
+
+    expect(
+      result.current.dashboardError
+    ).toBe("");
+
+    expect(
+      result.current.dashboardSummary
+    ).toEqual(loadedSummary);
+
+    await act(async () => {
+      await result.current.searchLeads({
+        businessType: "Auto Repair",
+        location: "Dubai",
+        quantity: "5",
+      });
+    });
+
+    expect(
+      searchBusinessesMock
+    ).toHaveBeenCalledWith({
+      businessType: "Auto Repair",
+      location: "Dubai",
+      quantity: "5",
+    });
+
+    expect(
+      result.current.searchError
+    ).toBe("Unable to fetch businesses.");
+
+    expect(
+      result.current.dashboardError
+    ).toBe("");
+
+    expect(
+      result.current.dashboardSummary
+    ).toEqual(loadedSummary);
+
+    expect(
+      result.current.metrics.find(
+        (metric) =>
+          metric.title === "Pipeline Value"
+      )?.value
+    ).toBe("AED 5,000");
+
+    expect(
+      result.current.topOpportunity?.name
+    ).toBe("Saved Opportunity");
+  });
+
 });

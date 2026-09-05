@@ -14,7 +14,8 @@ export default function useDashboardData({
   const [dashboardSummary, setDashboardSummary] = useState(null);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [dashboardError, setDashboardError] = useState("");
+  const [searchError, setSearchError] = useState("");
 
   const activeBusinessUidRef = useRef(
     businessUid
@@ -31,7 +32,8 @@ export default function useDashboardData({
       setDashboardSummary(null);
       setLeads([]);
       setIsSearching(false);
-      setErrorMessage("");
+      setDashboardError("");
+      setSearchError("");
 
       try {
         const [summaryData, leadsData] = await Promise.all([
@@ -59,7 +61,7 @@ export default function useDashboardData({
           error
         );
 
-        setErrorMessage(
+        setDashboardError(
           "Unable to load the executive dashboard."
         );
       } finally {
@@ -82,7 +84,7 @@ export default function useDashboardData({
 
     try {
       setIsSearching(true);
-      setErrorMessage("");
+      setSearchError("");
 
       const data = await searchBusinesses({
         businessType: searchData.businessType,
@@ -113,7 +115,7 @@ export default function useDashboardData({
         error
       );
 
-      setErrorMessage(
+      setSearchError(
         "Unable to fetch businesses."
       );
     } finally {
@@ -199,7 +201,8 @@ export default function useDashboardData({
     topOpportunity,
     isDashboardLoading,
     isSearching,
-    errorMessage,
+    dashboardError,
+    searchError,
     searchLeads,
   };
 }
