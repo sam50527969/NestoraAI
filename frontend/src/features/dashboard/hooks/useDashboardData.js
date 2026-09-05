@@ -1,42 +1,85 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getDashboardSummary,
-  getSampleLeads,
+  getSavedLeads,
   searchBusinesses,
 } from "../../../api";
 
-export default function useDashboardData() {
+export default function useDashboardData({
+  businessUid,
+  currency,
+} = {}) {
   const [leads, setLeads] = useState([]);
   const [dashboardSummary, setDashboardSummary] = useState(null);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        setErrorMessage("");
+  const activeBusinessUidRef = useRef(
+    businessUid
+  );
 
+  useEffect(() => {
+    activeBusinessUidRef.current =
+      businessUid;
+
+    let cancelled = false;
+
+    async function loadDashboard() {
+      setIsDashboardLoading(true);
+      setDashboardSummary(null);
+      setLeads([]);
+      setIsSearching(false);
+      setErrorMessage("");
+
+      try {
         const [summaryData, leadsData] = await Promise.all([
           getDashboardSummary(),
-          getSampleLeads(),
+          getSavedLeads(),
         ]);
 
+        if (cancelled) {
+          return;
+        }
+
         setDashboardSummary(summaryData);
-        setLeads(Array.isArray(leadsData) ? leadsData : []);
+        setLeads(
+          Array.isArray(leadsData)
+            ? leadsData
+            : []
+        );
       } catch (error) {
-        console.error("Failed to load dashboard:", error);
-        setErrorMessage("Unable to load the executive dashboard.");
+        if (cancelled) {
+          return;
+        }
+
+        console.error(
+          "Failed to load dashboard:",
+          error
+        );
+
+        setErrorMessage(
+          "Unable to load the executive dashboard."
+        );
       } finally {
-        setIsDashboardLoading(false);
+        if (!cancelled) {
+          setIsDashboardLoading(false);
+        }
       }
     }
 
     loadDashboard();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessUid]);
 
   async function searchLeads(searchData) {
+    const requestBusinessUid =
+      businessUid;
+
     try {
       setIsSearching(true);
       setErrorMessage("");
@@ -47,12 +90,39 @@ export default function useDashboardData() {
         quantity: searchData.quantity || "20",
       });
 
-      setLeads(Array.isArray(data) ? data : []);
+      if (
+        activeBusinessUidRef.current
+        !== requestBusinessUid
+      ) {
+        return;
+      }
+
+      setLeads(
+        Array.isArray(data) ? data : []
+      );
     } catch (error) {
-      console.error("Failed to search businesses:", error);
-      setErrorMessage("Unable to fetch businesses.");
+      if (
+        activeBusinessUidRef.current
+        !== requestBusinessUid
+      ) {
+        return;
+      }
+
+      console.error(
+        "Failed to search businesses:",
+        error
+      );
+
+      setErrorMessage(
+        "Unable to fetch businesses."
+      );
     } finally {
-      setIsSearching(false);
+      if (
+        activeBusinessUidRef.current
+        === requestBusinessUid
+      ) {
+        setIsSearching(false);
+      }
     }
   }
 
@@ -104,7 +174,12 @@ export default function useDashboardData() {
       },
       {
         title: "Pipeline Value",
-        value: `QAR ${(kpis.pipeline_value ?? 0).toLocaleString()}`,
+        value: [
+          currency,
+          (kpis.pipeline_value ?? 0).toLocaleString(),
+        ]
+          .filter(Boolean)
+          .join(" "),
         subtitle: `${kpis.won_leads ?? 0} won leads`,
         color: "#8b5cf6",
       },
@@ -115,7 +190,7 @@ export default function useDashboardData() {
         color: "#22c55e",
       },
     ];
-  }, [dashboardSummary]);
+  }, [dashboardSummary, currency]);
 
   return {
     leads,

@@ -1,7 +1,10 @@
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
 
-export default function ExecutiveBrief() {
+export default function ExecutiveBrief({
+  currency = "",
+  pipelineValue = 0,
+}) {
   return (
     <Card className="executive-brief">
       <div className="executive-brief-header">
@@ -19,7 +22,16 @@ export default function ExecutiveBrief() {
 
         <div className="brief-item">
           <span>Pipeline Opportunity</span>
-          <strong>QAR 92,500</strong>
+          <strong>
+            {[
+              currency,
+              Number(
+                pipelineValue || 0
+              ).toLocaleString(),
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          </strong>
         </div>
 
         <div className="brief-item">

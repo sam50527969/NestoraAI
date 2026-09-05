@@ -6,6 +6,9 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import (
+    get_current_business_uid,
+)
 from app.database.database import (
     get_db,
 )
@@ -29,5 +32,11 @@ router = APIRouter(
 )
 def dashboard_summary(
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
 ) -> DashboardSummary:
-    return get_dashboard_summary(db)
+    return get_dashboard_summary(
+        db,
+        business_uid=business_uid,
+    )

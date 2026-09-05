@@ -35,6 +35,11 @@ from app.database.database import (
     Base,
     get_db,
 )
+from app.auth.models import User
+from app.database.models import (
+    Business,
+    BusinessMembership,
+)
 
 
 TEST_EMAIL = (
@@ -96,6 +101,7 @@ def protected_api(
     ] = override_get_db
 
     with TestClient(app) as client:
+        client.session_factory = session_factory
         yield client
 
     app.dependency_overrides.clear()
@@ -140,6 +146,51 @@ def register_and_login(
     return login.json()[
         "access_token"
     ]
+
+
+def create_test_workspace_membership(
+    client: TestClient,
+) -> str:
+    business_uid = "biz_protected"
+
+    session_factory = (
+        client.session_factory
+    )
+
+    with session_factory() as db:
+        user = (
+            db.query(User)
+            .filter(
+                User.email == TEST_EMAIL
+            )
+            .one()
+        )
+
+        db.add(
+            Business(
+                business_uid=business_uid,
+                name="Protected Test Business",
+                industry="other",
+                country="Qatar",
+                currency="QAR",
+            )
+        )
+
+        db.add(
+            BusinessMembership(
+                membership_uid=(
+                    "mem_protected"
+                ),
+                user_uid=user.user_uid,
+                business_uid=business_uid,
+                role="owner",
+                is_active=True,
+            )
+        )
+
+        db.commit()
+
+    return business_uid
 
 
 def test_registration_and_login_are_public(
@@ -261,11 +312,19 @@ def test_valid_token_allows_business_api_access(
         protected_api
     )
 
+    business_uid = (
+        create_test_workspace_membership(
+            protected_api
+        )
+    )
+
     response = protected_api.get(
         path,
         headers={
             "Authorization":
                 f"Bearer {token}",
+            "X-Business-Uid":
+                business_uid,
         },
     )
 
