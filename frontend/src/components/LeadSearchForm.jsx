@@ -4,14 +4,36 @@ function LeadSearchForm({ onSearch }) {
   const [businessType, setBusinessType] = useState("");
   const [location, setLocation] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [validationError, setValidationError] = useState("");
 
   function handleSubmit(event) {
     event.preventDefault();
 
+    const cleanedBusinessType =
+      businessType.trim();
+    const cleanedLocation =
+      location.trim();
+
+    if (!cleanedBusinessType) {
+      setValidationError(
+        "Please enter a business type."
+      );
+      return;
+    }
+
+    if (!cleanedLocation) {
+      setValidationError(
+        "Please enter a location."
+      );
+      return;
+    }
+
+    setValidationError("");
+
     onSearch({
-      businessType,
-      location,
-      quantity,
+      businessType: cleanedBusinessType,
+      location: cleanedLocation,
+      quantity: quantity.trim(),
     });
   }
 
@@ -44,6 +66,15 @@ function LeadSearchForm({ onSearch }) {
         <button className="secondary" type="submit">
           Find Leads
         </button>
+
+        {validationError ? (
+          <p
+            className="dashboard-v2-error"
+            role="alert"
+          >
+            {validationError}
+          </p>
+        ) : null}
       </form>
     </div>
   );

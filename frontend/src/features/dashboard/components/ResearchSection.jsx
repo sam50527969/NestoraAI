@@ -3,6 +3,7 @@ import DashboardResearch from "../../../components/dashboard/DashboardResearch";
 export default function ResearchSection({
   leads,
   isLoading,
+  errorMessage,
   onSearch,
 }) {
   return (
@@ -10,6 +11,7 @@ export default function ResearchSection({
       <DashboardResearch
         leads={leads}
         isLoading={isLoading}
+        errorMessage={errorMessage}
         onSearch={onSearch}
       />
     </section>
