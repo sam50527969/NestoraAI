@@ -735,7 +735,6 @@ class MissionExecutor:
                     "recommendation"
                 ),
             ),
-            offer=f"99 {self.currency} starter business package",
         )
 
         generate_outreach(
