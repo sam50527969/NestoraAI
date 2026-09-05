@@ -3,6 +3,7 @@ uvicorn
 python-dotenv
 httpx
 sqlalchemy
+psycopg[binary]
 alembic
 google-genai
 beautifulsoup4
