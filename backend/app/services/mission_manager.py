@@ -1,4 +1,5 @@
 from app.database.database import SessionLocal
+from app.repositories.business_repository import BusinessRepository
 from app.services.mission_activity import log_mission_activity
 from app.services.mission_executor import MissionExecutor
 from app.services.mission_state import (
@@ -99,11 +100,21 @@ async def run_real_mission(
         # Execute the mission workflow
         # ---------------------------------------------------------
 
+        business_context = BusinessRepository(db).get_context(
+            business_uid
+        )
+
+        if business_context is None:
+            raise ValueError(
+                f"Business context not found for {business_uid}."
+            )
+
         executor = MissionExecutor(
             db=db,
             mission_id=mission_id,
             request=request,
             business_uid=business_uid,
+            business_context=business_context,
         )
 
         return await executor.execute()

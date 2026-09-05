@@ -36,11 +36,18 @@ class MissionExecutor:
         mission_id: str,
         request,
         business_uid: str,
+        business_context=None,
     ):
         self.db = db
         self.mission_id = mission_id
         self.request = request
         self.business_uid = business_uid
+        self.business_context = business_context
+        self.currency = (
+            business_context.currency
+            if business_context is not None
+            else None
+        )
         self.active_task_type = None
 
         self.raw_result_count = 0
@@ -577,7 +584,7 @@ class MissionExecutor:
                 f"{business_name} → "
                 f"{opportunity['business_potential']} "
                 f"Opportunity "
-                f"(QAR {opportunity['estimated_value']})"
+                f"({self.currency} {opportunity['estimated_value']})"
             ),
         )
 
@@ -728,7 +735,7 @@ class MissionExecutor:
                     "recommendation"
                 ),
             ),
-            offer="99 QAR starter business package",
+            offer=f"99 {self.currency} starter business package",
         )
 
         generate_outreach(

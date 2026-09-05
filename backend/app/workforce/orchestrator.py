@@ -8,6 +8,7 @@ from app.database.models import AgentTask, Mission
 from app.repositories.agent_task_repository import (
     AgentTaskRepository,
 )
+from app.repositories.business_repository import BusinessRepository
 from app.repositories.mission_event_repository import (
     MissionEventRepository,
 )
@@ -58,6 +59,7 @@ class WorkforceOrchestrator:
     ) -> None:
         self._db = db
         self._mission_repository = MissionRepository(db)
+        self._business_repository = BusinessRepository(db)
         self._mission_event_repository = MissionEventRepository(db)
         self._task_repository = AgentTaskRepository(db)
         self._executive_router = (
@@ -304,10 +306,20 @@ class WorkforceOrchestrator:
                 )
             )
 
+            business_context = self._business_repository.get_context(
+                mission.business_uid
+            )
+
+            if business_context is None:
+                raise ValueError(
+                    f"Business context not found for {mission.business_uid}."
+                )
+
             enriched_input = {
                 **input_data,
                 "mission_uid": mission.mission_uid,
                 "business_uid": mission.business_uid,
+                "currency": business_context.currency,
                 "mission_title": mission.title,
                 "mission_objective": mission.objective,
                 "mission_description": mission.description,
