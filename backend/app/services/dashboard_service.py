@@ -73,8 +73,17 @@ def calculate_ai_score(
 
 def get_dashboard_summary(
     db: Session,
+    *,
+    business_uid: str | None = None,
 ) -> DashboardSummary:
-    leads = db.query(Lead).all()
+    leads_query = db.query(Lead)
+
+    if business_uid is not None:
+        leads_query = leads_query.filter(
+            Lead.business_uid == business_uid
+        )
+
+    leads = leads_query.all()
 
     total_leads = len(leads)
 

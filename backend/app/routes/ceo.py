@@ -16,6 +16,7 @@ from app.agents.ceo_agent import (
     ask_ceo,
     prepare_ceo_plan,
 )
+from app.business.access import get_current_business_uid
 from app.database.database import (
     get_db,
 )
@@ -87,10 +88,14 @@ class CEOPlanResponse(BaseModel):
 def ask_ceo_question(
     request: CEOQuestionRequest,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
     return ask_ceo(
         db=db,
         question=request.question,
+        business_uid=business_uid,
     )
 
 
@@ -101,9 +106,13 @@ def ask_ceo_question(
 def create_ceo_plan(
     request: CEOPlanRequest,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ) -> dict[str, Any]:
     return prepare_ceo_plan(
         db=db,
         objective=request.objective,
+        business_uid=business_uid,
         source_uid=request.source_uid,
     )

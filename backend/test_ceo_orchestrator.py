@@ -50,7 +50,11 @@ def test_approval_required_action_creates_approval(
 ):
     created_requests = []
 
-    def fake_create_approval(data):
+    def fake_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         created_requests.append(data)
 
         return {
@@ -72,6 +76,7 @@ def test_approval_required_action_creates_approval(
 
     result = orchestrator.prepare_plan(
         build_plan(),
+        business_uid="biz_atlas",
         source_uid="plan_test_001",
     )
 
@@ -107,7 +112,11 @@ def test_approval_required_action_creates_approval(
 def test_non_approval_action_is_not_submitted(
     monkeypatch,
 ):
-    def fail_create_approval(data):
+    def fail_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         raise AssertionError(
             "Approval should not be created."
         )
@@ -125,7 +134,8 @@ def test_non_approval_action_is_not_submitted(
     result = orchestrator.prepare_plan(
         build_plan(
             requires_approval=False
-        )
+        ),
+        business_uid="biz_atlas",
     )
 
     assert result.approval_count == 0
@@ -143,7 +153,11 @@ def test_each_action_receives_separate_approval(
 ):
     created_requests = []
 
-    def fake_create_approval(data):
+    def fake_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         created_requests.append(data)
 
         return {
@@ -185,6 +199,7 @@ def test_each_action_receives_separate_approval(
 
     result = orchestrator.prepare_plan(
         plan,
+        business_uid="biz_atlas",
         source_uid="plan_test_002",
     )
 
@@ -220,7 +235,11 @@ def test_single_action_approval_preserves_plan_context(
 ):
     captured = {}
 
-    def fake_create_approval(data):
+    def fake_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         captured["request"] = data
 
         return {
@@ -239,7 +258,8 @@ def test_single_action_approval_preserves_plan_context(
     plan = build_plan()
 
     CEOExecutionOrchestrator().prepare_plan(
-        plan
+        plan,
+        business_uid="biz_atlas",
     )
 
     serialized_plan = (
@@ -270,7 +290,11 @@ def test_single_action_approval_preserves_plan_context(
 def test_empty_objective_is_rejected(
     monkeypatch,
 ):
-    def fail_create_approval(data):
+    def fail_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         raise AssertionError(
             "Approval should not be created."
         )
@@ -286,7 +310,8 @@ def test_empty_objective_is_rejected(
 
     try:
         CEOExecutionOrchestrator().prepare_plan(
-            plan
+            plan,
+            business_uid="biz_atlas",
         )
     except ValueError as error:
         assert str(error) == (
@@ -302,7 +327,11 @@ def test_empty_objective_is_rejected(
 def test_invalid_action_is_rejected(
     monkeypatch,
 ):
-    def fail_create_approval(data):
+    def fail_create_approval(
+        data,
+        *,
+        business_uid,
+    ):
         raise AssertionError(
             "Approval should not be created."
         )
@@ -318,7 +347,8 @@ def test_invalid_action_is_rejected(
 
     try:
         CEOExecutionOrchestrator().prepare_plan(
-            plan
+            plan,
+            business_uid="biz_atlas",
         )
     except ValueError as error:
         assert str(error) == (

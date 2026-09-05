@@ -107,12 +107,17 @@ class ExecutionService:
     async def execute_plan(
         self,
         plan: ExecutivePlan,
+        *,
+        business_uid: str | None = None,
     ) -> ExecutionResult:
         """
         Build and execute a mission from a CEO ExecutivePlan.
         """
         started_at = datetime.utcnow()
-        build_result = self.mission_builder.build(plan)
+        build_result = self.mission_builder.build(
+            plan,
+            business_uid=business_uid,
+        )
 
         try:
             self._register_build_result(build_result)

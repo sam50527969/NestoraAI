@@ -16,6 +16,7 @@ import CEOPipelineSummary from "../components/agents/ceo/CEOPipelineSummary";
 import Badge from "../components/ui/Badge";
 import Card from "../components/ui/Card";
 import { getCEOBrief } from "../api";
+import useWorkspace from "../workspace/useWorkspace";
 
 import "../styles/ceo.css";
 
@@ -27,12 +28,20 @@ function formatNumber(value) {
 }
 
 
-function formatCurrency(value) {
+function formatCurrency(value, currency) {
+  const amount = Number(value) || 0;
+
+  if (!currency) {
+    return new Intl.NumberFormat(
+      "en-US",
+    ).format(amount);
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "QAR",
+    currency,
     maximumFractionDigits: 0,
-  }).format(Number(value) || 0);
+  }).format(amount);
 }
 
 
@@ -76,6 +85,16 @@ function truncateText(
 
 
 export default function CEO() {
+  const { activeWorkspace } = useWorkspace();
+
+  const currency =
+    activeWorkspace?.finances?.currency
+    || "";
+
+  const businessUid =
+    activeWorkspace?.business_uid
+    || "";
+
   const [brief, setBrief] =
     useState(null);
 
@@ -122,7 +141,7 @@ export default function CEO() {
 
   useEffect(() => {
     loadBrief();
-  }, [loadBrief]);
+  }, [loadBrief, businessUid]);
 
 
   function handleApprovalCreated() {
@@ -268,6 +287,7 @@ export default function CEO() {
               <strong>
                 {formatCurrency(
                   missionOverview.total_estimated_value,
+                  currency,
                 )}
               </strong>
 
@@ -298,15 +318,35 @@ export default function CEO() {
 
           <CEOApprovalQueue
             key={approvalQueueVersion}
+            currency={currency}
+            businessUid={businessUid}
           />
 
-          <CEOExecutionHistory />
+          <CEOExecutionHistory
+            businessUid={businessUid}
+          />
 
-          <CEOOutreachHistory />
-          <CEOPipelineSummary />
-          <CEOFollowUpMetrics />
-          <CEOFollowUpQueue />
-          <CEOFollowUpHistory />
+          <CEOOutreachHistory
+            currency={currency}
+            businessUid={businessUid}
+          />
+
+          <CEOPipelineSummary
+            currency={currency}
+            businessUid={businessUid}
+          />
+
+          <CEOFollowUpMetrics
+            businessUid={businessUid}
+          />
+
+          <CEOFollowUpQueue
+            businessUid={businessUid}
+          />
+
+          <CEOFollowUpHistory
+            businessUid={businessUid}
+          />
 
           <section className="ceo-page-grid">
             <Card className="ceo-reports-card">
@@ -364,6 +404,7 @@ export default function CEO() {
                           <span>
                             {formatCurrency(
                               report.estimated_value,
+                              currency,
                             )}
                           </span>
 
@@ -487,6 +528,7 @@ export default function CEO() {
                       <span>
                         {formatCurrency(
                           mission.estimated_value,
+                          currency,
                         )}
                       </span>
 

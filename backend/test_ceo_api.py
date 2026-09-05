@@ -11,11 +11,12 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
+from app.business.access import get_current_business_uid
 from app.database.database import (
     Base,
     get_db,
 )
-from app.database.models import Lead
+from app.database.models import Business, Lead
 from app.routes.ceo import router as ceo_router
 
 
@@ -60,6 +61,18 @@ def ceo_environment(
         bind=engine
     )
 
+    with session_factory() as setup_db:
+        setup_db.add(
+            Business(
+                business_uid="biz_atlas",
+                name="Atlas Test Business",
+                industry="other",
+                country="United Arab Emirates",
+                currency="AED",
+            )
+        )
+        setup_db.commit()
+
     app = FastAPI()
     app.include_router(ceo_router)
 
@@ -74,6 +87,10 @@ def ceo_environment(
     app.dependency_overrides[
         get_db
     ] = override_get_db
+
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
 
     with TestClient(app) as client:
         yield client, session_factory
@@ -104,6 +121,7 @@ def add_lead(
                 category="clinic",
                 status=status,
                 priority=priority,
+                business_uid="biz_atlas",
                 estimated_value=estimated_value,
                 ai_score=ai_score,
             )

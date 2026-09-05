@@ -19,6 +19,8 @@ from app.executives.ceo.state_builder import (
 def build_ceo_plan(
     db: Session,
     objective: str,
+    *,
+    business_uid: str,
 ) -> ExecutivePlan:
     """
     Build an executive plan from live Nestora
@@ -26,7 +28,8 @@ def build_ceo_plan(
     """
 
     company_state = CEOCompanyStateBuilder(
-        db
+        db,
+        business_uid=business_uid,
     ).build()
 
     brain = CEOBrain()
@@ -40,6 +43,8 @@ def build_ceo_plan(
 def ask_ceo(
     db: Session,
     question: str,
+    *,
+    business_uid: str,
 ) -> dict[str, str]:
     """
     Answer a CEO question using live Nestora
@@ -49,6 +54,7 @@ def ask_ceo(
     plan = build_ceo_plan(
         db,
         question,
+        business_uid=business_uid,
     )
 
     return {
@@ -62,6 +68,7 @@ def prepare_ceo_plan(
     db: Session,
     objective: str,
     *,
+    business_uid: str,
     source_uid: str | None = None,
 ) -> dict[str, Any]:
     """
@@ -72,10 +79,12 @@ def prepare_ceo_plan(
     plan = build_ceo_plan(
         db,
         objective,
+        business_uid=business_uid,
     )
 
     result = CEOExecutionOrchestrator().prepare_plan(
         plan,
+        business_uid=business_uid,
         source_uid=source_uid,
     )
 

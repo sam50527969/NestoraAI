@@ -68,6 +68,7 @@ OutreachSection.propTypes = {
 
 export default function CEOOutreachPackage({
   outreach,
+  currency = "",
   onMarkSent,
   isUpdating = false,
 }) {
@@ -196,12 +197,17 @@ export default function CEOOutreachPackage({
                 </span>
 
                 <strong>
-                  QAR{" "}
-                  {Number(
-                    outreach.estimated_value,
-                  ).toLocaleString(
-                    "en-US",
-                  )}
+                  {currency
+                    ? `${Number(
+                        outreach.estimated_value,
+                      ).toLocaleString(
+                        "en-US",
+                      )} ${currency}`
+                    : Number(
+                        outreach.estimated_value,
+                      ).toLocaleString(
+                        "en-US",
+                      )}
                 </strong>
               </div>
             )}
@@ -286,6 +292,7 @@ export default function CEOOutreachPackage({
 }
 
 CEOOutreachPackage.propTypes = {
+  currency: PropTypes.string,
   outreach: PropTypes.shape({
     activity_uid: PropTypes.string,
     lead_name: PropTypes.string.isRequired,

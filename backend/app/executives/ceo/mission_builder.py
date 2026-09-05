@@ -40,7 +40,12 @@ class CEOMissionBuilder:
         "low": 30,
     }
 
-    def build(self, plan: ExecutivePlan) -> MissionBuildResult:
+    def build(
+        self,
+        plan: ExecutivePlan,
+        *,
+        business_uid: str | None = None,
+    ) -> MissionBuildResult:
         """
         Convert an executive plan into a mission and workflow.
         """
@@ -56,18 +61,25 @@ class CEOMissionBuilder:
 
         departments = self._collect_departments(plan.actions)
 
+        mission_metadata = {
+            "plan_summary": plan.summary,
+            "action_count": len(plan.actions),
+            "source": "ceo_brain",
+            "plan_metadata": dict(plan.metadata),
+        }
+
+        if business_uid is not None:
+            mission_metadata[
+                "business_uid"
+            ] = business_uid
+
         mission = Mission(
             title=self._build_mission_title(objective),
             objective=objective,
             created_by="CEO",
             assigned_to=departments,
             priority=self._determine_mission_priority(plan.actions),
-            metadata={
-                "plan_summary": plan.summary,
-                "action_count": len(plan.actions),
-                "source": "ceo_brain",
-                "plan_metadata": dict(plan.metadata),
-            },
+            metadata=mission_metadata,
         )
 
         tasks = [
@@ -79,16 +91,23 @@ class CEOMissionBuilder:
             for index, action in enumerate(plan.actions)
         ]
 
+        workflow_metadata = {
+            "created_by": "CEO",
+            "objective": objective,
+            "departments": departments,
+        }
+
+        if business_uid is not None:
+            workflow_metadata[
+                "business_uid"
+            ] = business_uid
+
         workflow = Workflow(
             mission_id=mission.id,
             name=f"{mission.title} Workflow",
             description=plan.summary,
             tasks=tasks,
-            metadata={
-                "created_by": "CEO",
-                "objective": objective,
-                "departments": departments,
-            },
+            metadata=workflow_metadata,
         )
 
         return MissionBuildResult(

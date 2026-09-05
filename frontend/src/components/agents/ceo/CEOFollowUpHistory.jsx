@@ -4,6 +4,8 @@ import {
   useState,
 } from "react";
 
+import PropTypes from "prop-types";
+
 import {
   downloadFollowUpHistory,
   getFollowUpActivities,
@@ -105,7 +107,9 @@ function getOutcomeVariant(outcome) {
 }
 
 
-export default function CEOFollowUpHistory() {
+export default function CEOFollowUpHistory({
+  businessUid,
+}) {
   const [activities, setActivities] =
     useState([]);
 
@@ -158,7 +162,7 @@ export default function CEOFollowUpHistory() {
 
   useEffect(() => {
     loadActivities();
-  }, [loadActivities]);
+  }, [loadActivities, businessUid]);
 
 
   return (
@@ -338,3 +342,8 @@ export default function CEOFollowUpHistory() {
     </Card>
   );
 }
+
+
+CEOFollowUpHistory.propTypes = {
+  businessUid: PropTypes.string,
+};

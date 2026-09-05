@@ -82,6 +82,8 @@ def apply_activity_date_filters(
 def record_follow_up_outcome(
     lead_id: int,
     data: FollowUpOutcomeCreate,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
@@ -89,7 +91,9 @@ def record_follow_up_outcome(
         lead = (
             db.query(Lead)
             .filter(
-                Lead.id == lead_id
+                Lead.id == lead_id,
+                Lead.business_uid
+                == business_uid,
             )
             .first()
         )
@@ -222,6 +226,7 @@ def record_follow_up_outcome(
 
 def list_follow_up_activities(
     *,
+    business_uid: str,
     lead_id: int | None = None,
     start_date: datetime | None = None,
     end_date: datetime | None = None,
@@ -230,8 +235,17 @@ def list_follow_up_activities(
     db = SessionLocal()
 
     try:
-        query = db.query(
-            FollowUpActivity
+        query = (
+            db.query(FollowUpActivity)
+            .join(
+                Lead,
+                Lead.id
+                == FollowUpActivity.lead_id,
+            )
+            .filter(
+                Lead.business_uid
+                == business_uid
+            )
         )
 
         if lead_id is not None:
@@ -268,14 +282,24 @@ def list_follow_up_activities(
 
 def get_follow_up_metrics(
     *,
+    business_uid: str,
     start_date: datetime | None = None,
     end_date: datetime | None = None,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
     try:
-        query = db.query(
-            FollowUpActivity
+        query = (
+            db.query(FollowUpActivity)
+            .join(
+                Lead,
+                Lead.id
+                == FollowUpActivity.lead_id,
+            )
+            .filter(
+                Lead.business_uid
+                == business_uid
+            )
         )
 
         query = apply_activity_date_filters(

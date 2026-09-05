@@ -3,6 +3,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import PropTypes from "prop-types";
 
 import {
   approveCEOApproval,
@@ -76,7 +77,10 @@ function getOutreachPackages(approval) {
 }
 
 
-export default function CEOApprovalQueue() {
+export default function CEOApprovalQueue({
+  businessUid,
+  currency = "",
+}) {
   const [approvals, setApprovals] =
     useState([]);
 
@@ -127,7 +131,7 @@ export default function CEOApprovalQueue() {
 
   useEffect(() => {
     loadApprovals();
-  }, [loadApprovals]);
+  }, [loadApprovals, businessUid]);
 
 
   function updateApproval(
@@ -465,6 +469,9 @@ export default function CEOApprovalQueue() {
                               outreach={
                                 outreach
                               }
+                              currency={
+                                currency
+                              }
                             />
                           ),
                         )}
@@ -484,3 +491,8 @@ export default function CEOApprovalQueue() {
     </Card>
   );
 }
+
+CEOApprovalQueue.propTypes = {
+  businessUid: PropTypes.string,
+  currency: PropTypes.string,
+};

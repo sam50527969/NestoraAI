@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.executives.ceo.state import CompanyState, DepartmentState
 from app.memory.service import ExecutiveMemoryService
+from app.repositories.business_repository import BusinessRepository
 from app.repositories.mission_repository import MissionRepository
 from app.services.dashboard_service import get_dashboard_summary
 
@@ -11,15 +12,40 @@ from app.services.dashboard_service import get_dashboard_summary
 class CEOCompanyStateBuilder:
     """Build a CEO company state from live Nestora data."""
 
-    def __init__(self, db: Session) -> None:
+    def __init__(
+        self,
+        db: Session,
+        *,
+        business_uid: str,
+    ) -> None:
         self._db = db
+        self._business_uid = business_uid
+        self._business_repository = BusinessRepository(db)
         self._mission_repository = MissionRepository(db)
         self._memory_service = ExecutiveMemoryService(db)
 
     def build(self) -> CompanyState:
-        state = CompanyState()
+        business = self._business_repository.get_by_uid(
+            self._business_uid
+        )
 
-        state.crm = self._build_crm_state()
+        if business is None:
+            raise ValueError(
+                f"Business '{self._business_uid}' was not found."
+            )
+
+        currency = business.finances.currency
+
+        state = CompanyState(
+            metadata={
+                "business_uid": self._business_uid,
+                "currency": currency,
+            }
+        )
+
+        state.crm = self._build_crm_state(
+            currency=currency,
+        )
         state.missions = self._build_mission_state()
         state.memory = self._build_memory_state()
 
@@ -28,18 +54,27 @@ class CEOCompanyStateBuilder:
         state.critical_risks = self._collect_critical_risks(state)
         state.major_opportunities = self._collect_major_opportunities(state)
 
-        state.metadata = {
-            "source": "live_nestora_data",
-            "departments_loaded": [
-                department.department
-                for department in state.available_departments()
-            ],
-        }
+        state.metadata.update(
+            {
+                "source": "live_nestora_data",
+                "departments_loaded": [
+                    department.department
+                    for department in state.available_departments()
+                ],
+            }
+        )
 
         return state
 
-    def _build_crm_state(self) -> DepartmentState:
-        dashboard = get_dashboard_summary(self._db)
+    def _build_crm_state(
+        self,
+        *,
+        currency: str,
+    ) -> DepartmentState:
+        dashboard = get_dashboard_summary(
+            self._db,
+            business_uid=self._business_uid,
+        )
         kpis = dashboard.kpis
 
         health_score = self._calculate_crm_health(
@@ -67,7 +102,7 @@ class CEOCompanyStateBuilder:
         if kpis.pipeline_value > 0:
             opportunities.append(
                 f"Current CRM pipeline value is "
-                f"{kpis.pipeline_value} QAR."
+                f"{kpis.pipeline_value} {currency}."
             )
 
         return DepartmentState(
@@ -92,7 +127,10 @@ class CEOCompanyStateBuilder:
         )
 
     def _build_mission_state(self) -> DepartmentState:
-        missions = self._mission_repository.list_all(limit=100)
+        missions = self._mission_repository.list_by_business(
+            self._business_uid,
+            limit=100,
+        )
 
         total = len(missions)
         running = sum(

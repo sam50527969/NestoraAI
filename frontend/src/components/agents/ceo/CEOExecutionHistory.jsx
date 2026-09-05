@@ -4,6 +4,8 @@
   useState,
 } from "react";
 
+import PropTypes from "prop-types";
+
 import {
   getCEOExecution,
   getCEOExecutions,
@@ -52,7 +54,9 @@ function getStatusVariant(execution) {
 }
 
 
-export default function CEOExecutionHistory() {
+export default function CEOExecutionHistory({
+  businessUid,
+}) {
   const [executions, setExecutions] =
     useState([]);
 
@@ -105,8 +109,10 @@ export default function CEOExecutionHistory() {
 
 
   useEffect(() => {
+    setSelectedExecution(null);
+    setActiveExecutionUid("");
     loadExecutions();
-  }, [loadExecutions]);
+  }, [loadExecutions, businessUid]);
 
 
   async function handleViewExecution(
@@ -340,3 +346,8 @@ export default function CEOExecutionHistory() {
     </Card>
   );
 }
+
+
+CEOExecutionHistory.propTypes = {
+  businessUid: PropTypes.string,
+};

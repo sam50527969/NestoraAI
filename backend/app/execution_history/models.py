@@ -49,6 +49,12 @@ class CEOExecutionRecord(Base):
         default=generate_execution_uid,
     )
 
+    business_uid = Column(
+        String,
+        nullable=True,
+        index=True,
+    )
+
     approval_uid = Column(
         String,
         nullable=False,

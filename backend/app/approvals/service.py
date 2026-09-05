@@ -62,6 +62,9 @@ def serialize_approval(
         "approval_uid": (
             approval.approval_uid
         ),
+        "business_uid": (
+            approval.business_uid
+        ),
         "decision_type": (
             approval.decision_type
         ),
@@ -106,6 +109,8 @@ def serialize_approval(
 def find_active_duplicate(
     db,
     data: ApprovalCreate,
+    *,
+    business_uid: str,
 ) -> CEOApproval | None:
     decision_type = (
         data.decision_type.strip()
@@ -134,6 +139,8 @@ def find_active_duplicate(
     query = db.query(
         CEOApproval
     ).filter(
+        CEOApproval.business_uid
+        == business_uid,
         CEOApproval.status.in_(
             ACTIVE_APPROVAL_STATUSES
         ),
@@ -182,6 +189,8 @@ def find_active_duplicate(
 
 def create_approval(
     data: ApprovalCreate,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
@@ -190,6 +199,7 @@ def create_approval(
             find_active_duplicate(
                 db,
                 data,
+                business_uid=business_uid,
             )
         )
 
@@ -199,6 +209,7 @@ def create_approval(
             )
 
         approval = CEOApproval(
+            business_uid=business_uid,
             title=data.title.strip(),
             description=(
                 data.description.strip()
@@ -251,14 +262,20 @@ def create_approval(
 
 
 def list_approvals(
+    *,
+    business_uid: str,
     status: str | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
     db = SessionLocal()
 
     try:
-        query = db.query(
-            CEOApproval
+        query = (
+            db.query(CEOApproval)
+            .filter(
+                CEOApproval.business_uid
+                == business_uid
+            )
         )
 
         if status:
@@ -288,6 +305,8 @@ def list_approvals(
 
 def get_approval(
     approval_uid: str,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     db = SessionLocal()
 
@@ -296,7 +315,9 @@ def get_approval(
             db.query(CEOApproval)
             .filter(
                 CEOApproval.approval_uid
-                == approval_uid
+                == approval_uid,
+                CEOApproval.business_uid
+                == business_uid,
             )
             .first()
         )
@@ -318,6 +339,8 @@ def decide_approval(
     approval_uid: str,
     decision: str,
     data: ApprovalDecision,
+    *,
+    business_uid: str,
 ) -> dict[str, Any]:
     normalized_decision = (
         decision.strip().lower()
@@ -339,7 +362,9 @@ def decide_approval(
             db.query(CEOApproval)
             .filter(
                 CEOApproval.approval_uid
-                == approval_uid
+                == approval_uid,
+                CEOApproval.business_uid
+                == business_uid,
             )
             .first()
         )

@@ -3,6 +3,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import PropTypes from "prop-types";
 
 import {
   getPipelineSummary,
@@ -41,18 +42,30 @@ function formatNumber(value) {
   ).format(Number(value) || 0);
 }
 
-function formatCurrency(value) {
+function formatCurrency(
+  value,
+  currency,
+) {
+  const amount = Number(value) || 0;
+
+  if (!currency) {
+    return formatNumber(amount);
+  }
+
   return new Intl.NumberFormat(
     "en-US",
     {
       style: "currency",
-      currency: "QAR",
+      currency,
       maximumFractionDigits: 0,
     },
-  ).format(Number(value) || 0);
+  ).format(amount);
 }
 
-export default function CEOPipelineSummary() {
+export default function CEOPipelineSummary({
+  businessUid,
+  currency = "",
+}) {
   const [summary, setSummary] =
     useState(null);
 
@@ -93,7 +106,7 @@ export default function CEOPipelineSummary() {
 
   useEffect(() => {
     loadSummary();
-  }, [loadSummary]);
+  }, [loadSummary, businessUid]);
 
   const stages =
     summary?.stages || {};
@@ -172,6 +185,7 @@ export default function CEOPipelineSummary() {
                 {formatCurrency(
                   summary
                     .active_pipeline_value,
+                  currency,
                 )}
               </strong>
 
@@ -189,6 +203,7 @@ export default function CEOPipelineSummary() {
                 {formatCurrency(
                   summary
                     .weighted_pipeline_value,
+                  currency,
                 )}
               </strong>
 
@@ -203,6 +218,7 @@ export default function CEOPipelineSummary() {
               <strong>
                 {formatCurrency(
                   summary.won_value,
+                  currency,
                 )}
               </strong>
 
@@ -229,6 +245,7 @@ export default function CEOPipelineSummary() {
                 {formatCurrency(
                   summary
                     .total_estimated_value,
+                  currency,
                 )}{" "}
                 total value
               </span>
@@ -297,6 +314,7 @@ export default function CEOPipelineSummary() {
                 <strong>
                   {formatCurrency(
                     summary.lost_value,
+                    currency,
                   )}
                 </strong>
               </div>
@@ -310,6 +328,7 @@ export default function CEOPipelineSummary() {
                   {formatCurrency(
                     summary
                       .total_estimated_value,
+                    currency,
                   )}
                 </strong>
               </div>
@@ -325,3 +344,8 @@ export default function CEOPipelineSummary() {
     </Card>
   );
 }
+
+CEOPipelineSummary.propTypes = {
+  businessUid: PropTypes.string,
+  currency: PropTypes.string,
+};

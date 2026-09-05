@@ -15,6 +15,7 @@ with warnings.catch_warnings():
 from app.agents import (
     ceo_agent,
 )
+from app.business.access import get_current_business_uid
 from app.executives.ceo.models import (
     ExecutiveAction,
     ExecutivePlan,
@@ -31,7 +32,10 @@ def ceo_plan_api(
     def fake_build_ceo_plan(
         db,
         objective,
+        *,
+        business_uid,
     ):
+        assert business_uid == "biz_atlas"
         return ExecutivePlan(
             objective=objective,
             summary=(
@@ -70,6 +74,7 @@ def ceo_plan_api(
         self,
         plan,
         *,
+        business_uid,
         source_uid=None,
         requested_by="CEO Agent",
     ):
@@ -101,6 +106,10 @@ def ceo_plan_api(
 
     app = FastAPI()
     app.include_router(ceo_router)
+
+    app.dependency_overrides[
+        get_current_business_uid
+    ] = lambda: "biz_atlas"
 
     with TestClient(app) as client:
         yield client
@@ -188,6 +197,7 @@ def test_ceo_plan_reports_non_approval_actions(
         self,
         plan,
         *,
+        business_uid,
         source_uid=None,
         requested_by="CEO Agent",
     ):

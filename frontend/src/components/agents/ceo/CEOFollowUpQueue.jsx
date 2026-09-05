@@ -38,6 +38,7 @@ function formatDate(value) {
 
 
 export default function CEOFollowUpQueue({
+  businessUid,
   onOutcomeRecorded = () => {},
 }) {
   const [followUps, setFollowUps] =
@@ -93,7 +94,7 @@ export default function CEOFollowUpQueue({
 
   useEffect(() => {
     loadFollowUps();
-  }, [loadFollowUps]);
+  }, [loadFollowUps, businessUid]);
 
 
   function handleOutcomeRecorded(
@@ -264,5 +265,6 @@ export default function CEOFollowUpQueue({
 
 
 CEOFollowUpQueue.propTypes = {
+  businessUid: PropTypes.string,
   onOutcomeRecorded: PropTypes.func,
 };
