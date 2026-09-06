@@ -23,10 +23,6 @@ from app.core.registry import (
 from app.core.tools import (
     tool_registry,
 )
-from app.database.database import (
-    engine,
-)
-from app.database.metadata import metadata
 from app.tools.loader import (
     load_tools,
 )
@@ -34,11 +30,6 @@ from app.tools.loader import (
 
 logger = logging.getLogger(
     __name__
-)
-
-
-metadata.create_all(
-    bind=engine,
 )
 
 

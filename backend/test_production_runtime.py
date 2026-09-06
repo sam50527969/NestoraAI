@@ -70,3 +70,14 @@ def test_ready_endpoint_returns_503_when_database_is_unavailable(
     assert response.json() == {
         "detail": "Database is unavailable.",
     }
+
+
+
+def test_main_does_not_create_database_schema_at_import_time():
+    from pathlib import Path
+
+    main_source = Path("main.py").read_text(
+        encoding="utf-8",
+    )
+
+    assert "metadata.create_all" not in main_source
