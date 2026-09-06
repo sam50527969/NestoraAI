@@ -2,6 +2,7 @@ services:
   - type: web
     name: nestora-backend
     runtime: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     preDeployCommand: python -m alembic upgrade head
@@ -30,5 +31,6 @@ services:
 
 databases:
   - name: nestora-postgres
+    plan: free
     databaseName: nestora
     user: nestora
