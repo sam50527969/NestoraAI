@@ -1,4 +1,4 @@
-import importlib
+﻿import importlib
 
 from alembic.config import Config
 
@@ -42,9 +42,13 @@ def test_canonical_metadata_table_names_are_unique():
 def test_runtime_uses_central_database_url():
     from app import config
     from app.database import database
+    from app.database.configuration import normalize_database_url
 
     assert database.DATABASE_URL == config.DATABASE_URL
-    assert database.engine.url.render_as_string(hide_password=False) == config.DATABASE_URL
+    assert (
+        database.engine.url.render_as_string(hide_password=False)
+        == normalize_database_url(config.DATABASE_URL)
+    )
 
 
 def test_environment_override_is_shared_by_runtime_and_alembic(monkeypatch):
@@ -73,6 +77,43 @@ def test_sqlite_only_connection_arguments():
     assert connection_args("postgresql://localhost/nestora") == {}
 
 
+def test_provider_postgresql_url_uses_psycopg3():
+    from app.database.configuration import normalize_database_url
+
+    assert (
+        normalize_database_url(
+            "postgresql://user:password@localhost:5432/nestora"
+        )
+        == "postgresql+psycopg://user:password@localhost:5432/nestora"
+    )
+
+
+def test_explicit_psycopg_url_is_unchanged():
+    from app.database.configuration import normalize_database_url
+
+    database_url = (
+        "postgresql+psycopg://"
+        "user:password@localhost:5432/nestora"
+    )
+
+    assert normalize_database_url(database_url) == database_url
+
+
+def test_alembic_uses_psycopg3_for_provider_postgresql_url():
+    from app.database.configuration import configure_alembic_database_url
+
+    config = Config()
+    configure_alembic_database_url(
+        config,
+        "postgresql://user:password@localhost:5432/nestora",
+    )
+
+    assert (
+        config.get_main_option("sqlalchemy.url")
+        == "postgresql+psycopg://user:password@localhost:5432/nestora"
+    )
+
+
 def test_alembic_database_urls_are_percent_safe():
     from app.database.configuration import alembic_database_url
 
@@ -81,4 +122,7 @@ def test_alembic_database_urls_are_percent_safe():
     config = Config()
     config.set_main_option("sqlalchemy.url", escaped_url)
 
-    assert config.get_main_option("sqlalchemy.url") == raw_url
+    assert (
+        config.get_main_option("sqlalchemy.url")
+        == "postgresql+psycopg://user:p%40ss@localhost/nestora%20ai"
+    )
