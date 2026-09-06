@@ -1,4 +1,4 @@
-from unittest.mock import patch
+﻿from unittest.mock import patch
 
 import start_production
 
@@ -44,7 +44,7 @@ def test_start_server_defaults_to_port_8000(
     assert execvp.call_args.args[1][-1] == "8000"
 
 
-def test_run_migrations_upgrades_database_to_head():
+def test_run_migrations_prepares_production_database():
     with patch(
         "start_production.subprocess.run",
     ) as run:
@@ -53,10 +53,7 @@ def test_run_migrations_upgrades_database_to_head():
     run.assert_called_once_with(
         [
             start_production.sys.executable,
-            "-m",
-            "alembic",
-            "upgrade",
-            "head",
+            "prepare_production_database.py",
         ],
         check=True,
     )
