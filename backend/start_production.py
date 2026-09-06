@@ -8,14 +8,12 @@ import sys
 
 
 def run_migrations() -> None:
-    """Upgrade the production database schema before serving requests."""
+    """Prepare or upgrade the production database before serving."""
+
     subprocess.run(
         [
             sys.executable,
-            "-m",
-            "alembic",
-            "upgrade",
-            "head",
+            "prepare_production_database.py",
         ],
         check=True,
     )

@@ -1,4 +1,4 @@
-from logging.config import fileConfig
+﻿from logging.config import fileConfig
 from pathlib import Path
 import sys
 
@@ -20,7 +20,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-configure_alembic_database_url(config, DATABASE_URL)
+if not config.attributes.get("database_url_configured"):
+    configure_alembic_database_url(
+        config,
+        DATABASE_URL,
+    )
 
 target_metadata = metadata
 
@@ -40,7 +44,10 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        config.get_section(
+            config.config_ini_section,
+            {},
+        ),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
