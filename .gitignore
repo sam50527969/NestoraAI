@@ -68,3 +68,6 @@ backend.zip
 backend/app.zip
 backend/app.rar
 git-status.txt
+
+# Keep the frontend environment template in Git.
+!frontend/.env.example
