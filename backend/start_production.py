@@ -1,9 +1,24 @@
-"""Production entrypoint for the Nestora backend."""
+﻿"""Production entrypoint for the Nestora backend."""
 
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
+
+
+def run_migrations() -> None:
+    """Upgrade the production database schema before serving requests."""
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "alembic",
+            "upgrade",
+            "head",
+        ],
+        check=True,
+    )
 
 
 def start_server() -> None:
@@ -26,6 +41,7 @@ def start_server() -> None:
 
 
 def main() -> None:
+    run_migrations()
     start_server()
 
 

@@ -42,3 +42,41 @@ def test_start_server_defaults_to_port_8000(
         start_production.start_server()
 
     assert execvp.call_args.args[1][-1] == "8000"
+
+
+def test_run_migrations_upgrades_database_to_head():
+    with patch(
+        "start_production.subprocess.run",
+    ) as run:
+        start_production.run_migrations()
+
+    run.assert_called_once_with(
+        [
+            start_production.sys.executable,
+            "-m",
+            "alembic",
+            "upgrade",
+            "head",
+        ],
+        check=True,
+    )
+
+
+def test_main_runs_migrations_before_server():
+    call_order = []
+
+    with (
+        patch(
+            "start_production.run_migrations",
+            side_effect=lambda: call_order.append("migrations"),
+        ) as migrations,
+        patch(
+            "start_production.start_server",
+            side_effect=lambda: call_order.append("server"),
+        ) as server,
+    ):
+        start_production.main()
+
+    migrations.assert_called_once_with()
+    server.assert_called_once_with()
+    assert call_order == ["migrations", "server"]
