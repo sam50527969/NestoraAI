@@ -208,3 +208,60 @@ def test_ceo_ask_requires_question(
     )
 
     assert response.status_code == 422
+
+
+def test_ceo_ask_names_highest_priority_workspace_lead(
+    ceo_environment,
+):
+    client, session_factory = ceo_environment
+
+    add_lead(
+        session_factory,
+        name="Savant Coffee Shop",
+        status="Contacted",
+        priority="Medium",
+        estimated_value=12000,
+        ai_score=72,
+    )
+
+    add_lead(
+        session_factory,
+        name="Atlas Priority Lead",
+        status="Qualified",
+        priority="High",
+        estimated_value=25000,
+        ai_score=91,
+    )
+
+    with session_factory() as db:
+        db.add(
+            Lead(
+                name="Other Workspace Lead",
+                category="clinic",
+                status="Qualified",
+                priority="Critical",
+                business_uid="biz_other",
+                estimated_value=99999,
+                ai_score=100,
+            )
+        )
+        db.commit()
+
+    response = client.post(
+        "/ceo/ask",
+        json={
+            "question": (
+                "What is my highest priority CRM lead "
+                "and what should I do next?"
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+
+    answer = response.json()["answer"]
+
+    assert "Atlas Priority Lead" in answer
+    assert "Other Workspace Lead" not in answer
+    assert "Qualified" in answer
+    assert "91" in answer

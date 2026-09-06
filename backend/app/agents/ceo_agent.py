@@ -4,6 +4,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.agents.ceo_advisor import build_lead_snapshot
+from app.database.models import Lead
 from app.executives.ceo import CEOBrain
 from app.executives.ceo.models import (
     ExecutivePlan,
@@ -57,9 +59,20 @@ def ask_ceo(
         business_uid=business_uid,
     )
 
+    leads = (
+        db.query(Lead)
+        .filter(
+            Lead.business_uid == business_uid
+        )
+        .all()
+    )
+
+    lead_snapshot = build_lead_snapshot(leads)
+
     return {
         "answer": _format_executive_answer(
-            plan
+            plan,
+            lead_snapshot=lead_snapshot,
         )
     }
 
@@ -137,10 +150,46 @@ def prepare_ceo_plan(
 
 def _format_executive_answer(
     plan: ExecutivePlan,
+    *,
+    lead_snapshot: dict[str, Any] | None = None,
 ) -> str:
-    parts = [
-        plan.summary,
-    ]
+    parts: list[str] = []
+
+    priority_leads = (
+        lead_snapshot.get("priority", [])
+        if lead_snapshot
+        else []
+    )
+
+    if priority_leads:
+        lead = priority_leads[0]
+
+        parts.append(
+            "Highest-priority CRM lead: "
+            f"{lead['name']}."
+        )
+        parts.append(
+            "CRM details: "
+            f"priority {lead['priority']}, "
+            f"AI score {lead['score']}, "
+            f"pipeline stage {lead['status']}."
+        )
+
+        recommendation = lead.get("recommendation")
+
+        if recommendation:
+            parts.append(
+                "Recommended next step: "
+                f"{recommendation}"
+            )
+        else:
+            parts.append(
+                "Recommended next step: review the lead, "
+                "enrich any missing contact details, and "
+                "perform the next appropriate CRM follow-up."
+            )
+
+    parts.append(plan.summary)
 
     if plan.recommendations:
         parts.append(

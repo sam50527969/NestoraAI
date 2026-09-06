@@ -270,6 +270,11 @@ def build_lead_snapshot(
                     if lead.priority
                     else "Medium"
                 ),
+                "status": (
+                    str(lead.status).strip()
+                    if lead.status
+                    else "New"
+                ),
                 "score": (
                     lead.ai_score or 0
                 ),
