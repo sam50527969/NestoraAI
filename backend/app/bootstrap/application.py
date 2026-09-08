@@ -5,6 +5,8 @@ from typing import Any, Callable
 
 from fastapi import FastAPI
 
+from app.bootstrap.monitoring import initialize_monitoring
+
 
 LifespanHandler = Callable[
     [FastAPI],
@@ -26,6 +28,8 @@ def create_application(
     bootstrap steps (middleware, routes, workers,
     executives, services) will gradually move here.
     """
+
+    initialize_monitoring()
 
     return FastAPI(
         title=title,
