@@ -10,3 +10,4 @@ beautifulsoup4
 pytest
 PyJWT
 pwdlib[argon2]
+sentry-sdk

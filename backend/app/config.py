@@ -21,6 +21,23 @@ APP_ENV = os.getenv(
     "development",
 )
 
+APP_VERSION = os.getenv(
+    "APP_VERSION",
+    "1.0.0",
+)
+
+SENTRY_DSN = os.getenv(
+    "SENTRY_DSN",
+    "",
+).strip()
+
+SENTRY_TRACES_SAMPLE_RATE = float(
+    os.getenv(
+        "SENTRY_TRACES_SAMPLE_RATE",
+        "0.0",
+    )
+)
+
 
 CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip("/")
