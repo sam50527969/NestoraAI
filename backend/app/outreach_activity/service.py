@@ -9,12 +9,18 @@ from app.database.database import (
     utc_now,
 )
 from app.database.models import Lead
+from app.outreach_activity.email_delivery import (
+    email_provider as default_email_provider,
+)
 from app.outreach_activity.models import (
     OutreachActivity,
 )
 from app.pipeline_activity.service import (
     record_pipeline_activity,
 )
+
+
+email_provider = default_email_provider
 
 
 DEFAULT_FOLLOW_UP_DAYS = 2
@@ -57,6 +63,21 @@ def serialize_outreach_activity(
         ),
         "proposal_summary": (
             activity.proposal_summary
+        ),
+        "delivery_channel": (
+            activity.delivery_channel
+        ),
+        "delivery_recipient": (
+            activity.delivery_recipient
+        ),
+        "delivery_provider": (
+            activity.delivery_provider
+        ),
+        "provider_message_id": (
+            activity.provider_message_id
+        ),
+        "delivery_attempted_at": (
+            activity.delivery_attempted_at
         ),
         "created_at": (
             activity.created_at
@@ -350,6 +371,156 @@ def mark_outreach_activity_sent(
             serialize_outreach_activity(
                 activity
             )
+        )
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+def send_outreach_email(
+    activity_uid: str,
+    *,
+    business_uid: str,
+) -> dict[str, Any]:
+    db = SessionLocal()
+
+    try:
+        result = (
+            db.query(
+                OutreachActivity,
+                Lead,
+            )
+            .join(
+                Lead,
+                Lead.id
+                == OutreachActivity.lead_id,
+            )
+            .filter(
+                OutreachActivity.activity_uid
+                == activity_uid,
+                Lead.business_uid
+                == business_uid,
+            )
+            .first()
+        )
+
+        if result is None:
+            raise LookupError(
+                "Outreach activity was "
+                "not found."
+            )
+
+        activity, lead = result
+
+        if activity.status != "prepared":
+            raise ValueError(
+                "Only prepared outreach "
+                "can be sent by email."
+            )
+
+        recipient = str(
+            lead.email or ""
+        ).strip()
+
+        if not recipient:
+            raise ValueError(
+                "Lead email is required "
+                "before sending outreach."
+            )
+
+        subject = str(
+            activity.email_subject or ""
+        ).strip()
+
+        body = str(
+            activity.email_body or ""
+        ).strip()
+
+        if not subject or not body:
+            raise ValueError(
+                "Prepared outreach must "
+                "include an email subject "
+                "and body."
+            )
+
+        attempted_at = utc_now()
+
+        try:
+            delivery_result = (
+                email_provider.send_email(
+                    recipient=recipient,
+                    subject=subject,
+                    body=body,
+                )
+            )
+        except Exception as error:
+            raise RuntimeError(
+                "Email delivery failed."
+            ) from error
+
+        if not isinstance(
+            delivery_result,
+            dict,
+        ):
+            raise RuntimeError(
+                "Email provider returned "
+                "an invalid delivery result."
+            )
+
+        provider_name = str(
+            delivery_result.get(
+                "provider",
+                "",
+            )
+        ).strip()
+
+        provider_message_id = str(
+            delivery_result.get(
+                "message_id",
+                "",
+            )
+        ).strip()
+
+        if (
+            not provider_name
+            or not provider_message_id
+        ):
+            raise RuntimeError(
+                "Email provider did not "
+                "confirm delivery acceptance."
+            )
+
+        sent_at = utc_now()
+
+        activity.delivery_channel = "email"
+        activity.delivery_recipient = recipient
+        activity.delivery_provider = (
+            provider_name
+        )
+        activity.provider_message_id = (
+            provider_message_id
+        )
+        activity.delivery_attempted_at = (
+            attempted_at
+        )
+
+        activity.status = "sent"
+        activity.sent_at = sent_at
+
+        synchronize_lead_contact(
+            db,
+            activity=activity,
+            contacted_at=sent_at,
+        )
+
+        db.commit()
+        db.refresh(activity)
+
+        return serialize_outreach_activity(
+            activity
         )
 
     except Exception:

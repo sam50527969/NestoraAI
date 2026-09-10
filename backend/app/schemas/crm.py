@@ -10,6 +10,7 @@ class LeadBase(BaseModel):
     category: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     website: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -26,6 +27,7 @@ class LeadUpdate(BaseModel):
     category: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
+    email: Optional[str] = None
     website: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None

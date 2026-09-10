@@ -14,6 +14,7 @@ from app.outreach_activity.service import (
     get_outreach_activity,
     list_outreach_activities,
     mark_outreach_activity_sent,
+    send_outreach_email,
 )
 
 
@@ -94,5 +95,36 @@ def mark_activity_sent(
     except ValueError as error:
         raise HTTPException(
             status_code=409,
+            detail=str(error),
+        ) from error
+
+@router.post(
+    "/{activity_uid}/send-email",
+    response_model=OutreachActivityResponse,
+)
+def send_activity_email(
+    activity_uid: str,
+    business_uid: str = Depends(
+        get_current_business_uid
+    ),
+):
+    try:
+        return send_outreach_email(
+            activity_uid,
+            business_uid=business_uid,
+        )
+    except LookupError as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        ) from error
+    except ValueError as error:
+        raise HTTPException(
+            status_code=409,
+            detail=str(error),
+        ) from error
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=502,
             detail=str(error),
         ) from error

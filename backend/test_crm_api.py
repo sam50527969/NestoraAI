@@ -410,3 +410,107 @@ def test_missing_lead_returns_404(
     assert response.json() == {
         "detail": "Lead not found",
     }
+def test_create_lead_persists_contact_email(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+) -> None:
+    client, session_factory = api_environment
+
+    response = client.post(
+        "/crm/leads",
+        json={
+            "name": "Email Contact Lead",
+            "category": "consulting",
+            "email": "contact@example.com",
+        },
+    )
+
+    assert response.status_code == 201
+
+    result = response.json()
+
+    assert result["email"] == "contact@example.com"
+
+    lead_id = result["id"]
+
+    db: Session = session_factory()
+
+    try:
+        lead = db.get(Lead, lead_id)
+
+        assert lead is not None
+        assert lead.email == "contact@example.com"
+    finally:
+        db.close()
+
+
+def test_update_lead_contact_email(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+) -> None:
+    client, _ = api_environment
+
+    create_response = client.post(
+        "/crm/leads",
+        json={
+            "name": "Updated Email Lead",
+            "category": "consulting",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    lead_id = create_response.json()["id"]
+
+    update_response = client.put(
+        f"/crm/leads/{lead_id}",
+        json={
+            "email": "updated@example.com",
+        },
+    )
+
+    assert update_response.status_code == 200
+    assert (
+        update_response.json()["email"]
+        == "updated@example.com"
+    )
+
+
+def test_duplicate_lead_merges_missing_contact_email(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+) -> None:
+    client, _ = api_environment
+
+    first_response = client.post(
+        "/crm/leads",
+        json={
+            "name": "Merge Email Lead",
+            "category": "consulting",
+        },
+    )
+
+    assert first_response.status_code == 201
+
+    lead_id = first_response.json()["id"]
+
+    duplicate_response = client.post(
+        "/crm/leads",
+        json={
+            "name": "Merge Email Lead",
+            "email": "merged@example.com",
+        },
+    )
+
+    assert duplicate_response.status_code == 201
+
+    result = duplicate_response.json()
+
+    assert result["id"] == lead_id
+    assert result["email"] == "merged@example.com"
