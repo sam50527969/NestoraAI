@@ -548,3 +548,448 @@ def test_outreach_isolated_by_workspace(
 
     finally:
         db.close()
+
+class FakeEmailProvider:
+    def __init__(
+        self,
+        *,
+        should_fail: bool = False,
+    ) -> None:
+        self.should_fail = should_fail
+        self.calls: list[dict[str, str]] = []
+
+    def send_email(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        body: str,
+    ):
+        self.calls.append(
+            {
+                "recipient": recipient,
+                "subject": subject,
+                "body": body,
+            }
+        )
+
+        if self.should_fail:
+            raise RuntimeError(
+                "Email provider rejected message."
+            )
+
+        return {
+            "provider": "fake",
+            "message_id": "fake-message-001",
+        }
+
+
+def set_lead_email(
+    session_factory: sessionmaker,
+    *,
+    lead_id: int,
+    email: str | None,
+) -> None:
+    db: Session = session_factory()
+
+    try:
+        lead = db.get(Lead, lead_id)
+
+        assert lead is not None
+
+        lead.email = email
+
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_send_email_delivers_prepared_outreach(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, session_factory = api_environment
+
+    lead_name = "Email Delivery Lead"
+
+    lead_id = create_test_lead(
+        session_factory,
+        name=lead_name,
+    )
+
+    set_lead_email(
+        session_factory,
+        lead_id=lead_id,
+        email="recipient@example.com",
+    )
+
+    activity_uid = create_outreach_activity(
+        session_factory,
+        lead_id=lead_id,
+        lead_name=lead_name,
+    )
+
+    provider = FakeEmailProvider()
+
+    monkeypatch.setattr(
+        outreach_service,
+        "email_provider",
+        provider,
+        raising=False,
+    )
+
+    response = client.post(
+        (
+            "/outreach-activities/"
+            f"{activity_uid}/send-email"
+        )
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert result["status"] == "sent"
+    assert result["sent_at"] is not None
+    assert result["delivery_channel"] == "email"
+    assert (
+        result["delivery_recipient"]
+        == "recipient@example.com"
+    )
+    assert result["delivery_provider"] == "fake"
+    assert (
+        result["provider_message_id"]
+        == "fake-message-001"
+    )
+    assert (
+        result["delivery_attempted_at"]
+        is not None
+    )
+
+    assert provider.calls == [
+        {
+            "recipient": "recipient@example.com",
+            "subject": "API Test",
+            "body": "API test message",
+        }
+    ]
+
+    db: Session = session_factory()
+
+    try:
+        lead = db.get(Lead, lead_id)
+
+        assert lead is not None
+        assert lead.status == "Contacted"
+        assert lead.last_contacted is not None
+        assert lead.next_follow_up is not None
+    finally:
+        db.close()
+
+
+def test_send_email_requires_recipient(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, session_factory = api_environment
+
+    lead_name = "Missing Email Lead"
+
+    lead_id = create_test_lead(
+        session_factory,
+        name=lead_name,
+    )
+
+    activity_uid = create_outreach_activity(
+        session_factory,
+        lead_id=lead_id,
+        lead_name=lead_name,
+    )
+
+    provider = FakeEmailProvider()
+
+    monkeypatch.setattr(
+        outreach_service,
+        "email_provider",
+        provider,
+        raising=False,
+    )
+
+    response = client.post(
+        (
+            "/outreach-activities/"
+            f"{activity_uid}/send-email"
+        )
+    )
+
+    assert response.status_code == 409
+    assert provider.calls == []
+
+    db: Session = session_factory()
+
+    try:
+        activity = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.activity_uid
+                == activity_uid
+            )
+            .one()
+        )
+
+        lead = db.get(Lead, lead_id)
+
+        assert activity.status == "prepared"
+        assert activity.sent_at is None
+
+        assert lead is not None
+        assert lead.status == "New"
+        assert lead.last_contacted is None
+    finally:
+        db.close()
+
+
+def test_send_email_provider_failure_keeps_outreach_prepared(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, session_factory = api_environment
+
+    lead_name = "Provider Failure Lead"
+
+    lead_id = create_test_lead(
+        session_factory,
+        name=lead_name,
+    )
+
+    set_lead_email(
+        session_factory,
+        lead_id=lead_id,
+        email="failure@example.com",
+    )
+
+    activity_uid = create_outreach_activity(
+        session_factory,
+        lead_id=lead_id,
+        lead_name=lead_name,
+    )
+
+    provider = FakeEmailProvider(
+        should_fail=True,
+    )
+
+    monkeypatch.setattr(
+        outreach_service,
+        "email_provider",
+        provider,
+        raising=False,
+    )
+
+    response = client.post(
+        (
+            "/outreach-activities/"
+            f"{activity_uid}/send-email"
+        )
+    )
+
+    assert response.status_code == 502
+
+    db: Session = session_factory()
+
+    try:
+        activity = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.activity_uid
+                == activity_uid
+            )
+            .one()
+        )
+
+        lead = db.get(Lead, lead_id)
+
+        assert activity.status == "prepared"
+        assert activity.sent_at is None
+        assert (
+            getattr(
+                activity,
+                "delivery_channel",
+                None,
+            )
+            is None
+        )
+        assert (
+            getattr(
+                activity,
+                "delivery_recipient",
+                None,
+            )
+            is None
+        )
+        assert (
+            getattr(
+                activity,
+                "delivery_provider",
+                None,
+            )
+            is None
+        )
+        assert (
+            getattr(
+                activity,
+                "provider_message_id",
+                None,
+            )
+            is None
+        )
+
+        assert lead is not None
+        assert lead.status == "New"
+        assert lead.last_contacted is None
+        assert lead.next_follow_up is None
+    finally:
+        db.close()
+
+
+def test_send_email_rejects_non_prepared_activity(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, session_factory = api_environment
+
+    lead_name = "Cancelled Email Lead"
+
+    lead_id = create_test_lead(
+        session_factory,
+        name=lead_name,
+    )
+
+    set_lead_email(
+        session_factory,
+        lead_id=lead_id,
+        email="cancelled@example.com",
+    )
+
+    activity_uid = create_outreach_activity(
+        session_factory,
+        lead_id=lead_id,
+        lead_name=lead_name,
+        status="cancelled",
+    )
+
+    provider = FakeEmailProvider()
+
+    monkeypatch.setattr(
+        outreach_service,
+        "email_provider",
+        provider,
+        raising=False,
+    )
+
+    response = client.post(
+        (
+            "/outreach-activities/"
+            f"{activity_uid}/send-email"
+        )
+    )
+
+    assert response.status_code == 409
+    assert provider.calls == []
+
+
+def test_send_email_isolated_by_workspace(
+    api_environment: tuple[
+        TestClient,
+        sessionmaker,
+    ],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, session_factory = api_environment
+
+    db: Session = session_factory()
+
+    try:
+        foreign_lead = Lead(
+            name="Foreign Email Lead",
+            category="dental",
+            email="foreign@example.com",
+            status="New",
+            priority="High",
+            business_uid="biz_dental",
+        )
+
+        db.add(foreign_lead)
+        db.commit()
+        db.refresh(foreign_lead)
+
+        activity = OutreachActivity(
+            approval_uid="approval-foreign-email",
+            lead_id=foreign_lead.id,
+            lead_name=foreign_lead.name,
+            status="prepared",
+            prepared_by="CEO Agent",
+            email_subject="Foreign subject",
+            email_body="Foreign body",
+        )
+
+        db.add(activity)
+        db.commit()
+        db.refresh(activity)
+
+        activity_uid = activity.activity_uid
+        lead_id = foreign_lead.id
+    finally:
+        db.close()
+
+    provider = FakeEmailProvider()
+
+    monkeypatch.setattr(
+        outreach_service,
+        "email_provider",
+        provider,
+        raising=False,
+    )
+
+    response = client.post(
+        (
+            "/outreach-activities/"
+            f"{activity_uid}/send-email"
+        )
+    )
+
+    assert response.status_code == 404
+    assert provider.calls == []
+
+    db = session_factory()
+
+    try:
+        activity = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.activity_uid
+                == activity_uid
+            )
+            .one()
+        )
+
+        lead = db.get(Lead, lead_id)
+
+        assert activity.status == "prepared"
+        assert activity.sent_at is None
+
+        assert lead is not None
+        assert lead.status == "New"
+    finally:
+        db.close()

@@ -116,6 +116,31 @@ class OutreachActivity(Base):
         nullable=False,
     )
 
+    delivery_channel = Column(
+        String,
+        nullable=True,
+    )
+
+    delivery_recipient = Column(
+        String,
+        nullable=True,
+    )
+
+    delivery_provider = Column(
+        String,
+        nullable=True,
+    )
+
+    provider_message_id = Column(
+        String,
+        nullable=True,
+    )
+
+    delivery_attempted_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
     sent_at = Column(
         DateTime,
         nullable=True,

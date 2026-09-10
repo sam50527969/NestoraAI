@@ -164,6 +164,7 @@ def merge_lead_data(
         "category",
         "address",
         "phone",
+        "email",
         "website",
         "latitude",
         "longitude",

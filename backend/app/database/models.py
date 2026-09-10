@@ -55,6 +55,11 @@ class Lead(Base):
         nullable=True,
     )
 
+    email = Column(
+        String,
+        nullable=True,
+    )
+
     website = Column(
         String,
         nullable=True,

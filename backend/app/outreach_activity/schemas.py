@@ -17,6 +17,11 @@ class OutreachActivityResponse(BaseModel):
     whatsapp_message: str | None = None
     cold_call_script: str | None = None
     proposal_summary: str | None = None
+    delivery_channel: str | None = None
+    delivery_recipient: str | None = None
+    delivery_provider: str | None = None
+    provider_message_id: str | None = None
+    delivery_attempted_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     sent_at: datetime | None = None
