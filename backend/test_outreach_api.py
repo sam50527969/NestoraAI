@@ -564,12 +564,14 @@ class FakeEmailProvider:
         recipient: str,
         subject: str,
         body: str,
+        idempotency_key: str,
     ):
         self.calls.append(
             {
                 "recipient": recipient,
                 "subject": subject,
                 "body": body,
+                "idempotency_key": idempotency_key,
             }
         )
 
@@ -674,6 +676,10 @@ def test_send_email_delivers_prepared_outreach(
             "recipient": "recipient@example.com",
             "subject": "API Test",
             "body": "API test message",
+            "idempotency_key": (
+                "outreach-email/"
+                f"{activity_uid}"
+            ),
         }
     ]
 

@@ -454,6 +454,10 @@ def send_outreach_email(
                     recipient=recipient,
                     subject=subject,
                     body=body,
+                    idempotency_key=(
+                        "outreach-email/"
+                        f"{activity_uid}"
+                    ),
                 )
             )
         except Exception as error:

@@ -38,6 +38,21 @@ SENTRY_TRACES_SAMPLE_RATE = float(
     )
 )
 
+EMAIL_PROVIDER = os.getenv(
+    "EMAIL_PROVIDER",
+    "disabled",
+).strip().lower()
+
+RESEND_API_KEY = os.getenv(
+    "RESEND_API_KEY",
+    "",
+).strip()
+
+EMAIL_FROM = os.getenv(
+    "EMAIL_FROM",
+    "",
+).strip()
+
 
 CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip("/")
