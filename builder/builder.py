@@ -67,7 +67,9 @@ def assert_safe_git_state(config: dict) -> None:
         )
 
     status = run_git("status", "--porcelain")
-    if status:
+    allowed_state_change = " M builder/state.json"
+    unexpected = [line for line in status.splitlines() if line != allowed_state_change]
+    if unexpected:
         raise BuilderError(
             "Working tree is not clean. Commit, stash, or discard existing changes first."
         )
@@ -100,26 +102,26 @@ def extract_version_1_tasks(markdown: str) -> list[RoadmapTask]:
     return tasks
 
 
-def search_repo_for_task(task: RoadmapTask) -> list[str]:
-    tokens = [
+def task_tokens(task: RoadmapTask) -> list[str]:
+    stop_words = {
+        "agent", "better", "button", "creation", "frontend", "panel",
+        "recommended", "summary", "user", "workspaces",
+    }
+    return [
         token.lower()
         for token in re.findall(r"[A-Za-z0-9]+", task.name)
-        if len(token) >= 4
+        if len(token) >= 4 and token.lower() not in stop_words
     ]
-    if not tokens:
-        return []
 
+
+def iter_repo_files() -> Iterable[Path]:
     ignored = {
-        ".git",
-        ".venv",
-        "venv",
-        "venv312",
-        "node_modules",
-        "dist",
-        "build",
-        ".pytest_cache",
+        ".git", ".venv", "venv", "venv312", "node_modules", "dist",
+        "build", ".pytest_cache",
     }
-    matches: list[str] = []
+    allowed_suffixes = {
+        ".py", ".js", ".jsx", ".ts", ".tsx", ".md", ".json", ".css",
+    }
 
     for path in ROOT.rglob("*"):
         if not path.is_file():
@@ -128,38 +130,88 @@ def search_repo_for_task(task: RoadmapTask) -> list[str]:
             continue
         if path.stat().st_size > 1_000_000:
             continue
-        if path.suffix.lower() not in {
-            ".py",
-            ".js",
-            ".jsx",
-            ".ts",
-            ".tsx",
-            ".md",
-            ".json",
-            ".css",
-        }:
+        if path.suffix.lower() not in allowed_suffixes:
+            continue
+        yield path
+
+
+def search_repo_for_task(task: RoadmapTask) -> list[str]:
+    tokens = task_tokens(task)
+    if not tokens:
+        return []
+
+    scored: list[tuple[int, str]] = []
+    for path in iter_repo_files():
+        relative = str(path.relative_to(ROOT))
+        if relative.startswith("builder\\") or relative.startswith("builder/"):
             continue
         try:
             text = path.read_text(encoding="utf-8", errors="ignore").lower()
         except OSError:
             continue
-        score = sum(1 for token in tokens if token in text)
+        score = sum(1 for token in tokens if token in text or token in path.name.lower())
         if score:
-            matches.append(str(path.relative_to(ROOT)))
+            scored.append((score, relative))
 
-    return matches[:20]
+    scored.sort(key=lambda item: (-item[0], item[1].lower()))
+    return [relative for _, relative in scored[:20]]
 
 
-def choose_task(tasks: Iterable[RoadmapTask], state: dict) -> RoadmapTask:
+def detect_existing_completion(task: RoadmapTask) -> dict:
+    name = task.name.lower()
+    checks: list[tuple[str, tuple[str, ...]]] = []
+
+    if "ceo agent frontend chat" in name:
+        checks = [
+            ("frontend/src/pages/CEO.jsx", ("CEOChat",)),
+            ("frontend/src/components/agents/ceo/CEOChat.jsx", ("askCEO", "Ask CEO")),
+        ]
+    elif "executive daily briefing" in name:
+        checks = [
+            ("frontend/src/pages/CEO.jsx", ("Executive Summary", "getCEOBrief")),
+        ]
+
+    if not checks:
+        return {"complete": False, "evidence": []}
+
+    evidence: list[str] = []
+    for relative, required_terms in checks:
+        path = ROOT / relative
+        if not path.exists():
+            return {"complete": False, "evidence": evidence}
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        missing = [term for term in required_terms if term not in text]
+        if missing:
+            return {"complete": False, "evidence": evidence}
+        evidence.append(relative)
+
+    return {"complete": True, "evidence": evidence}
+
+
+def choose_task(tasks: Iterable[RoadmapTask], state: dict) -> tuple[RoadmapTask, list[dict]]:
     completed = {
         item.get("task")
         for item in state.get("history", [])
-        if item.get("status") == "completed"
+        if item.get("status") in {"completed", "already_implemented"}
     }
+    auto_skipped: list[dict] = []
+
     for task in tasks:
-        if task.name not in completed:
-            return task
-    raise BuilderError("All Version 1.0 roadmap tasks are marked completed in builder state.")
+        if task.name in completed:
+            continue
+        detection = detect_existing_completion(task)
+        if detection["complete"]:
+            auto_skipped.append(
+                {
+                    "task": task.name,
+                    "status": "already_implemented",
+                    "evidence": detection["evidence"],
+                }
+            )
+            continue
+        return task, auto_skipped
+
+    raise BuilderError("All Version 1.0 roadmap tasks appear completed or are marked completed in builder state.")
 
 
 def build_plan(task: RoadmapTask, config: dict) -> dict:
@@ -197,8 +249,16 @@ def dry_run() -> int:
 
     roadmap = ROADMAP_PATH.read_text(encoding="utf-8")
     tasks = extract_version_1_tasks(roadmap)
-    task = choose_task(tasks, state)
+    task, auto_skipped = choose_task(tasks, state)
     plan = build_plan(task, config)
+
+    history = list(state.get("history", []))
+    known = {(item.get("task"), item.get("status")) for item in history}
+    for item in auto_skipped:
+        key = (item["task"], item["status"])
+        if key not in known:
+            history.append(item)
+            known.add(key)
 
     state.update(
         {
@@ -209,6 +269,7 @@ def dry_run() -> int:
             "attempt": 0,
             "last_error": None,
             "approval_required": plan["approval_required"],
+            "history": history,
         }
     )
     save_json(STATE_PATH, state)
@@ -216,6 +277,14 @@ def dry_run() -> int:
     print("=" * 72)
     print("NESTORA BUILDER v0.1 - DRY RUN")
     print("=" * 72)
+
+    if auto_skipped:
+        print("Already implemented roadmap items detected:")
+        for item in auto_skipped:
+            evidence = ", ".join(item["evidence"])
+            print(f"  - {item['task']} [{evidence}]")
+        print()
+
     print(f"Task             : {plan['task']}")
     print(f"Roadmap section  : {plan['section']}")
     print(f"Proposed branch  : {plan['proposed_branch']}")
