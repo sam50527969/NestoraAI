@@ -169,6 +169,13 @@ def detect_existing_completion(task: RoadmapTask) -> dict:
         checks = [
             ("frontend/src/pages/CEO.jsx", ("Executive Summary", "getCEOBrief")),
         ]
+    elif "top opportunity feed" in name:
+        checks = [
+            (
+                "frontend/src/pages/CEO.jsx",
+                ("Priority Leads", "Top Opportunities", "priorityLeads.map"),
+            ),
+        ]
 
     if not checks:
         return {"complete": False, "evidence": []}
