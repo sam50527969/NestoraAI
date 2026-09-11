@@ -41,10 +41,6 @@ def load_json(path: Path) -> dict:
         raise BuilderError(f"Invalid JSON in {path}: {exc}") from exc
 
 
-def save_json(path: Path, value: dict) -> None:
-    path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
-
-
 def run_git(*args: str) -> str:
     result = subprocess.run(
         ["git", *args],
@@ -67,8 +63,11 @@ def assert_safe_git_state(config: dict) -> None:
         )
 
     status = run_git("status", "--porcelain")
-    allowed_state_change = " M builder/state.json"
-    unexpected = [line for line in status.splitlines() if line != allowed_state_change]
+    unexpected = [
+        line
+        for line in status.splitlines()
+        if not line.endswith(" builder/state.json")
+    ]
     if unexpected:
         raise BuilderError(
             "Working tree is not clean. Commit, stash, or discard existing changes first."
@@ -252,28 +251,6 @@ def dry_run() -> int:
     task, auto_skipped = choose_task(tasks, state)
     plan = build_plan(task, config)
 
-    history = list(state.get("history", []))
-    known = {(item.get("task"), item.get("status")) for item in history}
-    for item in auto_skipped:
-        key = (item["task"], item["status"])
-        if key not in known:
-            history.append(item)
-            known.add(key)
-
-    state.update(
-        {
-            "status": "planned",
-            "mode": config["mode"],
-            "current_task": task.name,
-            "current_branch": plan["proposed_branch"],
-            "attempt": 0,
-            "last_error": None,
-            "approval_required": plan["approval_required"],
-            "history": history,
-        }
-    )
-    save_json(STATE_PATH, state)
-
     print("=" * 72)
     print("NESTORA BUILDER v0.1 - DRY RUN")
     print("=" * 72)
@@ -303,6 +280,7 @@ def dry_run() -> int:
         for command in commands:
             print(f"    - {command}")
     print("\nNo application files were modified.")
+    print("Dry-run state was not written to disk.")
     return 0
 
 
