@@ -1,0 +1,13 @@
+{
+  "builder_version": "0.1.0",
+  "status": "idle",
+  "mode": "dry_run",
+  "base_branch": "develop",
+  "current_task": null,
+  "current_branch": null,
+  "attempt": 0,
+  "last_completed_task": null,
+  "last_error": null,
+  "approval_required": false,
+  "history": []
+}
