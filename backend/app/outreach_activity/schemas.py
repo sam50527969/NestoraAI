@@ -12,6 +12,7 @@ class OutreachActivityResponse(BaseModel):
     prepared_by: str | None = None
     phone: str | None = None
     website: str | None = None
+    recipient_email: str | None = None
     email_subject: str | None = None
     email_body: str | None = None
     whatsapp_message: str | None = None
