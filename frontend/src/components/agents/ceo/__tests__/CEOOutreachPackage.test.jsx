@@ -16,6 +16,7 @@ import CEOOutreachPackage from "../CEOOutreachPackage";
 const preparedOutreach = {
   activity_uid: "activity-123",
   lead_name: "Test Lead",
+  recipient_email: "owner@example.com",
   status: "prepared",
   email_subject: "Test subject",
   email_body: "Test email body",
@@ -89,6 +90,47 @@ describe("CEOOutreachPackage email delivery", () => {
     );
   });
 
+  it("shows the recipient before email delivery", () => {
+    renderPackage();
+
+    expect(
+      screen.getByText("Recipient"),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("owner@example.com"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the recipient in the send confirmation", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+
+    renderPackage();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Send Email",
+      }),
+    );
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "owner@example.com",
+      ),
+    );
+  });
+
+  it("does not offer Send Email without a recipient", () => {
+    renderPackage({
+      recipient_email: null,
+    });
+
+    expect(
+      screen.queryByRole("button", {
+        name: "Send Email",
+      }),
+    ).not.toBeInTheDocument();
+  });
   it("does not offer Send Email for sent outreach", () => {
     renderPackage({
       status: "sent",

@@ -121,6 +121,7 @@ export default function CEOOutreachPackage({
     Boolean(
       outreach.activity_uid &&
       status === "prepared" &&
+      outreach.recipient_email &&
       outreach.email_subject &&
       outreach.email_body &&
       onSendEmail,
@@ -128,7 +129,7 @@ export default function CEOOutreachPackage({
 
   function handleSendEmailClick() {
     const confirmed = window.confirm(
-      `Send this email to the saved email address for ${outreach.lead_name}?`,
+      `Send this email to ${outreach.recipient_email}?`,
     );
 
     if (confirmed) {
@@ -243,6 +244,16 @@ export default function CEOOutreachPackage({
               </div>
             )}
 
+          <div className="ceo-outreach-recipient">
+            <span>Recipient</span>
+
+            <strong>
+              {outreach.delivery_recipient ||
+                outreach.recipient_email ||
+                "Not available"}
+            </strong>
+          </div>
+
           <OutreachSection
             label="Email Subject"
             value={outreach.email_subject}
@@ -338,6 +349,8 @@ CEOOutreachPackage.propTypes = {
     status: PropTypes.string,
     score: PropTypes.number,
     estimated_value: PropTypes.number,
+    recipient_email: PropTypes.string,
+    delivery_recipient: PropTypes.string,
     email_subject: PropTypes.string,
     email_body: PropTypes.string,
     whatsapp_message: PropTypes.string,

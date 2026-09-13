@@ -33,6 +33,8 @@ TERMINAL_LEAD_STATUSES = {
 
 def serialize_outreach_activity(
     activity: OutreachActivity,
+    *,
+    recipient_email: str | None = None,
 ) -> dict[str, Any]:
     return {
         "activity_uid": (
@@ -49,6 +51,7 @@ def serialize_outreach_activity(
         ),
         "phone": activity.phone,
         "website": activity.website,
+        "recipient_email": recipient_email,
         "email_subject": (
             activity.email_subject
         ),
@@ -154,7 +157,10 @@ def list_outreach_activities(
 
     try:
         query = (
-            db.query(OutreachActivity)
+            db.query(
+                OutreachActivity,
+                Lead,
+            )
             .join(
                 Lead,
                 Lead.id
@@ -189,9 +195,10 @@ def list_outreach_activities(
 
         return [
             serialize_outreach_activity(
-                activity
+                activity,
+                recipient_email=lead.email,
             )
-            for activity in activities
+            for activity, lead in activities
         ]
 
     finally:
@@ -206,8 +213,11 @@ def get_outreach_activity(
     db = SessionLocal()
 
     try:
-        activity = (
-            db.query(OutreachActivity)
+        result = (
+            db.query(
+                OutreachActivity,
+                Lead,
+            )
             .join(
                 Lead,
                 Lead.id
@@ -222,15 +232,18 @@ def get_outreach_activity(
             .first()
         )
 
-        if activity is None:
+        if result is None:
             raise LookupError(
                 "Outreach activity was "
                 "not found."
             )
 
+        activity, lead = result
+
         return (
             serialize_outreach_activity(
-                activity
+                activity,
+                recipient_email=lead.email,
             )
         )
 

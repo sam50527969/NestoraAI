@@ -180,6 +180,12 @@ def test_list_and_get_prepared_outreach(
         name=lead_name,
     )
 
+    set_lead_email(
+        session_factory,
+        lead_id=lead_id,
+        email="recipient@example.com",
+    )
+
     activity_uid = create_outreach_activity(
         session_factory,
         lead_id=lead_id,
@@ -204,6 +210,10 @@ def test_list_and_get_prepared_outreach(
         == activity_uid
     )
     assert activities[0]["status"] == "prepared"
+    assert (
+        activities[0]["recipient_email"]
+        == "recipient@example.com"
+    )
 
     get_response = client.get(
         (
@@ -219,6 +229,10 @@ def test_list_and_get_prepared_outreach(
     assert activity["lead_id"] == lead_id
     assert activity["lead_name"] == lead_name
     assert activity["status"] == "prepared"
+    assert (
+        activity["recipient_email"]
+        == "recipient@example.com"
+    )
 
 
 def test_list_filters_by_approval_uid(
@@ -427,6 +441,7 @@ def test_outreach_isolated_by_workspace(
             category="auto repair",
             status="New",
             priority="High",
+            email="atlas@example.com",
             business_uid="biz_atlas",
         )
 
@@ -435,6 +450,7 @@ def test_outreach_isolated_by_workspace(
             category="dental",
             status="New",
             priority="High",
+            email="dental@example.com",
             business_uid="biz_dental",
         )
 
@@ -501,6 +517,16 @@ def test_outreach_isolated_by_workspace(
     assert (
         activities[0]["lead_name"]
         == "Atlas Outreach Lead"
+    )
+
+    assert (
+        activities[0]["recipient_email"]
+        == "atlas@example.com"
+    )
+    assert all(
+        activity.get("recipient_email")
+        != "dental@example.com"
+        for activity in activities
     )
 
     foreign_get = client.get(
