@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 
 from app.config import (
@@ -5,6 +7,9 @@ from app.config import (
     EMAIL_PROVIDER,
     RESEND_API_KEY,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class EmailProvider:
@@ -82,7 +87,33 @@ class ResendEmailProvider:
             timeout=15.0,
         )
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError:
+            error_name = "unknown"
+
+            try:
+                error_payload = response.json()
+
+                if isinstance(error_payload, dict):
+                    error_name = str(
+                        error_payload.get(
+                            "name",
+                            "unknown",
+                        )
+                    ).strip() or "unknown"
+
+            except (ValueError, TypeError):
+                pass
+
+            logger.error(
+                "Resend email rejected: "
+                "status=%s name=%s",
+                response.status_code,
+                error_name,
+            )
+
+            raise
 
         payload = response.json()
 
