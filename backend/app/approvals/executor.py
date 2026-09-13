@@ -272,20 +272,54 @@ def build_crm_outreach_action(
         ),
     )
 
-    all_leads = (
-        db.query(Lead)
-        .filter(
-            Lead.business_uid
-            == business_uid
-        )
-        .all()
+    explicit_lead_id = payload.get(
+        "lead_id"
     )
 
-    selected_leads = (
-        get_unique_priority_leads(
-            all_leads
-        )[:target_count]
-    )
+    if explicit_lead_id is not None:
+        try:
+            explicit_lead_id = int(
+                explicit_lead_id
+            )
+        except (TypeError, ValueError):
+            raise ValueError(
+                "Target CRM lead is invalid."
+            )
+
+        target_lead = (
+            db.query(Lead)
+            .filter(
+                Lead.id == explicit_lead_id,
+                Lead.business_uid
+                == business_uid,
+            )
+            .one_or_none()
+        )
+
+        if target_lead is None:
+            raise ValueError(
+                "Target CRM lead was not found "
+                "in the active workspace."
+            )
+
+        selected_leads = [target_lead]
+        target_count = 1
+
+    else:
+        all_leads = (
+            db.query(Lead)
+            .filter(
+                Lead.business_uid
+                == business_uid
+            )
+            .all()
+        )
+
+        selected_leads = (
+            get_unique_priority_leads(
+                all_leads
+            )[:target_count]
+        )
 
     outreach_packages = []
 

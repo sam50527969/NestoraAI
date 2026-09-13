@@ -1083,3 +1083,209 @@ def test_crm_execution_cannot_use_foreign_workspace_lead(
 
     finally:
         db.close()
+
+
+def test_crm_execution_can_target_explicit_workspace_lead(
+    approval_api,
+):
+    client, session_factory = approval_api
+
+    db = session_factory()
+
+    try:
+        higher_ranked = Lead(
+            business_uid="biz_atlas",
+            name="Higher Ranked Prospect",
+            category="Enterprise",
+            priority="High",
+            ai_score=99,
+            estimated_value=50000,
+        )
+
+        explicit_target = Lead(
+            business_uid="biz_atlas",
+            name="Explicit Test Prospect",
+            category="Internal Test",
+            priority="Medium",
+            ai_score=0,
+            estimated_value=0,
+        )
+
+        db.add_all([
+            higher_ranked,
+            explicit_target,
+        ])
+        db.commit()
+
+        db.refresh(higher_ranked)
+        db.refresh(explicit_target)
+
+        higher_ranked_id = higher_ranked.id
+        explicit_target_id = explicit_target.id
+
+    finally:
+        db.close()
+
+    created = create_approval(
+        client,
+        title="Target explicit CRM lead",
+        source_uid="explicit_target_test",
+        payload={
+            "lead_id": explicit_target_id,
+            "high_priority_count": 1,
+            "offer": "Controlled test package",
+        },
+    )
+
+    approval_uid = created["approval_uid"]
+
+    approve_request(
+        client,
+        approval_uid,
+    )
+
+    execute_response = client.post(
+        (
+            f"/ceo-approvals/"
+            f"{approval_uid}/execute"
+        )
+    )
+
+    assert execute_response.status_code == 200
+
+    result = execute_response.json()[
+        "payload"
+    ]["execution_result"]
+
+    assert result["prepared_count"] == 1
+    assert len(result["outreach_packages"]) == 1
+
+    package = result["outreach_packages"][0]
+
+    assert package["lead_id"] == explicit_target_id
+    assert package["lead_name"] == "Explicit Test Prospect"
+    assert package["lead_id"] != higher_ranked_id
+
+    db = session_factory()
+
+    try:
+        activities = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.approval_uid
+                == approval_uid
+            )
+            .all()
+        )
+
+        assert len(activities) == 1
+        assert activities[0].lead_id == explicit_target_id
+
+    finally:
+        db.close()
+
+
+def test_crm_execution_rejects_explicit_foreign_workspace_lead(
+    approval_api,
+):
+    client, session_factory = approval_api
+
+    db = session_factory()
+
+    try:
+        local_lead = Lead(
+            business_uid="biz_atlas",
+            name="Atlas Safe Prospect",
+            category="Services",
+            priority="High",
+            ai_score=95,
+            estimated_value=10000,
+        )
+
+        foreign_lead = Lead(
+            business_uid="biz_dental",
+            name="Foreign Explicit Prospect",
+            category="Dental",
+            priority="High",
+            ai_score=100,
+            estimated_value=50000,
+        )
+
+        db.add_all([
+            local_lead,
+            foreign_lead,
+        ])
+        db.commit()
+
+        db.refresh(local_lead)
+        db.refresh(foreign_lead)
+
+        local_lead_id = local_lead.id
+        foreign_lead_id = foreign_lead.id
+
+    finally:
+        db.close()
+
+    created = create_approval(
+        client,
+        title="Reject foreign CRM target",
+        source_uid="foreign_explicit_target_test",
+        payload={
+            "lead_id": foreign_lead_id,
+            "high_priority_count": 1,
+            "offer": "Controlled test package",
+        },
+    )
+
+    approval_uid = created["approval_uid"]
+
+    approve_request(
+        client,
+        approval_uid,
+    )
+
+    execute_response = client.post(
+        (
+            f"/ceo-approvals/"
+            f"{approval_uid}/execute"
+        )
+    )
+
+    assert execute_response.status_code == 409
+
+    db = session_factory()
+
+    try:
+        activities = (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.approval_uid
+                == approval_uid
+            )
+            .all()
+        )
+
+        assert activities == []
+
+        assert (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.lead_id
+                == foreign_lead_id
+            )
+            .count()
+            == 0
+        )
+
+        assert (
+            db.query(OutreachActivity)
+            .filter(
+                OutreachActivity.lead_id
+                == local_lead_id
+            )
+            .count()
+            == 0
+        )
+
+    finally:
+        db.close()
