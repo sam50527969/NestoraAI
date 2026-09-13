@@ -50,3 +50,14 @@ export function markOutreachActivitySent(
     },
   );
 }
+
+export function sendOutreachActivityEmail(
+  activityUid,
+) {
+  return request(
+    `/outreach-activities/${activityUid}/send-email`,
+    {
+      method: "POST",
+    },
+  );
+}

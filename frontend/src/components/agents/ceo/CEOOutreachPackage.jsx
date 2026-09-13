@@ -70,6 +70,7 @@ export default function CEOOutreachPackage({
   outreach,
   currency = "",
   onMarkSent,
+  onSendEmail,
   isUpdating = false,
 }) {
   const [isExpanded, setIsExpanded] =
@@ -115,6 +116,25 @@ export default function CEOOutreachPackage({
       status === "prepared" &&
       onMarkSent,
     );
+
+  const canSendEmail =
+    Boolean(
+      outreach.activity_uid &&
+      status === "prepared" &&
+      outreach.email_subject &&
+      outreach.email_body &&
+      onSendEmail,
+    );
+
+  function handleSendEmailClick() {
+    const confirmed = window.confirm(
+      `Send this email to the saved email address for ${outreach.lead_name}?`,
+    );
+
+    if (confirmed) {
+      onSendEmail(outreach);
+    }
+  }
 
   return (
     <article
@@ -269,20 +289,35 @@ export default function CEOOutreachPackage({
             copiedField={copiedField}
           />
 
-          {canMarkSent && (
+          {(canSendEmail || canMarkSent) && (
             <div className="ceo-outreach-lifecycle-actions">
-              <button
-                type="button"
-                className="ceo-outreach-mark-sent-button"
-                disabled={isUpdating}
-                onClick={() =>
-                  onMarkSent(outreach)
-                }
-              >
-                {isUpdating
-                  ? "Updating..."
-                  : "Mark as Sent"}
-              </button>
+              {canSendEmail && (
+                <button
+                  type="button"
+                  className="ceo-outreach-send-email-button"
+                  disabled={isUpdating}
+                  onClick={handleSendEmailClick}
+                >
+                  {isUpdating
+                    ? "Sending..."
+                    : "Send Email"}
+                </button>
+              )}
+
+              {canMarkSent && (
+                <button
+                  type="button"
+                  className="ceo-outreach-mark-sent-button"
+                  disabled={isUpdating}
+                  onClick={() =>
+                    onMarkSent(outreach)
+                  }
+                >
+                  {isUpdating
+                    ? "Updating..."
+                    : "Mark as Sent"}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -311,5 +346,6 @@ CEOOutreachPackage.propTypes = {
     sent_at: PropTypes.string,
   }).isRequired,
   onMarkSent: PropTypes.func,
+  onSendEmail: PropTypes.func,
   isUpdating: PropTypes.bool,
 };

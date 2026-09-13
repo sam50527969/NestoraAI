@@ -8,6 +8,7 @@ import PropTypes from "prop-types";
 import {
   getOutreachActivities,
   markOutreachActivitySent,
+  sendOutreachActivityEmail,
 } from "../../../api/outreachActivities";
 
 import Badge from "../../ui/Badge";
@@ -109,6 +110,44 @@ export default function CEOOutreachHistory({
     }
   }
 
+  async function handleSendEmail(
+    activity,
+  ) {
+    setActiveActivityUid(
+      activity.activity_uid,
+    );
+
+    setErrorMessage("");
+
+    try {
+      const updatedActivity =
+        await sendOutreachActivityEmail(
+          activity.activity_uid,
+        );
+
+      setActivities((current) =>
+        current.map((item) =>
+          item.activity_uid ===
+          updatedActivity.activity_uid
+            ? updatedActivity
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.error(
+        "Unable to send outreach email:",
+        error,
+      );
+
+      setErrorMessage(
+        error?.message ||
+          "Unable to send outreach email.",
+      );
+    } finally {
+      setActiveActivityUid("");
+    }
+  }
+
   const preparedCount = activities.filter(
     (activity) =>
       activity.status === "prepared",
@@ -176,6 +215,7 @@ export default function CEOOutreachHistory({
               outreach={activity}
               currency={currency}
               onMarkSent={handleMarkSent}
+              onSendEmail={handleSendEmail}
               isUpdating={
                 activeActivityUid ===
                 activity.activity_uid
