@@ -1,4 +1,4 @@
-﻿from unittest.mock import Mock
+from unittest.mock import Mock
 
 import httpx
 import pytest
@@ -225,3 +225,57 @@ def test_provider_factory_builds_resend_when_configured(
         provider.sender
         == "Nestora <test@example.com>"
     )
+
+
+def test_resend_provider_logs_safe_http_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    secret_api_key = "super-secret-resend-key"
+    private_recipient = "private-recipient@example.com"
+    private_subject = "Private outreach subject"
+    private_body = "Private outreach body"
+
+    monkeypatch.setattr(
+        httpx,
+        "post",
+        Mock(
+            return_value=make_response(
+                422,
+                {
+                    "message": "Invalid sender",
+                    "name": "validation_error",
+                },
+            )
+        ),
+    )
+
+    provider = ResendEmailProvider(
+        api_key=secret_api_key,
+        sender="Nestora <test@example.com>",
+    )
+
+    with caplog.at_level("ERROR"):
+        with pytest.raises(httpx.HTTPStatusError):
+            provider.send_email(
+                recipient=private_recipient,
+                subject=private_subject,
+                body=private_body,
+                idempotency_key=(
+                    "outreach-email/activity-safe-log"
+                ),
+            )
+
+    log_output = caplog.text
+
+    assert "Resend email rejected" in log_output
+    assert "status=422" in log_output
+    assert "validation_error" in log_output
+    assert "Invalid sender" not in log_output
+
+    assert secret_api_key not in log_output
+    assert private_recipient not in log_output
+    assert private_subject not in log_output
+    assert private_body not in log_output
+    assert "Authorization" not in log_output
+    assert "Bearer" not in log_output
