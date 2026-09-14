@@ -6,6 +6,11 @@ from typing import Any
 
 import httpx
 
+from app.services.outbound_url_security import (
+    UnsafeOutboundUrlError,
+    safe_async_get,
+)
+
 
 @dataclass(slots=True)
 class CrawlResult:
@@ -91,11 +96,11 @@ async def crawl_website(
                     8,
                 ),
             ),
-            follow_redirects=True,
             headers=DEFAULT_HEADERS,
         ) as client:
-            response = await client.get(
-                normalized_url
+            response = await safe_async_get(
+                client,
+                normalized_url,
             )
 
         elapsed_ms = round(
@@ -140,6 +145,17 @@ async def crawl_website(
             response_time_ms=elapsed_ms,
             headers=dict(response.headers),
             error=None,
+        )
+
+    except UnsafeOutboundUrlError as exc:
+        return CrawlResult(
+            requested_url=normalized_url,
+            final_url=None,
+            status_code=None,
+            html="",
+            response_time_ms=None,
+            headers={},
+            error=f"Website request blocked: {exc}",
         )
 
     except httpx.TimeoutException:

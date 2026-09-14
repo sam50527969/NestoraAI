@@ -5,6 +5,11 @@ from urllib.parse import urlparse
 
 import httpx
 
+from app.services.outbound_url_security import (
+    UnsafeOutboundUrlError,
+    safe_async_get,
+)
+
 from app.services.website_discovery import (
     WebsiteDiscoveryService,
 )
@@ -80,7 +85,6 @@ async def _verify_website(
     try:
         async with httpx.AsyncClient(
             timeout=10,
-            follow_redirects=True,
             headers={
                 "User-Agent": (
                     "NestoraAI/0.9 "
@@ -88,8 +92,9 @@ async def _verify_website(
                 )
             },
         ) as client:
-            response = await client.get(
-                normalized
+            response = await safe_async_get(
+                client,
+                normalized,
             )
 
         content_type = (
@@ -108,7 +113,10 @@ async def _verify_website(
             )
         )
 
-    except httpx.HTTPError:
+    except (
+        httpx.HTTPError,
+        UnsafeOutboundUrlError,
+    ):
         return False
 
 
