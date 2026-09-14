@@ -1,4 +1,4 @@
-﻿from logging.config import fileConfig
+from logging.config import fileConfig
 from pathlib import Path
 import sys
 
@@ -18,7 +18,7 @@ from app.database.metadata import metadata
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 if not config.attributes.get("database_url_configured"):
     configure_alembic_database_url(
