@@ -9,6 +9,10 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import (
     get_current_user,
 )
+from app.auth.login_throttle import (
+    LOGIN_FAILURE_WINDOW_SECONDS,
+    login_failure_throttle,
+)
 from app.auth.models import User
 from app.auth.schemas import (
     LoginRequest,
@@ -65,6 +69,26 @@ def login_user(
     data: LoginRequest,
     db: Session = Depends(get_db),
 ):
+    if login_failure_throttle.is_blocked(
+        data.email
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_429_TOO_MANY_REQUESTS
+            ),
+            detail=(
+                "Too many failed login attempts. "
+                "Please try again later."
+            ),
+            headers={
+                "Retry-After": str(
+                    int(
+                        LOGIN_FAILURE_WINDOW_SECONDS
+                    )
+                ),
+            },
+        )
+
     user = authenticate_user(
         db,
         data.email,
@@ -72,6 +96,10 @@ def login_user(
     )
 
     if user is None:
+        login_failure_throttle.record_failure(
+            data.email
+        )
+
         raise HTTPException(
             status_code=(
                 status.HTTP_401_UNAUTHORIZED
@@ -85,6 +113,10 @@ def login_user(
                     "Bearer",
             },
         )
+
+    login_failure_throttle.reset(
+        data.email
+    )
 
     access_token, expires_in = (
         create_access_token(
