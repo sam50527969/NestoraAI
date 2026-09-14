@@ -5,6 +5,11 @@ from typing import Any
 
 import httpx
 
+from app.services.outbound_url_security import (
+    UnsafeOutboundUrlError,
+    safe_async_get,
+)
+
 
 INVALID_VALUES = {
     "",
@@ -50,10 +55,10 @@ async def discover_email(
         try:
             async with httpx.AsyncClient(
                 timeout=10,
-                follow_redirects=True,
-            ) as client:
-                response = await client.get(
-                    str(website)
+                ) as client:
+                response = await safe_async_get(
+                    client,
+                    str(website),
                 )
 
                 match = EMAIL_PATTERN.search(

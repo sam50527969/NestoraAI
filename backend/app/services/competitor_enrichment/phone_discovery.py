@@ -5,6 +5,11 @@ from typing import Any
 
 import httpx
 
+from app.services.outbound_url_security import (
+    UnsafeOutboundUrlError,
+    safe_async_get,
+)
+
 
 INVALID_VALUES = {
     "",
@@ -66,7 +71,6 @@ async def _discover_from_website(
     try:
         async with httpx.AsyncClient(
             timeout=10,
-            follow_redirects=True,
             headers={
                 "User-Agent": (
                     "NestoraAI/0.8 "
@@ -74,8 +78,9 @@ async def _discover_from_website(
                 )
             },
         ) as client:
-            response = await client.get(
-                website
+            response = await safe_async_get(
+                client,
+                website,
             )
 
             response.raise_for_status()
@@ -84,7 +89,10 @@ async def _discover_from_website(
                 response.text
             )
 
-    except httpx.HTTPError:
+    except (
+        httpx.HTTPError,
+        UnsafeOutboundUrlError,
+    ):
         return None
 
 
