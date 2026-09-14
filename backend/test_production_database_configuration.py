@@ -30,6 +30,7 @@ def test_production_rejects_default_sqlite_database():
         APP_ENV="production",
         DATABASE_URL="sqlite:///./nestora.db",
         AUTH_SECRET_KEY="production-secret-for-test",
+        CORS_ALLOWED_ORIGINS="https://app.example.com",
     )
 
     assert result.returncode != 0
@@ -47,6 +48,7 @@ def test_production_accepts_postgresql_database_url():
             "user:password@localhost:5432/nestora"
         ),
         AUTH_SECRET_KEY="production-secret-for-test",
+        CORS_ALLOWED_ORIGINS="https://app.example.com",
     )
 
     assert result.returncode == 0, result.stderr
