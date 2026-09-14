@@ -1,9 +1,11 @@
-from typing import Optional
+﻿from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
 from app.database.database import get_db
+from app.database.models import AgentTask, Mission
 from app.schemas.agent_task import (
     AgentTaskCreate,
     AgentTaskResponse,
@@ -14,7 +16,6 @@ from app.services.agent_task_service import (
     complete_agent_task,
     create_agent_task,
     delete_agent_task,
-    fail_agent_task,
     get_agent_task,
     get_mission_tasks,
     get_next_runnable_task,
@@ -25,20 +26,54 @@ from app.services.agent_task_service import (
     update_task_progress,
 )
 
+
 router = APIRouter(
     prefix="/agent-tasks",
     tags=["Agent Tasks"],
 )
 
 
-def require_task(task_uid: str, db: Session):
+def require_workspace_mission(
+    mission_id: str,
+    business_uid: str,
+    db: Session,
+) -> Mission:
+    mission = (
+        db.query(Mission)
+        .filter(
+            Mission.mission_uid == mission_id,
+            Mission.business_uid == business_uid,
+        )
+        .first()
+    )
+
+    if mission is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Persisted mission not found.",
+        )
+
+    return mission
+
+
+def require_workspace_task(
+    task_uid: str,
+    business_uid: str,
+    db: Session,
+) -> AgentTask:
     task = get_agent_task(db, task_uid)
 
-    if not task:
+    if task is None:
         raise HTTPException(
             status_code=404,
             detail="Agent task not found",
         )
+
+    require_workspace_mission(
+        task.mission_id,
+        business_uid,
+        db,
+    )
 
     return task
 
@@ -51,7 +86,16 @@ def require_task(task_uid: str, db: Session):
 def create_task(
     task_data: AgentTaskCreate,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
+    require_workspace_mission(
+        task_data.mission_id,
+        business_uid,
+        db,
+    )
+
     return create_agent_task(db, task_data)
 
 
@@ -68,13 +112,24 @@ def list_tasks(
     ),
     priority: Optional[str] = None,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
+    if mission_id:
+        require_workspace_mission(
+            mission_id,
+            business_uid,
+            db,
+        )
+
     return list_agent_tasks(
         db,
         mission_id=mission_id,
         agent_name=agent_name,
         status=status_filter,
         priority=priority,
+        business_uid=business_uid,
     )
 
 
@@ -85,7 +140,16 @@ def list_tasks(
 def mission_tasks(
     mission_id: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
+    require_workspace_mission(
+        mission_id,
+        business_uid,
+        db,
+    )
+
     return get_mission_tasks(db, mission_id)
 
 
@@ -96,8 +160,20 @@ def mission_tasks(
 def next_task(
     mission_id: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    return get_next_runnable_task(db, mission_id)
+    require_workspace_mission(
+        mission_id,
+        business_uid,
+        db,
+    )
+
+    return get_next_runnable_task(
+        db,
+        mission_id,
+    )
 
 
 @router.get(
@@ -107,8 +183,15 @@ def next_task(
 def get_task(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    return require_task(task_uid, db)
+    return require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
 
 
 @router.patch(
@@ -119,9 +202,20 @@ def update_task(
     task_uid: str,
     update_data: AgentTaskUpdate,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
-    return update_agent_task(db, task, update_data)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
+    return update_agent_task(
+        db,
+        task,
+        update_data,
+    )
 
 
 @router.post(
@@ -131,8 +225,15 @@ def update_task(
 def start_task(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
     return start_agent_task(db, task)
 
 
@@ -144,9 +245,20 @@ def progress(
     task_uid: str,
     progress: int,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
-    return update_task_progress(db, task, progress)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
+    return update_task_progress(
+        db,
+        task,
+        progress,
+    )
 
 
 @router.post(
@@ -156,8 +268,15 @@ def progress(
 def complete(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
     return complete_agent_task(db, task)
 
 
@@ -168,8 +287,15 @@ def complete(
 def retry(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
     return retry_agent_task(db, task)
 
 
@@ -180,8 +306,15 @@ def retry(
 def cancel(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
     return cancel_agent_task(db, task)
 
 
@@ -192,6 +325,13 @@ def cancel(
 def delete(
     task_uid: str,
     db: Session = Depends(get_db),
+    business_uid: str = Depends(
+        get_current_business_uid,
+    ),
 ):
-    task = require_task(task_uid, db)
+    task = require_workspace_task(
+        task_uid,
+        business_uid,
+        db,
+    )
     delete_agent_task(db, task)

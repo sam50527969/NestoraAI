@@ -1,10 +1,10 @@
-import json
+﻿import json
 from datetime import datetime
 from typing import Any, Optional
 
 from sqlalchemy.orm import Session
 
-from app.database.models import AgentTask
+from app.database.models import AgentTask, Mission
 from app.schemas.agent_task import AgentTaskCreate, AgentTaskUpdate
 
 
@@ -134,10 +134,23 @@ def list_agent_tasks(
     agent_name: Optional[str] = None,
     status: Optional[str] = None,
     priority: Optional[str] = None,
+    business_uid: Optional[str] = None,
     limit: int = 100,
     offset: int = 0,
 ):
     query = db.query(AgentTask)
+
+    if business_uid:
+        query = (
+            query
+            .join(
+                Mission,
+                Mission.mission_uid == AgentTask.mission_id,
+            )
+            .filter(
+                Mission.business_uid == business_uid,
+            )
+        )
 
     if mission_id:
         query = query.filter(
