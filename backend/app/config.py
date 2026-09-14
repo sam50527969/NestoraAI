@@ -86,6 +86,34 @@ AUTH_ACCESS_TOKEN_MINUTES = int(
 )
 
 if APP_ENV.lower() == "production":
+    if not CORS_ALLOWED_ORIGINS:
+        raise RuntimeError(
+            "CORS_ALLOWED_ORIGINS must contain "
+            "at least one production origin."
+        )
+
+    if "*" in CORS_ALLOWED_ORIGINS:
+        raise RuntimeError(
+            "CORS_ALLOWED_ORIGINS must not contain "
+            "a wildcard in production."
+        )
+
+    if any(
+        origin.startswith(
+            (
+                "http://localhost",
+                "https://localhost",
+                "http://127.0.0.1",
+                "https://127.0.0.1",
+            )
+        )
+        for origin in CORS_ALLOWED_ORIGINS
+    ):
+        raise RuntimeError(
+            "CORS_ALLOWED_ORIGINS must not contain "
+            "localhost origins in production."
+        )
+
     if AUTH_SECRET_KEY.startswith(
         "nestora-development-secret"
     ):
