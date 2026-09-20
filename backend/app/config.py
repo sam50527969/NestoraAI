@@ -127,3 +127,8 @@ if APP_ENV.lower() == "production":
             "DATABASE_URL must use a production "
             "database in production."
         )
+
+GOOGLE_API_KEY = os.getenv(
+    "GOOGLE_API_KEY",
+    "",
+).strip()

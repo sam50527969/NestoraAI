@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from app.config import settings
+from app.config import GOOGLE_API_KEY
 from app.services.business_intelligence.models import (
     BusinessContact,
     BusinessIntelligenceProfile,
@@ -33,11 +33,7 @@ class GoogleBusinessProvider:
     ) -> None:
         self.api_key = (
             api_key
-            or getattr(
-                settings,
-                "google_places_api_key",
-                None,
-            )
+            or GOOGLE_API_KEY
         )
 
     @property
