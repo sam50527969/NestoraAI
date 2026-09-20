@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
+
+from app.config import GOOGLE_API_KEY
 
 
 PLACES_TEXT_SEARCH_URL = (
@@ -13,7 +14,7 @@ PLACES_TEXT_SEARCH_URL = (
 
 def _get_api_key() -> str:
     api_key = str(
-        os.getenv("GOOGLE_API_KEY")
+        GOOGLE_API_KEY
         or ""
     ).strip()
 
