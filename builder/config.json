@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0",
+  "mode": "dry_run",
+  "base_branch": "develop",
+  "agent_branch_prefix": "agent/",
+  "max_fix_attempts": 3,
+  "max_files_per_task": 12,
+  "allow_auto_commit": true,
+  "allow_auto_push": true,
+  "allow_auto_pr": false,
+  "allow_auto_merge": false,
+  "allow_deploy": false,
+  "protected_paths": [
+    ".env",
+    ".env.*",
+    "**/secrets/**",
+    "render.yaml",
+    ".github/workflows/**"
+  ],
+  "approval_required_for": [
+    "database_migration",
+    "authentication",
+    "authorization",
+    "billing",
+    "deployment",
+    "destructive_refactor"
+  ],
+  "verification": {
+    "backend": [
+      "python -m pytest"
+    ],
+    "frontend": [
+      "npm test -- --run",
+      "npm run lint",
+      "npm run build"
+    ]
+  }
+}
