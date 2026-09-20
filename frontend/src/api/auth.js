@@ -1,4 +1,4 @@
-import {
+﻿import {
   request,
 } from "./client";
 
@@ -24,6 +24,36 @@ export function loginAccount(
       body: JSON.stringify(
         credentials,
       ),
+    },
+  );
+}
+
+export function requestPasswordReset(
+  email,
+) {
+  return request(
+    "/auth/password-reset/request",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+      }),
+    },
+  );
+}
+
+export function confirmPasswordReset({
+  token,
+  password,
+}) {
+  return request(
+    "/auth/password-reset/confirm",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        token,
+        password,
+      }),
     },
   );
 }

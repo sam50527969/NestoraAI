@@ -104,3 +104,16 @@ class LoginFailureThrottle:
 
 
 login_failure_throttle = LoginFailureThrottle()
+
+MAX_PASSWORD_RESET_REQUESTS = 3
+
+PASSWORD_RESET_REQUEST_WINDOW_SECONDS = (
+    15 * 60
+)
+
+password_reset_throttle = LoginFailureThrottle(
+    max_failures=MAX_PASSWORD_RESET_REQUESTS,
+    window_seconds=(
+        PASSWORD_RESET_REQUEST_WINDOW_SECONDS
+    ),
+)

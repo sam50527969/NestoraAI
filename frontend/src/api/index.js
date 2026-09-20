@@ -73,9 +73,11 @@ export {
   sendExecutiveMessage,
 } from "./communication";
 export {
+  confirmPasswordReset,
   getCurrentAccount,
   loginAccount,
   registerAccount,
+  requestPasswordReset,
 } from "./auth";
 
 export {

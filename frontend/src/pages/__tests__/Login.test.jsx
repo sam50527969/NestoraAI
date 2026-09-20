@@ -17,9 +17,18 @@ import {
   vi,
 } from "vitest";
 
+import {
+  confirmPasswordReset,
+  requestPasswordReset,
+} from "../../api";
 import useAuth from "../../auth/useAuth";
 
 import Login from "../Login";
+
+vi.mock("../../api", () => ({
+  confirmPasswordReset: vi.fn(),
+  requestPasswordReset: vi.fn(),
+}));
 
 vi.mock(
   "../../auth/useAuth",
@@ -33,6 +42,7 @@ const register = vi.fn();
 
 function renderLogin(
   authOverrides = {},
+  initialEntry = "/login",
 ) {
   useAuth.mockReturnValue({
     login,
@@ -44,7 +54,7 @@ function renderLogin(
 
   return render(
     <MemoryRouter
-      initialEntries={["/login"]}
+      initialEntries={[initialEntry]}
     >
       <Routes>
         <Route
@@ -69,6 +79,8 @@ beforeEach(() => {
   login.mockReset();
   register.mockReset();
   useAuth.mockReset();
+  confirmPasswordReset.mockReset();
+  requestPasswordReset.mockReset();
 });
 
 describe("Login", () => {
@@ -206,6 +218,152 @@ describe("Login", () => {
     });
   });
 
+  it("requests a password reset without exposing account state", async () => {
+    const user =
+      userEvent.setup();
+
+    requestPasswordReset.mockResolvedValue({
+      message:
+        "If an account exists for that email, a password reset link has been sent.",
+    });
+
+    renderLogin();
+
+    await user.click(
+      screen.getByRole(
+        "button",
+        {
+          name: "Forgot password?",
+        },
+      ),
+    );
+
+    await user.type(
+      screen.getByLabelText(
+        "Email address",
+      ),
+      "sam@example.com",
+    );
+
+    await user.click(
+      screen.getByRole(
+        "button",
+        {
+          name: "Send reset link",
+        },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        requestPasswordReset,
+      ).toHaveBeenCalledWith(
+        "sam@example.com",
+      );
+    });
+
+    expect(
+      screen.getByRole("status"),
+    ).toHaveTextContent(
+      "If an account exists",
+    );
+  });
+
+  it("resets a password from a reset token", async () => {
+    const user =
+      userEvent.setup();
+
+    confirmPasswordReset.mockResolvedValue({
+      message:
+        "Password has been reset successfully.",
+    });
+
+    const token = "a".repeat(40);
+
+    renderLogin(
+      {},
+      `/login?reset_token=${token}`,
+    );
+
+    expect(
+      screen.getByRole(
+        "heading",
+        {
+          name:
+            "Choose a new password",
+        },
+      ),
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByLabelText(
+        "New password",
+      ),
+      "NewPassword456!",
+    );
+
+    await user.type(
+      screen.getByLabelText(
+        "Confirm new password",
+      ),
+      "NewPassword456!",
+    );
+
+    await user.click(
+      screen.getByRole(
+        "button",
+        {
+          name: "Reset password",
+        },
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        confirmPasswordReset,
+      ).toHaveBeenCalledWith({
+        token,
+        password:
+          "NewPassword456!",
+      });
+    });
+
+    expect(
+      screen.getByRole(
+        "heading",
+        {
+          name: "Welcome back",
+        },
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("requires 12 characters for new account passwords", async () => {
+    const user =
+      userEvent.setup();
+
+    renderLogin();
+
+    await user.click(
+      screen.getByRole(
+        "button",
+        {
+          name: "Register",
+        },
+      ),
+    );
+
+    expect(
+      screen.getByLabelText(
+        "Password",
+      ),
+    ).toHaveAttribute(
+      "minlength",
+      "12",
+    );
+  });
+
+
   it("renders backend validation arrays safely", async () => {
     const user =
       userEvent.setup();
@@ -258,7 +416,7 @@ describe("Login", () => {
       screen.getByLabelText(
         "Password",
       ),
-      "12345678",
+      "123456789012",
     );
 
     await user.click(

@@ -53,6 +53,18 @@ EMAIL_FROM = os.getenv(
     "",
 ).strip()
 
+PASSWORD_RESET_TOKEN_MINUTES = int(
+    os.getenv(
+        "PASSWORD_RESET_TOKEN_MINUTES",
+        "20",
+    )
+)
+
+PASSWORD_RESET_FRONTEND_URL = os.getenv(
+    "PASSWORD_RESET_FRONTEND_URL",
+    "http://localhost:5174/login",
+).strip()
+
 
 CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip("/")

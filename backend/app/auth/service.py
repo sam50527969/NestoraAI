@@ -7,7 +7,9 @@ from app.auth.schemas import (
 )
 from app.auth.security import (
     DUMMY_PASSWORD_HASH,
+    decode_password_reset_token,
     hash_password,
+    password_reset_token_matches_hash,
     verify_password,
 )
 
@@ -104,5 +106,55 @@ def authenticate_user(
 
     if not user.is_active:
         return None
+
+    return user
+
+
+def reset_user_password(
+    db: Session,
+    *,
+    token: str,
+    new_password: str,
+) -> User | None:
+    decoded = (
+        decode_password_reset_token(
+            token
+        )
+    )
+
+    if decoded is None:
+        return None
+
+    user_uid, fingerprint = decoded
+
+    user = get_user_by_uid(
+        db,
+        user_uid,
+    )
+
+    if user is None:
+        return None
+
+    if not user.is_active:
+        return None
+
+    if not (
+        password_reset_token_matches_hash(
+            fingerprint,
+            user.password_hash,
+        )
+    ):
+        return None
+
+    user.password_hash = hash_password(
+        new_password
+    )
+
+    try:
+        db.commit()
+        db.refresh(user)
+    except Exception:
+        db.rollback()
+        raise
 
     return user

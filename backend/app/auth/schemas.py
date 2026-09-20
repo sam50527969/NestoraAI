@@ -89,6 +89,37 @@ class LoginRequest(BaseModel):
         return normalize_email(value)
 
 
+class PasswordResetRequest(BaseModel):
+    email: str = Field(
+        min_length=5,
+        max_length=254,
+    )
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(
+        cls,
+        value: str,
+    ) -> str:
+        return normalize_email(value)
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(
+        min_length=20,
+        max_length=4096,
+    )
+
+    password: str = Field(
+        min_length=12,
+        max_length=128,
+    )
+
+
+class PasswordResetResponse(BaseModel):
+    message: str
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
