@@ -341,3 +341,33 @@
     padding-top: 42px;
   }
 }
+.auth-success {
+  padding: 13px 15px;
+  border: 1px solid
+    rgba(52, 211, 153, 0.35);
+  border-radius: 10px;
+  color: #a7f3d0;
+  font-size: 13px;
+  line-height: 1.5;
+  background:
+    rgba(6, 78, 59, 0.24);
+}
+
+.auth-inline-action {
+  width: 100%;
+  margin-top: 18px;
+  border: 0;
+  padding: 0;
+  color: #9f98ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  background: transparent;
+}
+
+.auth-inline-action:hover {
+  color: #c7c3ff;
+  text-decoration: underline;
+}

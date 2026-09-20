@@ -1,4 +1,4 @@
-import {
+﻿import {
   useState,
 } from "react";
 import {
@@ -7,9 +7,14 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  confirmPasswordReset,
+  requestPasswordReset,
+} from "../api";
 import useAuth from "../auth/useAuth";
 
 import "./Login.css";
+
 
 function getErrorMessage(error) {
   const fallback =
@@ -88,6 +93,7 @@ function getErrorMessage(error) {
   }
 }
 
+
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -99,13 +105,23 @@ function Login() {
     isLoading,
   } = useAuth();
 
+  const resetToken =
+    new URLSearchParams(
+      location.search,
+    ).get("reset_token") || "";
+
   const [mode, setMode] =
-    useState("login");
+    useState(
+      resetToken
+        ? "reset"
+        : "login",
+    );
 
   const [form, setForm] = useState({
     full_name: "",
     email: "",
     password: "",
+    confirm_password: "",
   });
 
   const [
@@ -114,6 +130,9 @@ function Login() {
   ] = useState(false);
 
   const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
     useState("");
 
   const destination =
@@ -147,6 +166,7 @@ function Login() {
   function changeMode(nextMode) {
     setMode(nextMode);
     setError("");
+    setSuccess("");
   }
 
   async function submit(event) {
@@ -154,6 +174,7 @@ function Login() {
 
     setSubmitting(true);
     setError("");
+    setSuccess("");
 
     try {
       if (mode === "register") {
@@ -165,21 +186,96 @@ function Login() {
           password:
             form.password,
         });
-      } else {
+
+        navigate(
+          destination,
+          {
+            replace: true,
+          },
+        );
+
+        return;
+      }
+
+      if (mode === "login") {
         await login({
           email:
             form.email.trim(),
           password:
             form.password,
         });
+
+        navigate(
+          destination,
+          {
+            replace: true,
+          },
+        );
+
+        return;
       }
 
-      navigate(
-        destination,
-        {
-          replace: true,
-        },
-      );
+      if (mode === "forgot") {
+        const response =
+          await requestPasswordReset(
+            form.email.trim(),
+          );
+
+        setSuccess(
+          response.message ||
+            (
+              "If an account exists for "
+              + "that email, a password "
+              + "reset link has been sent."
+            ),
+        );
+
+        return;
+      }
+
+      if (mode === "reset") {
+        if (
+          form.password !==
+          form.confirm_password
+        ) {
+          setError(
+            "The passwords do not match.",
+          );
+
+          return;
+        }
+
+        const response =
+          await confirmPasswordReset({
+            token: resetToken,
+            password:
+              form.password,
+          });
+
+        navigate(
+          "/login",
+          {
+            replace: true,
+          },
+        );
+
+        setMode("login");
+
+        setForm((current) => ({
+          ...current,
+          password: "",
+          confirm_password: "",
+        }));
+
+        setSuccess(
+          response.message ||
+            (
+              "Password has been reset "
+              + "successfully. You can "
+              + "sign in now."
+            ),
+        );
+      }
     } catch (submitError) {
       setError(
         getErrorMessage(
@@ -190,6 +286,24 @@ function Login() {
       setSubmitting(false);
     }
   }
+
+  const heading = {
+    login: "Welcome back",
+    register: "Create your account",
+    forgot: "Reset your password",
+    reset: "Choose a new password",
+  }[mode];
+
+  const description = {
+    login:
+      "Sign in to continue to your business dashboard.",
+    register:
+      "Set up your Nestora workspace credentials.",
+    forgot:
+      "Enter your email and we will send you a secure reset link.",
+    reset:
+      "Enter a new password for your Nestora account.",
+  }[mode];
 
   return (
     <main className="auth-page">
@@ -249,57 +363,52 @@ function Login() {
             </p>
 
             <h2>
-              {mode === "login"
-                ? "Welcome back"
-                : "Create your account"}
+              {heading}
             </h2>
 
             <p>
-              {mode === "login"
-                ? (
-                    "Sign in to continue to "
-                    + "your business dashboard."
-                  )
-                : (
-                    "Set up your Nestora "
-                    + "workspace credentials."
-                  )}
+              {description}
             </p>
           </div>
 
-          <div
-            className="auth-mode-switch"
-            role="group"
-            aria-label="Authentication mode"
-          >
-            <button
-              type="button"
-              className={
-                mode === "login"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                changeMode("login")
-              }
+          {(
+            mode === "login" ||
+            mode === "register"
+          ) && (
+            <div
+              className="auth-mode-switch"
+              role="group"
+              aria-label="Authentication mode"
             >
-              Sign in
-            </button>
+              <button
+                type="button"
+                className={
+                  mode === "login"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  changeMode("login")
+                }
+              >
+                Sign in
+              </button>
 
-            <button
-              type="button"
-              className={
-                mode === "register"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                changeMode("register")
-              }
-            >
-              Register
-            </button>
-          </div>
+              <button
+                type="button"
+                className={
+                  mode === "register"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  changeMode("register")
+                }
+              >
+                Register
+              </button>
+            </div>
+          )}
 
           <form
             className="auth-form"
@@ -326,38 +435,77 @@ function Login() {
               </label>
             )}
 
-            <label>
-              Email address
+            {mode !== "reset" && (
+              <label>
+                Email address
 
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={updateField}
-                autoComplete="email"
-                placeholder="you@example.com"
-                required
-              />
-            </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={updateField}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  required
+                />
+              </label>
+            )}
 
-            <label>
-              Password
+            {(
+              mode === "login" ||
+              mode === "register" ||
+              mode === "reset"
+            ) && (
+              <label>
+                {mode === "reset"
+                  ? "New password"
+                  : "Password"}
 
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={updateField}
-                autoComplete={
-                  mode === "login"
-                    ? "current-password"
-                    : "new-password"
-                }
-                minLength={8}
-                placeholder="Minimum 8 characters"
-                required
-              />
-            </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={updateField}
+                  autoComplete={
+                    mode === "login"
+                      ? "current-password"
+                      : "new-password"
+                  }
+                  minLength={
+                    mode === "login"
+                      ? 1
+                      : 12
+                  }
+                  maxLength={128}
+                  placeholder={
+                    mode === "login"
+                      ? "Your password"
+                      : "Minimum 12 characters"
+                  }
+                  required
+                />
+              </label>
+            )}
+
+            {mode === "reset" && (
+              <label>
+                Confirm new password
+
+                <input
+                  type="password"
+                  name="confirm_password"
+                  value={
+                    form.confirm_password
+                  }
+                  onChange={updateField}
+                  autoComplete="new-password"
+                  minLength={12}
+                  maxLength={128}
+                  placeholder="Repeat your new password"
+                  required
+                />
+              </label>
+            )}
 
             {error && (
               <div
@@ -365,6 +513,15 @@ function Login() {
                 role="alert"
               >
                 {error}
+              </div>
+            )}
+
+            {success && (
+              <div
+                className="auth-success"
+                role="status"
+              >
+                {success}
               </div>
             )}
 
@@ -377,9 +534,47 @@ function Login() {
                 ? "Please wait..."
                 : mode === "login"
                   ? "Sign in to Nestora"
-                  : "Create account"}
+                  : mode === "register"
+                    ? "Create account"
+                    : mode === "forgot"
+                      ? "Send reset link"
+                      : "Reset password"}
             </button>
           </form>
+
+          {mode === "login" && (
+            <button
+              type="button"
+              className="auth-inline-action"
+              onClick={() =>
+                changeMode("forgot")
+              }
+            >
+              Forgot password?
+            </button>
+          )}
+
+          {(
+            mode === "forgot" ||
+            mode === "reset"
+          ) && (
+            <button
+              type="button"
+              className="auth-inline-action"
+              onClick={() => {
+                navigate(
+                  "/login",
+                  {
+                    replace: true,
+                  },
+                );
+
+                changeMode("login");
+              }}
+            >
+              Back to sign in
+            </button>
+          )}
 
           <p className="auth-security-note">
             Your session is stored only for
