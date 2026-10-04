@@ -25,11 +25,10 @@ export default function ExecutiveHero({
       <div className="dashboard-v2-hero-content">
         <p className="eyebrow">Nestora AI</p>
 
-        <h1>{greeting}, Sam 👋</h1>
+        <h1>{greeting} 👋</h1>
 
         <p className="dashboard-v2-hero-copy">
-          Your AI has identified today&apos;s highest-value opportunities.
-          Review priorities, launch a mission, or continue your sales workflow.
+          Review your workspace CRM, priorities, and mission progress.
         </p>
 
         <div className="dashboard-v2-hero-actions">

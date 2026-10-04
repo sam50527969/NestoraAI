@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 
-import AgentStatus from "../../components/dashboard/AgentStatus";
 import ExecutiveBrief from "../../components/dashboard/ExecutiveBrief";
 import OpportunityPanel from "../../components/dashboard/OpportunityPanel";
 import QuickActions from "../../components/dashboard/QuickActions";
@@ -104,6 +103,7 @@ export default function DashboardV2() {
         <ExecutiveBrief
           currency={currency}
           pipelineValue={kpis.pipeline_value}
+          brief={dashboardSummary.ai_brief}
         />
 
         <OpportunityPanel
@@ -127,8 +127,6 @@ export default function DashboardV2() {
           }
         />
       </section>
-
-      <AgentStatus />
 
       <CEOSection />
 
