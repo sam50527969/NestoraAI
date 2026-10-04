@@ -77,11 +77,6 @@ def api_environment(
         session_factory,
     )
 
-    monkeypatch.setattr(
-        pipeline_service,
-        "SessionLocal",
-        session_factory,
-    )
 
     app = FastAPI()
     app.dependency_overrides[

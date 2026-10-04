@@ -42,11 +42,6 @@ def test_session_factory(
         session_factory,
     )
 
-    monkeypatch.setattr(
-        pipeline_service,
-        "SessionLocal",
-        session_factory,
-    )
 
     try:
         yield session_factory
