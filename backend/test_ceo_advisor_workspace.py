@@ -3,7 +3,11 @@ from datetime import datetime
 from app.agents.ceo_advisor import (
     build_ceo_brief,
 )
-from app.database.database import SessionLocal
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.database.metadata import metadata
+import app.agents.ceo_advisor as advisor
 from app.database.models import (
     AgentTask,
     Lead,
@@ -11,8 +15,18 @@ from app.database.models import (
 )
 
 
-def test_ceo_brief_is_scoped_to_business():
-    db = SessionLocal()
+@pytest.fixture
+def session_factory(tmp_path, monkeypatch):
+    engine = create_engine(f"sqlite:///{tmp_path / 'ceo.db'}")
+    metadata.create_all(engine)
+    factory = sessionmaker(bind=engine)
+    monkeypatch.setattr(advisor, "SessionLocal", factory)
+    yield factory
+    engine.dispose()
+
+
+def test_ceo_brief_is_scoped_to_business(session_factory):
+    db = session_factory()
 
     atlas_uid = "test_ceo_atlas"
     dental_uid = "test_ceo_dental"

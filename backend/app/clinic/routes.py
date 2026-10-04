@@ -3,6 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
+
 from app.clinic.schemas import ClinicLeadCreate, ClinicLeadResponse
 from app.clinic.service import ClinicService
 from app.database.database import get_db
@@ -21,10 +23,12 @@ router = APIRouter(
 )
 def create_clinic_lead(
     payload: ClinicLeadCreate,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ClinicLeadResponse:
     return ClinicService.create_lead(
         db=db,
+        business_uid=business_uid,
         payload=payload,
     )
 
@@ -35,10 +39,12 @@ def create_clinic_lead(
 )
 def list_clinic_leads(
     limit: int = Query(default=100, ge=1, le=500),
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> list[ClinicLeadResponse]:
     return ClinicService.list_leads(
         db=db,
+        business_uid=business_uid,
         limit=limit,
     )
 
@@ -48,9 +54,10 @@ def list_clinic_leads(
     response_model=list[ClinicLeadResponse],
 )
 def list_due_followups(
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> list[ClinicLeadResponse]:
-    return ClinicService.get_followups_due(db=db)
+    return ClinicService.get_followups_due(db=db, business_uid=business_uid)
 
 
 @router.patch(
@@ -59,10 +66,12 @@ def list_due_followups(
 )
 def mark_lead_contacted(
     lead_id: int,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ClinicLeadResponse:
     lead = ClinicService.mark_contacted(
         db=db,
+        business_uid=business_uid,
         lead_id=lead_id,
     )
 
@@ -81,10 +90,12 @@ def mark_lead_contacted(
 )
 def mark_appointment_booked(
     lead_id: int,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> ClinicLeadResponse:
     lead = ClinicService.mark_appointment_booked(
         db=db,
+        business_uid=business_uid,
         lead_id=lead_id,
     )
 

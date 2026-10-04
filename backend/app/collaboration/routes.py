@@ -9,6 +9,8 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.business.access import get_current_business_uid
+
 from app.collaboration.schemas import (
     CollaborationContributionCreate,
     CollaborationContributionResponse,
@@ -45,11 +47,15 @@ def collaboration_health() -> dict[str, str]:
 )
 def create_session(
     payload: CollaborationSessionCreate,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> CollaborationSessionResponse:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
-    session = service.create_session(payload)
+    try:
+        session = service.create_session(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return CollaborationSessionResponse(
         **service.serialize_session(session)
@@ -75,9 +81,10 @@ def list_sessions(
         ge=1,
         le=500,
     ),
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> CollaborationSessionListResponse:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
     sessions = service.list_sessions(
         mission_uid=mission_uid,
@@ -104,9 +111,10 @@ def list_sessions(
 )
 def get_session(
     session_uid: str,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> CollaborationSessionDetailResponse:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
     session = service.get_session(session_uid)
 
@@ -148,9 +156,10 @@ def get_session(
 def add_contribution(
     session_uid: str,
     payload: CollaborationContributionCreate,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> CollaborationContributionResponse:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
     contribution = service.add_contribution(
         session_uid,
@@ -177,9 +186,10 @@ def add_contribution(
 def close_session(
     session_uid: str,
     payload: CollaborationDecisionCreate,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> CollaborationSessionResponse:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
     session = service.close_session(
         session_uid,
@@ -203,9 +213,10 @@ def close_session(
 )
 def delete_session(
     session_uid: str,
+    business_uid: str = Depends(get_current_business_uid),
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
-    service = CollaborationService(db)
+    service = CollaborationService(db, business_uid)
 
     deleted = service.delete_session(session_uid)
 
