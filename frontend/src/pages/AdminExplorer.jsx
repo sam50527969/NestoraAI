@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 
 import {
-  API_BASE_URL,
-} from "../config/api";
+  getPersistedMissions,
+  getPersistedMissionTasks,
+} from "../api/mission";
+import useWorkspace from "../workspace/useWorkspace";
 
 import "./AdminExplorer.css";
 
@@ -289,7 +291,7 @@ function ExecutiveOutput({ outputData }) {
 }
 
 
-function AdminExplorer() {
+function AdminExplorerContent() {
   const [missions, setMissions] = useState([]);
   const [selectedMission, setSelectedMission] =
     useState(null);
@@ -314,22 +316,7 @@ function AdminExplorer() {
     setTaskError("");
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/missions/${missionUid}/tasks`
-      );
-
-      if (!response.ok) {
-        const errorPayload = await response
-          .json()
-          .catch(() => null);
-
-        throw new Error(
-          errorPayload?.detail ||
-            "Unable to load mission tasks."
-        );
-      }
-
-      const data = await response.json();
+      const data = await getPersistedMissionTasks(missionUid);
 
       setTasks(data.tasks || []);
     } catch (requestError) {
@@ -349,22 +336,7 @@ function AdminExplorer() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/missions?limit=100&offset=0`
-      );
-
-      if (!response.ok) {
-        const errorPayload = await response
-          .json()
-          .catch(() => null);
-
-        throw new Error(
-          errorPayload?.detail ||
-            "Unable to load persisted missions."
-        );
-      }
-
-      const data = await response.json();
+      const data = await getPersistedMissions();
       const loadedMissions = data.missions || [];
 
       setMissions(loadedMissions);
@@ -795,4 +767,7 @@ function AdminExplorer() {
 }
 
 
-export default AdminExplorer;
+export default function AdminExplorer() {
+  const { activeBusinessUid } = useWorkspace();
+  return <AdminExplorerContent key={activeBusinessUid || "none"} />;
+}
