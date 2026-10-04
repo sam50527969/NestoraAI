@@ -13,8 +13,9 @@ from app.collaboration.models import (
 
 
 class CollaborationRepository:
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: Session, business_uid: str) -> None:
         self._db = db
+        self._business_uid = business_uid
 
     def create_session(
         self,
@@ -27,6 +28,7 @@ class CollaborationRepository:
         shared_context: dict[str, Any],
     ) -> CollaborationSession:
         record = CollaborationSession(
+            business_uid=self._business_uid,
             title=title,
             objective=objective,
             mission_uid=mission_uid,
@@ -54,6 +56,7 @@ class CollaborationRepository:
         return (
             self._db.query(CollaborationSession)
             .filter(
+                CollaborationSession.business_uid == self._business_uid,
                 CollaborationSession.session_uid
                 == session_uid
             )
@@ -69,7 +72,7 @@ class CollaborationRepository:
     ) -> list[CollaborationSession]:
         query = self._db.query(
             CollaborationSession
-        )
+        ).filter(CollaborationSession.business_uid == self._business_uid)
 
         if mission_uid:
             query = query.filter(
@@ -132,9 +135,10 @@ class CollaborationRepository:
             self._db.query(
                 CollaborationContribution
             )
+            .join(CollaborationSession, CollaborationSession.session_uid == CollaborationContribution.session_uid)
             .filter(
-                CollaborationContribution.session_uid
-                == session_uid
+                CollaborationContribution.session_uid == session_uid,
+                CollaborationSession.business_uid == self._business_uid,
             )
             .order_by(
                 CollaborationContribution.created_at.asc()

@@ -23,6 +23,8 @@ class CollaborationSession(Base):
         index=True,
     )
 
+    business_uid = Column(String, nullable=True, index=True)
+
     session_uid = Column(
         String(64),
         unique=True,
