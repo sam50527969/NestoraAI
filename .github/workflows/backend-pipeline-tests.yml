@@ -44,21 +44,4 @@ jobs:
 
       - name: Run backend tests
         run: |
-          python -m pytest \
-            test_pipeline_synchronization.py \
-            test_pipeline_workflows.py \
-            test_crm_api.py \
-            test_follow_up_api.py \
-            test_outreach_api.py \
-            test_ceo_approvals_api.py \
-            test_search_api.py \
-            test_outreach_generation_api.py \
-            test_sales_ai_api.py \
-            test_website_api.py \
-            test_mission_api.py \
-            test_mission_events_api.py \
-            test_dashboard_api.py \
-            test_auth_api.py \
-            test_route_protection.py \
-            test_realtime_auth.py \
-            -v
+          python -m pytest -q

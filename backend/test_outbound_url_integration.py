@@ -1,4 +1,13 @@
-﻿import asyncio
+import asyncio
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def isolated_proxy_environment(monkeypatch):
+    # These rejection tests must not depend on the host proxy or SOCKS extras.
+    for name in ("ALL_PROXY", "all_proxy", "HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy"):
+        monkeypatch.delenv(name, raising=False)
+
 
 from app.services.competitor_enrichment.email_discovery import (
     discover_email,
