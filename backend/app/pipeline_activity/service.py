@@ -2,7 +2,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.database.database import SessionLocal
+from app.database.models import Lead
 from app.pipeline_activity.models import (
     PipelineActivity,
 )
@@ -55,37 +55,15 @@ def record_pipeline_activity(
 
 def list_pipeline_activities(
     *,
+    db: Session,
+    business_uid: str,
     lead_id: int | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
-    db = SessionLocal()
-
-    try:
-        query = db.query(
-            PipelineActivity
-        )
-
-        if lead_id is not None:
-            query = query.filter(
-                PipelineActivity.lead_id
-                == lead_id
-            )
-
-        activities = (
-            query.order_by(
-                PipelineActivity
-                .created_at.desc()
-            )
-            .limit(limit)
-            .all()
-        )
-
-        return [
-            serialize_pipeline_activity(
-                activity
-            )
-            for activity in activities
-        ]
-
-    finally:
-        db.close()
+    query = db.query(PipelineActivity).join(
+        Lead, Lead.id == PipelineActivity.lead_id,
+    ).filter(Lead.business_uid == business_uid)
+    if lead_id is not None:
+        query = query.filter(PipelineActivity.lead_id == lead_id)
+    activities = query.order_by(PipelineActivity.created_at.desc()).limit(limit).all()
+    return [serialize_pipeline_activity(activity) for activity in activities]

@@ -15,6 +15,8 @@ class ClinicLead(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    business_uid = Column(String, nullable=True, index=True)
+
     patient_name = Column(String(200), nullable=False)
 
     phone = Column(String(50), nullable=False)

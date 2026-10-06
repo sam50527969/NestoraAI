@@ -19,13 +19,24 @@ from app.collaboration.schemas import (
 
 
 class CollaborationService:
-    def __init__(self, db: Session) -> None:
-        self._repository = CollaborationRepository(db)
+    def __init__(self, db: Session, business_uid: str) -> None:
+        self._db = db
+        self._business_uid = business_uid
+        self._repository = CollaborationRepository(db, business_uid)
 
     def create_session(
         self,
         payload: CollaborationSessionCreate,
     ) -> CollaborationSession:
+        if payload.mission_uid:
+            from app.database.models import Mission
+            mission = self._db.query(Mission).filter(
+                Mission.mission_uid == payload.mission_uid,
+                Mission.business_uid == self._business_uid,
+            ).first()
+            if mission is None:
+                raise ValueError("Mission not found in the selected workspace.")
+
         participants = self._normalize_participants(
             owner=payload.owner,
             participants=payload.participants,

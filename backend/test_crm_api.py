@@ -133,11 +133,6 @@ def api_environment(
         user_uid
     )
 
-    monkeypatch.setattr(
-        pipeline_service,
-        "SessionLocal",
-        session_factory,
-    )
 
     app = FastAPI()
     app.include_router(crm_router)
