@@ -4,65 +4,6 @@ import Badge from "../ui/Badge";
 import Card from "../ui/Card";
 import "./AgentStatus.css";
 
-const DEFAULT_AGENTS = [
-  {
-    id: "ceo",
-    name: "CEO Agent",
-    role: "Strategy, planning and executive decisions",
-    department: "Executive Office",
-    status: "Online",
-    activity: "Monitoring business priorities",
-  },
-  {
-    id: "marketing",
-    name: "Marketing Executive",
-    role: "Campaign strategy and customer acquisition",
-    department: "Marketing",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-  {
-    id: "follow-up",
-    name: "Follow-up Executive",
-    role: "Lead nurturing and customer re-engagement",
-    department: "Customer Success",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-  {
-    id: "reception",
-    name: "Reception Executive",
-    role: "Customer communication and inquiry handling",
-    department: "Reception",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-  {
-    id: "finance",
-    name: "Finance Executive",
-    role: "Financial analysis and business performance",
-    department: "Finance",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-  {
-    id: "operations",
-    name: "Operations Executive",
-    role: "Workflow efficiency and operational planning",
-    department: "Operations",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-  {
-    id: "quality-control",
-    name: "Quality Control Executive",
-    role: "Output validation and quality assurance",
-    department: "Quality Control",
-    status: "Idle",
-    activity: "Ready for assignment",
-  },
-];
-
 function normalizeStatus(status) {
   return String(status || "Idle").trim().toLowerCase();
 }
@@ -95,7 +36,7 @@ function isAgentActive(status) {
 }
 
 export default function AgentStatus({
-  agents = DEFAULT_AGENTS,
+  agents = [],
   title = "AI Workforce Monitor",
   subtitle = "Live overview of Nestora's executive agents",
 }) {
